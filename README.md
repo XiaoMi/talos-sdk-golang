@@ -36,10 +36,17 @@ import (
 
 ```
 
-## Run consumer
+## Run consumerDemo
 
-We have an demo in example/TalosSimpleConsumerDemo.go and example/TalosConsumerDemo.go,
-users can run this demo after base information configured:
+We have an demo in example/TalosSimpleConsumerDemo.go and example/TalosConsumerDemo.go, users can run this demo.
+
+* Configured:
+
+simpleConsumer.conf -> TalosSimpleConsumerDemo.go
+
+talosConsumer.conf -> TalosConsumerDemo.go
+
+* Then:
 
 ```
 $ cd example
