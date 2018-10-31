@@ -4,7 +4,7 @@
 package main
 
 import (
-	"../../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"flag"
 	"fmt"
 	"math"
@@ -13,7 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"../../common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 )
 
 func Usage() {

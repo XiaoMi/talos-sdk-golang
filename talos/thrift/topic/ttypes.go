@@ -4,10 +4,10 @@
 package topic
 
 import (
-	"../../../talos/thrift/authorization"
-	"../../../talos/thrift/common"
-	"../../../talos/thrift/quota"
-	"../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/authorization"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/quota"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"bytes"
 	"fmt"
 )

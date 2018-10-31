@@ -4,7 +4,7 @@
 package errors
 
 import (
-	"../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"bytes"
 	"fmt"
 )

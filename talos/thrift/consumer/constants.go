@@ -4,9 +4,9 @@
 package consumer
 
 import (
-	"../../../talos/thrift/common"
-	"../../../talos/thrift/topic"
-	"../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"bytes"
 	"fmt"
 )

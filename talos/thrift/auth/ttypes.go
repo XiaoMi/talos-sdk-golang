@@ -4,9 +4,9 @@
 package auth
 
 import (
-	"../../../talos/thrift/common"
-	"../../../talos/thrift/errors"
-	"../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"bytes"
 	"fmt"
 )
