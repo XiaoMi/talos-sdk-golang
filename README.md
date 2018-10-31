@@ -1,13 +1,13 @@
 # Installing
 
-* Install your specific service package with the following go get command.
+Install your specific service package with the following go get command.
 You can install the entire SDK by installing the root package:
 
 `$ go get github.com/XiaoMi/talos-sdk-golang`
 
 # Configuring
 
-* Before using the Talos SDK, ensure that you've configured credential and base information.
+Before using the Talos SDK, ensure that you've configured credential and base information.
 You can get the necessary information by registering on [Xiaomi fusion cloud UI]().
 To configure information, you may use codes like this:
 
@@ -17,8 +17,9 @@ appKey := "MY-APP-KEY"
 appSecret := "MY-SECRET-KEY"
 userType := auth.UserType_APP_SECRET
 credential := auth.Credential{&userType, &appKey, &appSecret}
+```
 
-* Configure your log format and its level, log will output to current path by default.
+Configure your log format and its level, log will output to current path by default.
 
 # Usages
 
@@ -45,3 +46,7 @@ $ cd example
 $ go get
 $ go run TalosConsumerDemo.go
 ```
+
+# Talos Book
+
+  [Talos Wiki](http://docs.api.xiaomi.com/talos/index.html)
