@@ -13,15 +13,15 @@ import (
 	"runtime"
 	"time"
 
-	"../thrift/common"
-	"../thrift/consumer"
-	"../thrift/message"
-	"../thrift/topic"
-	"../thrift/quota"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/quota"
 
-	"../thrift/auth"
-	"../../thrift"
-	"../thrift/errors"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
 	log "github.com/alecthomas/log4go"
 )
 

@@ -7,7 +7,7 @@
 package client
 
 import (
-  "../thrift/topic"
+  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
   log "github.com/alecthomas/log4go"
 )
 

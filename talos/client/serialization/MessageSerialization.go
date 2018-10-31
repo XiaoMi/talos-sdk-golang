@@ -9,7 +9,7 @@ package serialization
 import (
 	"bytes"
 
-	"../../thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	log "github.com/alecthomas/log4go"
 )
 

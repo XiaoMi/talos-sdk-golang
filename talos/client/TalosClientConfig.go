@@ -7,7 +7,7 @@
 package client
 
 import (
-	"../utils"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"strconv"
 )
 

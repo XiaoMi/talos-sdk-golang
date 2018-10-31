@@ -11,8 +11,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"../../thrift/message"
-	"../../../thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 
 	log "github.com/alecthomas/log4go"
 )

@@ -8,8 +8,8 @@ package client
 
 import (
 	"fmt"
-	"../thrift/errors"
-	"../thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 )
 
 type TalosErrorCodePeeker interface {

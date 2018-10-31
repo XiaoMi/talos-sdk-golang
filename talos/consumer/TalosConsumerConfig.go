@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"github.com/XiaoMi/talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	log "github.com/alecthomas/log4go"
 )
 

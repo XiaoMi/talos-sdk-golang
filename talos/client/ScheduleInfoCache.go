@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"../thrift/message"
-	"../thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 
 	log "github.com/alecthomas/log4go"
 )

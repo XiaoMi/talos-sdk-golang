@@ -16,7 +16,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	"github.com/XiaoMi/talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 
 	log "github.com/alecthomas/log4go"
