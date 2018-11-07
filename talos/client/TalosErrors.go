@@ -1,15 +1,15 @@
 /**
  * Copyright 2018, Xiaomi.
  * All rights reserved.
- * Author: wangfan8@xiaomi.com  
-*/
+ * Author: wangfan8@xiaomi.com
+ */
 
 package client
 
 import (
 	"fmt"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
 )
 
 type TalosErrorCodePeeker interface {
@@ -41,7 +41,7 @@ func (e *TalosRuntimeError) Error() string {
 }
 
 func NewTalosTransportError(httpStatusCode errors.HttpStatusCode,
-		errorMessage string, timestamp int64) *TalosTransportError {
+	errorMessage string, timestamp int64) *TalosTransportError {
 	errorCode := errors.ErrorCode_UNKNOWN
 	if httpStatusCode == errors.HttpStatusCode_INVALID_AUTH {
 		errorCode = errors.ErrorCode_INVALID_AUTH

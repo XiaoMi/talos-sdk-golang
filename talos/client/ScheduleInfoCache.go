@@ -218,4 +218,3 @@ func (c *ScheduleInfoCache) Shutdown(topicTalosResourceName *topic.TopicTalosRes
 	log.Info("scheduleInfoCache of %s shutdown.",
 		topicTalosResourceName.GetTopicTalosResourceName())
 }
-

@@ -107,8 +107,8 @@ const (
 	GALAXY_TALOS_CONSUMER_OUT_OF_RANGE_RESET_LATEST_OFFSET_DEFAULT = false
 
 	/**
- * The consumer checkpoint auto commit;
- */
+	 * The consumer checkpoint auto commit;
+	 */
 	GALAXY_TALOS_CONSUMER_CHECKPOINT_AUTO_COMMIT         = "galaxy.talos.consumer.checkpoint.auto.commit"
 	GALAXY_TALOS_CONSUMER_CHECKPOINT_AUTO_COMMIT_DEFAULT = true
 
@@ -134,6 +134,4 @@ const (
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_VALUE    = "galaxy.talos.consumer.start.reset.offset.value"
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_START = -1
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_END   = -2
-
-
 )

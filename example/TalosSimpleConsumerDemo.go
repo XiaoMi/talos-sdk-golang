@@ -7,15 +7,15 @@
 package main
 
 import (
-	"time"
 	"flag"
+	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 
 	log "github.com/alecthomas/log4go"
 )

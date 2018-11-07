@@ -16,12 +16,12 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/quota"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	log "github.com/alecthomas/log4go"
 )
 
@@ -55,9 +55,9 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 	}
 	return TalosClientFactory{
 		talosClientConfig: ClientConfig,
-		credential: credential,
-		httpClient: httpClient,
-		agent: agent}
+		credential:        credential,
+		httpClient:        httpClient,
+		agent:             agent}
 }
 
 func (cf *TalosClientFactory) NewTopicClient(url string) topic.TopicService {
@@ -475,24 +475,24 @@ func (p *ConsumerClientProxy) QueryWorker(request *consumer.
  * quota client proxy
  */
 type QuotaClientProxy struct {
-  factory     *TalosHttpClientTransportFactory
-  clockOffset int64
+	factory     *TalosHttpClientTransportFactory
+	clockOffset int64
 }
 
 func (p *QuotaClientProxy) GetServiceVersion() (v *common.Version, err error) {
-  transport := p.factory.GetTransportWithClockOffset(nil,
-    p.clockOffset, "type=getServerVersion")
-  defer transport.Close()
-  client := quota.NewQuotaServiceClientFactory(transport,
-    thrift.NewTCompactProtocolFactory())
-  return client.GetServiceVersion()
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getServerVersion")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetServiceVersion()
 }
 
 func (p *QuotaClientProxy) ValidClientVersion(v *common.Version) (err error) {
-  transport := p.factory.GetTransportWithClockOffset(nil,
-    p.clockOffset, "type=validClientVersion")
-  defer transport.Close()
-  client := quota.NewQuotaServiceClientFactory(transport,
-    thrift.NewTCompactProtocolFactory())
-  return client.ValidClientVersion(v)
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=validClientVersion")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ValidClientVersion(v)
 }

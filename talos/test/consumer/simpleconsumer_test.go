@@ -7,17 +7,17 @@
 package consumer
 
 import (
-  "testing"
+	"testing"
 
-  "github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
-  "github.com/XiaoMi/talos-sdk-golang/talos/consumer"
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-  "github.com/XiaoMi/talos-sdk-golang/talos/utils"
-  "github.com/XiaoMi/talos-sdk-golang/talos/test/mock_message"
-  "github.com/golang/mock/gomock"
-  "github.com/stretchr/testify/assert"
-  log "github.com/alecthomas/log4go"
+	"github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
+	"github.com/XiaoMi/talos-sdk-golang/talos/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/test/mock_message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
+	log "github.com/alecthomas/log4go"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -45,7 +45,7 @@ func setUpConsumer() *consumer.SimpleConsumer {
 	messageClient = &message.MessageServiceClient{}
 	//scheduleInfoCache := &client.ScheduleInfoCache{}
 	simpleConsumer := consumer.NewSimpleConsumerForTest(consumerConfig,
-	  topicAndPartition, messageClient)
+		topicAndPartition, messageClient)
 	return simpleConsumer
 }
 
@@ -90,7 +90,7 @@ func setUpResponse(t *testing.T) (*message.GetMessageResponse, []*message.Messag
 }
 
 func TestClientPrefixIllegal(t *testing.T) {
-  defer log.Close()
+	defer log.Close()
 	properties := utils.NewProperties()
 	properties.SetProperty("galaxy.talos.service.endpoint", "testUrl")
 	consumerConfig, _ := consumer.NewTalosConsumerConfigByProperties(properties)
@@ -208,12 +208,12 @@ func TestFetchMessage(t *testing.T) {
 		mockMessageClient)
 
 	//verify fetched message
-	msgList , e := simpleConsumer4.FetchMessage(startOffset, consumerConfig.GetMaxFetchRecords())
+	msgList, e := simpleConsumer4.FetchMessage(startOffset, consumerConfig.GetMaxFetchRecords())
 	assert.Equal(t, nil, e)
 	for i := 0; i < len(msgList); i++ {
 		assert.Equal(t, messageAndOffsetList[i].GetMessage(), msgList[i].GetMessage())
 		assert.Equal(t, messageAndOffsetList[i].GetMessageOffset(), msgList[i].GetMessageOffset())
-		assert.Equal(t, msgList[i].GetUnHandledMessageNumber(), unHandledNumber + int64(len(msgList)) - 1 - int64(i))
+		assert.Equal(t, msgList[i].GetUnHandledMessageNumber(), unHandledNumber+int64(len(msgList))-1-int64(i))
 	}
 
 	//fetch too many
@@ -221,16 +221,15 @@ func TestFetchMessage(t *testing.T) {
 	assert.Equal(t, []*message.MessageAndOffset(nil), msgList1)
 	assert.NotEqual(t, nil, e)
 
-
 	//fetch message in middle offset
 	messageAndOffsetList = messageAndOffsetList[1:]
 
-	msgList2, e := simpleConsumer4.FetchMessage(startOffset + 1, 100)
+	msgList2, e := simpleConsumer4.FetchMessage(startOffset+1, 100)
 	assert.Nil(t, e)
 	for i := 0; i < len(msgList2); i++ {
 		assert.Equal(t, messageAndOffsetList[i].GetMessage(), msgList2[i].GetMessage())
 		assert.Equal(t, messageAndOffsetList[i].GetMessageOffset(), msgList2[i].GetMessageOffset())
-		assert.Equal(t, msgList[i].GetUnHandledMessageNumber(), unHandledNumber + int64(len(msgList)) - 1 - int64(i))
+		assert.Equal(t, msgList[i].GetUnHandledMessageNumber(), unHandledNumber+int64(len(msgList))-1-int64(i))
 	}
 
 }

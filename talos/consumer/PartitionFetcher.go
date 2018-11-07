@@ -76,10 +76,10 @@ type PartitionFetcher struct {
 	consumerClient         consumer.ConsumerService
 	curState               TaskState
 
-	topicAndPartition     *topic.TopicAndPartition
-	simpleConsumer        *SimpleConsumer
-	messageReader         *TalosMessageReader
-	wg                    *sync.WaitGroup
+	topicAndPartition *topic.TopicAndPartition
+	simpleConsumer    *SimpleConsumer
+	messageReader     *TalosMessageReader
+	wg                *sync.WaitGroup
 }
 
 func NewPartitionFetcher(consumerGroup string, topicName string,
@@ -92,7 +92,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 	topicAndpartition := &topic.TopicAndPartition{
 		TopicName:              topicName,
 		TopicTalosResourceName: topicTalosResourceName,
-		PartitionId:						partitionId,
+		PartitionId:            partitionId,
 	}
 	simpleConsumer := NewSimpleConsumer(talosConsumerConfig, topicAndpartition,
 		messageClient, "")
@@ -177,7 +177,7 @@ func (f *PartitionFetcher) GetCurState() TaskState {
 }
 
 func (f *PartitionFetcher) updateState(targetState TaskState) bool {
-  f.wg.Add(1)
+	f.wg.Add(1)
 	defer f.wg.Done()
 	log.Info("PartitionFetcher for Partition: %d update status from: %s to %s",
 		f.partitionId, f.curState.String(), targetState.String())
@@ -216,8 +216,8 @@ func (f *PartitionFetcher) updateState(targetState TaskState) bool {
 
 func (f *PartitionFetcher) Lock() {
 	if f.updateState(LOCKED) {
-    f.wg.Add(1)
-    go f.fetcherStateMachine()
+		f.wg.Add(1)
+		go f.fetcherStateMachine()
 		log.Info("Worker: %s invoke partition: %d to 'LOCKED', try to serve it.",
 			f.workerId, f.partitionId)
 	}
@@ -235,7 +235,7 @@ func (f *PartitionFetcher) Shutdown() {
 	f.updateState(UNLOCKING)
 	log.Info("Worker: %s try to shutdown partition: %d",
 		f.workerId, f.partitionId)
-  f.wg.Wait()
+	f.wg.Wait()
 	f.updateState(SHUTDOWNED)
 }
 

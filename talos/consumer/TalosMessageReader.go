@@ -7,16 +7,16 @@
 package consumer
 
 import (
-  "sync/atomic"
-  "time"
+	"sync/atomic"
+	"time"
 
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/consumer"
-  "github.com/XiaoMi/talos-sdk-golang/talos/utils"
-  log "github.com/alecthomas/log4go"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
+	log "github.com/alecthomas/log4go"
 )
 
 type TalosMessageReader struct {
-  *MessageReader
+	*MessageReader
 }
 
 func NewTalosMessageReader(config *TalosConsumerConfig) *TalosMessageReader {
@@ -31,7 +31,7 @@ func (r *TalosMessageReader) InitStartOffset() error {
 	var err error
 	if r.outerCheckpoint.Valid && r.outerCheckpoint.Value >= 0 {
 		readingStartOffset = r.outerCheckpoint.Value
-    // Long struct build for burning outerCheckpoint after the first reading
+		// Long struct build for burning outerCheckpoint after the first reading
 		r.outerCheckpoint.Valid = false
 	} else {
 		readingStartOffset, err = r.queryStartOffset()
@@ -56,8 +56,8 @@ func (r *TalosMessageReader) InitStartOffset() error {
 		r.finishedOffset = r.lastCommitOffset
 	}
 	log.Info("Init startOffset: %d lastCommitOffset: %d for partition: %d ",
-	  atomic.LoadInt64(r.startOffset), r.lastCommitOffset,
-	  r.topicAndPartition.GetPartitionId())
+		atomic.LoadInt64(r.startOffset), r.lastCommitOffset,
+		r.topicAndPartition.GetPartitionId())
 	r.messageProcessor.Init(r.topicAndPartition, atomic.LoadInt64(r.startOffset))
 	return nil
 }
@@ -73,8 +73,8 @@ func (r *TalosMessageReader) CommitCheckPoint() error {
 
 func (r *TalosMessageReader) FetchData() {
 	// control fetch qps
-	if utils.CurrentTimeMills() - r.lastFetchTime < r.fetchInterval {
-    sleepTime := r.lastFetchTime + r.fetchInterval - utils.CurrentTimeMills()
+	if utils.CurrentTimeMills()-r.lastFetchTime < r.fetchInterval {
+		sleepTime := r.lastFetchTime + r.fetchInterval - utils.CurrentTimeMills()
 		time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 	}
 
@@ -82,14 +82,14 @@ func (r *TalosMessageReader) FetchData() {
 	log.Debug("Reading message from offset: %d of partition: %d ",
 		atomic.LoadInt64(r.startOffset), r.topicAndPartition.GetPartitionId())
 	messageList, err := r.simpleConsumer.FetchMessage(
-	  atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
-  if err != nil {
-    log.Error("Reading message from topic: %v of partition: %d failed: %s",
-      r.topicAndPartition.GetTopicTalosResourceName(),
-      r.topicAndPartition.GetPartitionId(), err.Error())
-    r.lastFetchTime = utils.CurrentTimeMills()
-    return
-  }
+		atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
+	if err != nil {
+		log.Error("Reading message from topic: %v of partition: %d failed: %s",
+			r.topicAndPartition.GetTopicTalosResourceName(),
+			r.topicAndPartition.GetPartitionId(), err.Error())
+		r.lastFetchTime = utils.CurrentTimeMills()
+		return
+	}
 	r.lastFetchTime = utils.CurrentTimeMills()
 	//return when no message get
 	if messageList == nil || len(messageList) == 0 {
@@ -106,9 +106,9 @@ func (r *TalosMessageReader) FetchData() {
 
 	if r.ShouldCommit() {
 		if err = r.innerCheckpoint(); err != nil {
-      // when commitOffset failed, we just do nothing;
-		  log.Error("commit offset error: %s, we skip to it.", err.Error())
-    }
+			// when commitOffset failed, we just do nothing;
+			log.Error("commit offset error: %s, we skip to it.", err.Error())
+		}
 	}
 }
 
@@ -124,7 +124,7 @@ func (r *TalosMessageReader) queryStartOffset() (int64, error) {
 	}
 	committedOffset := queryOffsetResponse.GetMsgOffset()
 	// 'committedOffset == -1' means not exist last committed offset
-  // startOffset = committedOffset + 1
+	// startOffset = committedOffset + 1
 	if committedOffset == -1 {
 		return committedOffset, nil
 	} else {
@@ -163,7 +163,7 @@ func (r *TalosMessageReader) Checkpoint(messageOffset int64) bool {
 	err := r.commitOffset(messageOffset)
 	if err != nil {
 		log.Error("Error: %s when getting messages from topic: %v, partition: %d",
-      err.Error(), r.topicAndPartition.GetTopicTalosResourceName(),
+			err.Error(), r.topicAndPartition.GetTopicTalosResourceName(),
 			r.topicAndPartition.GetPartitionId())
 		return false
 	}
@@ -172,17 +172,17 @@ func (r *TalosMessageReader) Checkpoint(messageOffset int64) bool {
 
 func (r *TalosMessageReader) commitOffset(messageOffset int64) error {
 	checkPoint := &consumer.CheckPoint{
-	  ConsumerGroup: r.consumerGroup,
-	  TopicAndPartition: r.topicAndPartition,
-		MsgOffset: messageOffset,
-	  WorkerId: r.workerId,
+		ConsumerGroup:     r.consumerGroup,
+		TopicAndPartition: r.topicAndPartition,
+		MsgOffset:         messageOffset,
+		WorkerId:          r.workerId,
 	}
 	// check whether to check last commit offset, first commit don't check
 	if r.lastCommitOffset != -1 && r.consumerConfig.GetCheckLastCommitOffset() {
 		checkPoint.LastCommitOffset = &r.lastCommitOffset
 	}
 
-  updateOffsetRequest := &consumer.UpdateOffsetRequest{Checkpoint: checkPoint}
+	updateOffsetRequest := &consumer.UpdateOffsetRequest{Checkpoint: checkPoint}
 	updateOffsetResponse, err := r.consumerClient.UpdateOffset(updateOffsetRequest)
 	if err != nil {
 		log.Error("UpdateOffset error: %s", err.Error())
@@ -203,12 +203,12 @@ func (r *TalosMessageReader) commitOffset(messageOffset int64) error {
 }
 
 func (r *TalosMessageReader) CleanReader() {
-  // wait task quit gracefully: stop reading, commit offset, clean and shutdown
-  if r.finishedOffset > r.lastCommitOffset {
-    if err := r.CommitCheckPoint(); err != nil {
-      log.Error("Topic: %s, partition: %d commit offset error: %s",
-        r.topicAndPartition.GetTopicTalosResourceName(),
-        r.topicAndPartition.GetPartitionId(), err.Error())
-    }
-  }
+	// wait task quit gracefully: stop reading, commit offset, clean and shutdown
+	if r.finishedOffset > r.lastCommitOffset {
+		if err := r.CommitCheckPoint(); err != nil {
+			log.Error("Topic: %s, partition: %d commit offset error: %s",
+				r.topicAndPartition.GetTopicTalosResourceName(),
+				r.topicAndPartition.GetPartitionId(), err.Error())
+		}
+	}
 }

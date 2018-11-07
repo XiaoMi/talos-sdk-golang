@@ -13,12 +13,11 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-
 	log "github.com/alecthomas/log4go"
 )
 
@@ -69,8 +68,8 @@ func main() {
 	// init client config by put $your_propertyFile in your classpath
 	// with the content of:
 	/*
-    galaxy.talos.service.endpoint=$talosServiceURI
-  */
+	   galaxy.talos.service.endpoint=$talosServiceURI
+	*/
 	var propertyFilename string
 	flag.StringVar(&propertyFilename, "conf", "talosConsumer.conf", "conf: talosConsumer.conf'")
 	flag.Parse()

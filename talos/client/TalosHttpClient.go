@@ -20,26 +20,26 @@
 package client
 
 import (
-  "bytes"
-  "crypto/hmac"
-  "crypto/md5"
-  "crypto/sha1"
-  "encoding/base64"
-  "fmt"
-  "io"
-  "net/http"
-  "net/url"
-  "sort"
-  "strconv"
-  "strings"
-  "time"
+	"bytes"
+	"crypto/hmac"
+	"crypto/md5"
+	"crypto/sha1"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
-  "github.com/XiaoMi/talos-sdk-golang/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 
-  log "github.com/alecthomas/log4go"
-  "github.com/nu7hatch/gouuid"
+	log "github.com/alecthomas/log4go"
+	"github.com/nu7hatch/gouuid"
 )
 
 type TalosHttpClient struct {
@@ -244,7 +244,7 @@ func (p *TalosHttpClient) Flush() error {
 			serverTime = time.Now().Unix()
 		}
 		log.Error("HTTP status: %s, failed to exec http request: %v",
-      response.Status, req)
+			response.Status, req)
 		return NewTalosTransportError(errors.HttpStatusCode(int64(response.StatusCode)),
 			response.Status, serverTime)
 	}

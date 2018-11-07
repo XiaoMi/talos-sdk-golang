@@ -20,9 +20,9 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
 
+	"errors"
 	log "github.com/alecthomas/log4go"
 	"github.com/nu7hatch/gouuid"
-	"errors"
 )
 
 /**
@@ -135,8 +135,8 @@ func CheckNameValidity(str string) error {
 	matchBody, _ := regexp.MatchString(common.TALOS_NAME_BODY_REGEX, str)
 	matchWrongHead, _ := regexp.MatchString(common.TALOS_NAME_HEAD_REGEX, str)
 	if !(matchBody && !matchWrongHead) || len(str) > 80 {
-		err := fmt.Errorf("invalid string: %s. Its only with regex set:" +
-			" [a-zA-Z0-9_-] and cannot start with '_' or '-'," +
+		err := fmt.Errorf("invalid string: %s. Its only with regex set:"+
+			" [a-zA-Z0-9_-] and cannot start with '_' or '-',"+
 			" and must be less than 80 ", str)
 		return err
 	}
@@ -162,7 +162,7 @@ func CheckStartOffsetValidity(startOffset int64) error {
 		startOffset == int64(message.MessageOffset_LATEST_OFFSET) {
 		return nil
 	} else {
-		err := fmt.Errorf("invalid startOffset: %d. It must be greater than " +
+		err := fmt.Errorf("invalid startOffset: %d. It must be greater than "+
 			"or equal to 0, or equal to Message_START_OFFSET/LATEST_OFFSET", startOffset)
 		return err
 	}
@@ -181,8 +181,8 @@ func CurrentTimeMills() int64 {
 }
 
 func serialize(tStruct thrift.TStruct) ([]byte, error) {
-  transport := thrift.NewTMemoryBufferLen(1024)
-  protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
-  serializer := thrift.TSerializer{Transport:transport, Protocol:protocol}
-  return serializer.Write(tStruct)
+	transport := thrift.NewTMemoryBufferLen(1024)
+	protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
+	serializer := thrift.TSerializer{Transport: transport, Protocol: protocol}
+	return serializer.Write(tStruct)
 }
