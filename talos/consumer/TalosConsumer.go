@@ -411,8 +411,13 @@ func (c *TalosConsumer) getIdlePartitions() []int32 {
 	}
 
 	for _, partitionIdList := range c.workerInfoMap {
-		for k := range partitionIdList {
-			idlePartitions = append(idlePartitions[:k], idlePartitions[k+1:]...)
+		for _, servePartitionId := range partitionIdList {
+			for j, idlePartitionId := range idlePartitions  {
+				if servePartitionId == idlePartitionId {
+					idlePartitions = append(idlePartitions[:j], idlePartitions[j+1:]...)
+					break
+				}
+			}
 		}
 	}
 	c.readWriteLock.Unlock()
