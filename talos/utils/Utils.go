@@ -180,9 +180,20 @@ func CurrentTimeMills() int64 {
 	return time.Now().UnixNano() / 1000000
 }
 
-func serialize(tStruct thrift.TStruct) ([]byte, error) {
+func Serialize(tStruct thrift.TStruct) ([]byte, error) {
 	transport := thrift.NewTMemoryBufferLen(1024)
 	protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
 	serializer := thrift.TSerializer{Transport: transport, Protocol: protocol}
 	return serializer.Write(tStruct)
+}
+
+func HashCode(value []rune) int {
+	h := 0
+	if len(value) > 0 {
+		val := value
+		for i := 0; i < len(value); i++ {
+			h = 31 * h + int(val[i])
+		}
+	}
+	return h
 }
