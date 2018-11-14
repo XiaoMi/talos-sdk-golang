@@ -12,7 +12,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
-
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	log "github.com/alecthomas/log4go"
 )
 
@@ -116,4 +116,21 @@ func (r *MessageReader) GetCurCheckpoint() int64 {
 func (r *MessageReader) ShouldCommit() bool {
 	return (utils.CurrentTimeMills()-r.lastCommitTime >= r.commitInterval) ||
 		(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
+}
+
+func (r *MessageReader) processFetchException(err error) {
+	if r.consumerConfig.resetLatestOffsetWhenOutOfRange {
+		log.Warn("Got PartitionOutOfRange error, offset by current latest offset.")
+		atomic.StoreInt64(r.startOffset, int64(message.MessageOffset_LATEST_OFFSET))
+		r.lastCommitOffset = -1
+		r.finishedOffset = -1
+		r.lastCommitTime = utils.CurrentTimeMills()
+	} else {
+		log.Warn("Got PartitionOutOfRange error, reset offset by current start offset.")
+		atomic.StoreInt64(r.startOffset, int64(message.MessageOffset_START_OFFSET))
+		r.lastCommitOffset = -1
+		r.finishedOffset = -1
+		r.lastCommitTime = utils.CurrentTimeMills()
+	}
+	log.Warn("process unexcepted fetchException: %s", err.Error())
 }
