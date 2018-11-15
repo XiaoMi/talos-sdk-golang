@@ -4,11 +4,11 @@
 package auth
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/errors"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
-	"bytes"
-	"fmt"
 )
 
 // (needed to ensure safety because of naive import list construction.)

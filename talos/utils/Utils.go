@@ -14,16 +14,15 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+  "errors"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
-
-	"errors"
+	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	log "github.com/alecthomas/log4go"
 	"github.com/nu7hatch/gouuid"
-	"../client"
 )
 
 /**
@@ -40,7 +39,6 @@ func NewProperties() *Properties {
 }
 
 func LoadProperties(filename string) *Properties {
-	log.AddFilter("stdout", log.DEBUG, log.NewConsoleLogWriter())
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -215,7 +213,5 @@ func IsOffsetOutOfRange(err *client.TalosRuntimeError) bool {
 }
 
 func IsUnexpectedError(err *client.TalosRuntimeError) bool {
-  return err.ErrorCode == common.ErrorCode_UNEXPECTED_ERROR
+	return err.ErrorCode == common.ErrorCode_UNEXPECTED_ERROR
 }
-
-

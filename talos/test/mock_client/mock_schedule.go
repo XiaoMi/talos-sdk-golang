@@ -5,9 +5,9 @@
 package mock_client
 
 import (
-  x "github.com/XiaoMi/talos-sdk-golang/talos/client/"
-  message "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-  topic "github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
+	x "github.com/XiaoMi/talos-sdk-golang/talos/client/"
+	message "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	topic "github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

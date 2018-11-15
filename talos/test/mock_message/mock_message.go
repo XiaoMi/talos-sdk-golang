@@ -5,8 +5,8 @@
 package mock_message
 
 import (
-	x "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	common "github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	x "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

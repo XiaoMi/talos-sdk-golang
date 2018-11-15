@@ -4,16 +4,16 @@
 package main
 
 import (
-	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"flag"
 	"fmt"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"math"
 	"net"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 )
 
 func Usage() {

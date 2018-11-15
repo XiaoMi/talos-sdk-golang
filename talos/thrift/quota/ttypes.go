@@ -4,10 +4,10 @@
 package quota
 
 import (
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
-	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"bytes"
 	"fmt"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)

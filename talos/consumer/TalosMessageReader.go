@@ -94,12 +94,12 @@ func (r *TalosMessageReader) FetchData() {
 	r.lastFetchTime = utils.CurrentTimeMills()
 	//return and check should commit when no message get
 	if messageList == nil || len(messageList) == 0 {
-    if r.ShouldCommit() {
-      err := r.innerCheckpoint()
-      if err != nil {
-        log.Error("commit offset error: %s, we skip to it.", err.Error())
-      }
-    }
+		if r.ShouldCommit() {
+			err := r.innerCheckpoint()
+			if err != nil {
+				log.Error("commit offset error: %s, we skip to it.", err.Error())
+			}
+		}
 		return
 	}
 

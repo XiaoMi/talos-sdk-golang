@@ -166,7 +166,7 @@ func (p *TJSONProtocol) WriteSetEnd() error {
 func (p *TJSONProtocol) WriteBool(b bool) error {
 	if b {
 		return p.WriteI32(1)
-    }
+	}
 	return p.WriteI32(0)
 }
 
@@ -341,7 +341,7 @@ func (p *TJSONProtocol) ReadSetEnd() error {
 }
 
 func (p *TJSONProtocol) ReadBool() (bool, error) {
-	value, err := p.ReadI32(); 
+	value, err := p.ReadI32()
 	return (value != 0), err
 }
 

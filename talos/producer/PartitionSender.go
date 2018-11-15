@@ -69,18 +69,18 @@ func (s *PartitionSender) Shutdown() {
 }
 
 func (s *PartitionSender) MessageCallbackTask(userMessageResult *UserMessageResult) {
-  s.userMessageResult = userMessageResult
+	s.userMessageResult = userMessageResult
 	if s.userMessageResult.IsSuccessful() {
-    s.userMessageCallback.OnSuccess(s.userMessageResult)
+		s.userMessageCallback.OnSuccess(s.userMessageResult)
 	} else {
-    s.userMessageCallback.OnError(s.userMessageResult)
-  }
+		s.userMessageCallback.OnError(s.userMessageResult)
+	}
 }
 
 func (s *PartitionSender) MessageWriterTask() {
-  s.simpleProducer = NewSimpleProducer(s.talosProducerConfig,
-    s.topicAndPartition, nil, s.messageClient, s.clientId, s.requestId)
-  for true {
-    messageList := s.partitionMessageQueue
-  }
+	s.simpleProducer = NewSimpleProducer(s.talosProducerConfig,
+		s.topicAndPartition, nil, s.messageClient, s.clientId, s.requestId)
+	for true {
+		messageList := s.partitionMessageQueue
+	}
 }
