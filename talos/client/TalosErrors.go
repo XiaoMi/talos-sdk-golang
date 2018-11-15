@@ -23,30 +23,6 @@ type TalosTransportError struct {
 	ServerTime     int64
 }
 
-type TalosRuntimeError struct {
-	ErrorCode common.ErrorCode
-	error
-}
-
-func NewTalosRuntimeError(errCode common.ErrorCode, err error) *TalosRuntimeError {
-	return &TalosRuntimeError{
-		ErrorCode: errCode,
-		error:     err,
-	}
-}
-
-func (e *TalosRuntimeError) GetErrorCode() common.ErrorCode {
-	return e.ErrorCode
-}
-
-func (e *TalosRuntimeError) Error() string {
-	if e == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("Talos runtime error, ErrorCode: %s, ErrorMessage: %s",
-		e.ErrorCode, e.error.Error())
-}
-
 func NewTalosTransportError(httpStatusCode errors.HttpStatusCode,
 	errorMessage string, timestamp int64) *TalosTransportError {
 	errorCode := errors.ErrorCode_UNKNOWN

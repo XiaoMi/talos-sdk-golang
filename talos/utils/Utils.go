@@ -8,19 +8,18 @@ package utils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
-  "errors"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
-	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	log "github.com/alecthomas/log4go"
 	"github.com/nu7hatch/gouuid"
 )
@@ -82,6 +81,31 @@ func (p *Properties) SetProperty(key, value string) *Properties {
 	return p
 }
 
+// GalaxyTalosException
+type TalosRuntimeError struct {
+	ErrorCode common.ErrorCode
+	error
+}
+
+func NewTalosRuntimeError(errCode common.ErrorCode, err error) *TalosRuntimeError {
+	return &TalosRuntimeError{
+		ErrorCode: errCode,
+		error:     err,
+	}
+}
+
+func (e *TalosRuntimeError) GetErrorCode() common.ErrorCode {
+	return e.ErrorCode
+}
+
+func (e *TalosRuntimeError) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Talos runtime error, ErrorCode: %s, ErrorMessage: %s",
+		e.ErrorCode, e.error.Error())
+}
+
 /**
  * The format of valid resource name is: ownerId#topicName#UUID
  * Note the 'ownerId' may contains the symbol '#',
@@ -107,12 +131,12 @@ func CheckArgument(expr bool) error {
 	return nil
 }
 
-func CheckParameterRange(parameter string, value int64, min int64, max int64) *client.TalosRuntimeError {
+func CheckParameterRange(parameter string, value int64, min int64, max int64) *TalosRuntimeError {
 	if value < min || value > max {
 		errCode := common.ErrorCode_INVALID_TOPIC_PARAMS
 		err := fmt.Errorf("%s should be in range [%d,%d], got: %d ",
 			parameter, min, max, value)
-		return client.NewTalosRuntimeError(errCode, err)
+		return NewTalosRuntimeError(errCode, err)
 	}
 	return nil
 }
@@ -157,7 +181,7 @@ func CheckAndGenerateClientId(prefix string) (string, error) {
 	return prefix + GenerateClientId(), nil
 }
 
-func CheckStartOffsetValidity(startOffset int64) *client.TalosRuntimeError {
+func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 	if startOffset >= 0 || startOffset == int64(message.MessageOffset_START_OFFSET) ||
 		startOffset == int64(message.MessageOffset_LATEST_OFFSET) {
 		return nil
@@ -165,14 +189,14 @@ func CheckStartOffsetValidity(startOffset int64) *client.TalosRuntimeError {
 		errCode := common.ErrorCode_UNEXPECTED_MESSAGE_OFFSET
 		err := fmt.Errorf("invalid startOffset: %d. It must be greater than "+
 			"or equal to 0, or equal to Message_START_OFFSET/LATEST_OFFSET", startOffset)
-		return client.NewTalosRuntimeError(errCode, err)
+		return NewTalosRuntimeError(errCode, err)
 	}
 }
 
-func GenerateRequestSequenceId(clientId string, requestId int64) (string, *client.TalosRuntimeError) {
+func GenerateRequestSequenceId(clientId string, requestId int64) (string, *TalosRuntimeError) {
 	if err := CheckNameValidity(clientId); err != nil {
 		errCode := common.ErrorCode_UNEXPECTED_ERROR
-		return "", client.NewTalosRuntimeError(errCode, err)
+		return "", NewTalosRuntimeError(errCode, err)
 	}
 	req := atomic.AddInt64(&requestId, 1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
@@ -200,18 +224,18 @@ func HashCode(value []rune) int {
 	return h
 }
 
-func IsTopicNotExist(err *client.TalosRuntimeError) bool {
+func IsTopicNotExist(err *TalosRuntimeError) bool {
 	return err.ErrorCode == common.ErrorCode_TOPIC_NOT_EXIST
 }
 
-func IsPartitionNotServing(err *client.TalosRuntimeError) bool {
+func IsPartitionNotServing(err *TalosRuntimeError) bool {
 	return err.ErrorCode == common.ErrorCode_PARTITION_NOT_SERVING
 }
 
-func IsOffsetOutOfRange(err *client.TalosRuntimeError) bool {
+func IsOffsetOutOfRange(err *TalosRuntimeError) bool {
 	return err.ErrorCode == common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
 }
 
-func IsUnexpectedError(err *client.TalosRuntimeError) bool {
+func IsUnexpectedError(err *TalosRuntimeError) bool {
 	return err.ErrorCode == common.ErrorCode_UNEXPECTED_ERROR
 }

@@ -120,7 +120,7 @@ func (r *MessageReader) ShouldCommit() bool {
 		(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
 }
 
-func (r *MessageReader) processFetchException(err *client.TalosRuntimeError) {
+func (r *MessageReader) processFetchException(err *utils.TalosRuntimeError) {
 	// process message offset out of range, reset start offset
 	if utils.IsOffsetOutOfRange(err) {
 		if r.consumerConfig.resetLatestOffsetWhenOutOfRange {

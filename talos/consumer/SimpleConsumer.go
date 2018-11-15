@@ -94,7 +94,7 @@ func (c *SimpleConsumer) PartitionId() int32 {
 }
 
 func (c *SimpleConsumer) FetchMessage(startOffset int64,
-	maxFetchedNumber int64) ([]*message.MessageAndOffset, *client.TalosRuntimeError) {
+	maxFetchedNumber int64) ([]*message.MessageAndOffset, *utils.TalosRuntimeError) {
 
 	if err := utils.CheckStartOffsetValidity(startOffset); err != nil {
 		return nil, err
