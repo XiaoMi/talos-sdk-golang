@@ -279,10 +279,10 @@ func (p *MessageClientProxy) ValidClientVersion(v *common.Version) (err error) {
 
 func (p *MessageClientProxy) PutMessage(request *message.
 	PutMessageRequest) (r *message.PutMessageResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=putMessage")
+	defer transport.Close()
 	for retry := 0; retry <= errors.MAX_RETRY; {
-		transport := p.factory.GetTransportWithClockOffset(nil,
-			p.clockOffset, "type=putMessage")
-		defer transport.Close()
 		client := message.NewMessageServiceClientFactory(transport,
 			thrift.NewTCompactProtocolFactory())
 		if r, e := client.PutMessage(request); e != nil {
@@ -301,10 +301,10 @@ func (p *MessageClientProxy) PutMessage(request *message.
 
 func (p *MessageClientProxy) GetMessage(request *message.
 	GetMessageRequest) (r *message.GetMessageResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getMessage")
+	defer transport.Close()
 	for retry := 0; retry <= errors.MAX_RETRY; {
-		transport := p.factory.GetTransportWithClockOffset(nil,
-			p.clockOffset, "type=getMessage")
-		defer transport.Close()
 		client := message.NewMessageServiceClientFactory(transport,
 			thrift.NewTCompactProtocolFactory())
 		if r, e := client.GetMessage(request); e != nil {

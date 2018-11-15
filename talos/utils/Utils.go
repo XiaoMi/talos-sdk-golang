@@ -23,6 +23,7 @@ import (
 	"errors"
 	log "github.com/alecthomas/log4go"
 	"github.com/nu7hatch/gouuid"
+	"../client"
 )
 
 /**
@@ -108,11 +109,12 @@ func CheckArgument(expr bool) error {
 	return nil
 }
 
-func CheckParameterRange(parameter string, value int64, min int64, max int64) error {
+func CheckParameterRange(parameter string, value int64, min int64, max int64) *client.TalosRuntimeError {
 	if value < min || value > max {
+		errCode := common.ErrorCode_INVALID_TOPIC_PARAMS
 		err := fmt.Errorf("%s should be in range [%d,%d], got: %d ",
 			parameter, min, max, value)
-		return err
+		return client.NewTalosRuntimeError(errCode, err)
 	}
 	return nil
 }
@@ -120,8 +122,8 @@ func CheckParameterRange(parameter string, value int64, min int64, max int64) er
 func CheckTopicAndPartition(topicAndPartition *topic.TopicAndPartition) error {
 	if strings.Contains(topicAndPartition.GetTopicName(),
 		common.TALOS_CLOUD_TOPIC_NAME_DELIMITER) {
-		err := errors.New("the topic name format in TopicAndPartition " +
-			"should not be: orgId/topicName. ")
+		err := errors.New(
+			"The topic name format in TopicAndPartition should not be: orgId/topicName. ")
 		return err
 	}
 	return nil
@@ -157,20 +159,22 @@ func CheckAndGenerateClientId(prefix string) (string, error) {
 	return prefix + GenerateClientId(), nil
 }
 
-func CheckStartOffsetValidity(startOffset int64) error {
+func CheckStartOffsetValidity(startOffset int64) *client.TalosRuntimeError {
 	if startOffset >= 0 || startOffset == int64(message.MessageOffset_START_OFFSET) ||
 		startOffset == int64(message.MessageOffset_LATEST_OFFSET) {
 		return nil
 	} else {
+		errCode := common.ErrorCode_UNEXPECTED_MESSAGE_OFFSET
 		err := fmt.Errorf("invalid startOffset: %d. It must be greater than "+
 			"or equal to 0, or equal to Message_START_OFFSET/LATEST_OFFSET", startOffset)
-		return err
+		return client.NewTalosRuntimeError(errCode, err)
 	}
 }
 
-func GenerateRequestSequenceId(clientId string, requestId int64) (string, error) {
+func GenerateRequestSequenceId(clientId string, requestId int64) (string, *client.TalosRuntimeError) {
 	if err := CheckNameValidity(clientId); err != nil {
-		return "", err
+		errCode := common.ErrorCode_UNEXPECTED_ERROR
+		return "", client.NewTalosRuntimeError(errCode, err)
 	}
 	req := atomic.AddInt64(&requestId, 1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
@@ -192,8 +196,26 @@ func HashCode(value []rune) int {
 	if len(value) > 0 {
 		val := value
 		for i := 0; i < len(value); i++ {
-			h = 31 * h + int(val[i])
+			h = 31*h + int(val[i])
 		}
 	}
 	return h
 }
+
+func IsTopicNotExist(err *client.TalosRuntimeError) bool {
+	return err.ErrorCode == common.ErrorCode_TOPIC_NOT_EXIST
+}
+
+func IsPartitionNotServing(err *client.TalosRuntimeError) bool {
+	return err.ErrorCode == common.ErrorCode_PARTITION_NOT_SERVING
+}
+
+func IsOffsetOutOfRange(err *client.TalosRuntimeError) bool {
+	return err.ErrorCode == common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
+}
+
+func IsUnexpectedError(err *client.TalosRuntimeError) bool {
+  return err.ErrorCode == common.ErrorCode_UNEXPECTED_ERROR
+}
+
+

@@ -8,13 +8,12 @@ package producer
 
 import "sync"
 
-var mutex sync.Mutex
-
 type BufferedMessageCount struct {
 	maxBufferedMsgNumber int64
 	maxBufferedMsgBytes  int64
 	bufferedMsgNumber    int64
 	bufferedMsgBytes     int64
+	mutex                sync.Mutex
 }
 
 func NewBufferedMessageCount(maxBufferedMsgNumber, maxBufferedMsgBytes int64) *BufferedMessageCount {
@@ -35,30 +34,30 @@ func (c *BufferedMessageCount) GetBufferedMsgBytes() int64 {
 }
 
 func (c *BufferedMessageCount) Increase(diffBufferedMsgNumber, diffBufferedMsgBytes int64) {
-	mutex.Lock()
+	c.mutex.Lock()
 	c.bufferedMsgNumber += diffBufferedMsgNumber
 	c.bufferedMsgBytes += diffBufferedMsgBytes
-	mutex.Unlock()
+	c.mutex.Unlock()
 }
 
 func (c *BufferedMessageCount) Decrease(diffBufferedMsgNumber, diffBufferedMsgBytes int64) {
-	mutex.Lock()
+	c.mutex.Lock()
 	c.bufferedMsgNumber -= diffBufferedMsgNumber
 	c.bufferedMsgBytes -= diffBufferedMsgBytes
-	mutex.Unlock()
+	c.mutex.Unlock()
 }
 
 func (c *BufferedMessageCount) IsEmpty() bool {
-	mutex.Lock()
+	c.mutex.Lock()
 	empty := c.bufferedMsgNumber == 0
-	mutex.Unlock()
+	c.mutex.Unlock()
 	return empty
 }
 
 func (c *BufferedMessageCount) IsFull() bool {
-	mutex.Lock()
+	c.mutex.Lock()
 	full := c.bufferedMsgNumber >= c.maxBufferedMsgNumber ||
 		c.bufferedMsgBytes >= c.maxBufferedMsgBytes
-	mutex.Unlock()
+	c.mutex.Unlock()
 	return full
 }

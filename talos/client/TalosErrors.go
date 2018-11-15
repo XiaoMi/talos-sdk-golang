@@ -28,6 +28,13 @@ type TalosRuntimeError struct {
 	error
 }
 
+func NewTalosRuntimeError(errCode common.ErrorCode, err error) *TalosRuntimeError {
+	return &TalosRuntimeError{
+		ErrorCode: errCode,
+		error:     err,
+	}
+}
+
 func (e *TalosRuntimeError) GetErrorCode() common.ErrorCode {
 	return e.ErrorCode
 }

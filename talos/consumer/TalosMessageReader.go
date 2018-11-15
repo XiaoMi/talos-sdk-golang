@@ -84,7 +84,7 @@ func (r *TalosMessageReader) FetchData() {
 	messageList, err := r.simpleConsumer.FetchMessage(
 		atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
 	if err != nil {
-		log.Error("Reading message from topic: %v of partition: %d failed: %s",
+		log.Warn("Reading message from topic: %v of partition: %d failed: %s",
 			r.topicAndPartition.GetTopicTalosResourceName(),
 			r.topicAndPartition.GetPartitionId(), err.Error())
 		r.processFetchException(err)
@@ -92,8 +92,14 @@ func (r *TalosMessageReader) FetchData() {
 		return
 	}
 	r.lastFetchTime = utils.CurrentTimeMills()
-	//return when no message get
+	//return and check should commit when no message get
 	if messageList == nil || len(messageList) == 0 {
+    if r.ShouldCommit() {
+      err := r.innerCheckpoint()
+      if err != nil {
+        log.Error("commit offset error: %s, we skip to it.", err.Error())
+      }
+    }
 		return
 	}
 
@@ -106,7 +112,7 @@ func (r *TalosMessageReader) FetchData() {
 	atomic.StoreInt64(r.startOffset, r.finishedOffset+1)
 
 	if r.ShouldCommit() {
-		if err = r.innerCheckpoint(); err != nil {
+		if err := r.innerCheckpoint(); err != nil {
 			// when commitOffset failed, we just do nothing;
 			log.Error("commit offset error: %s, we skip to it.", err.Error())
 		}
