@@ -9,7 +9,6 @@ package consumer
 import (
 	"fmt"
 
-	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
@@ -145,11 +144,11 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 		if getMessageRequest.GetMessageOffset() != -1 {
 			errCode := common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
 			log.Warn("getMessage error: %v, %s", errCode, e.Error())
-			return nil, client.NewTalosRuntimeError(errCode, e)
+			return nil, utils.NewTalosRuntimeError(errCode, e)
 		} else {
 			errCode := common.ErrorCode_UNEXPECTED_ERROR
 			log.Warn("getMessage error: %v, %s", errCode, e.Error())
-			return nil, client.NewTalosRuntimeError(errCode, e)
+			return nil, utils.NewTalosRuntimeError(errCode, e)
 		}
 	}
 
@@ -160,7 +159,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 	if e != nil {
 		errCode := common.ErrorCode_UNEXPECTED_ERROR
 		log.Error("decompress messageBlock error: %s", e.Error())
-		return nil, client.NewTalosRuntimeError(errCode, e)
+		return nil, utils.NewTalosRuntimeError(errCode, e)
 	}
 	if len(messageAndOffsetList) <= 0 {
 		return messageAndOffsetList, nil
@@ -176,7 +175,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 		if start <= 0 {
 			errCode := common.ErrorCode_UNEXPECTED_ERROR
 			err := fmt.Errorf("Unexpected subList start index: %d ", start)
-			return nil, client.NewTalosRuntimeError(errCode, err)
+			return nil, utils.NewTalosRuntimeError(errCode, err)
 		}
 		return messageAndOffsetList[start:], nil
 	}
