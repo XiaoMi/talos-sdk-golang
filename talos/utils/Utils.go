@@ -196,7 +196,8 @@ func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 
 func GenerateRequestSequenceId(clientId string, requestId int64) (string, error) {
 	if err := CheckNameValidity(clientId); err != nil {
-		return "", err
+    errCode := common.ErrorCode_UNEXPECTED_ERROR
+		return "", NewTalosRuntimeError(errCode, err)
 	}
 	req := atomic.AddInt64(&requestId, 1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
