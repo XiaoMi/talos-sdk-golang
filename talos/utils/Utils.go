@@ -194,7 +194,7 @@ func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 	}
 }
 
-func GenerateRequestSequenceId(clientId string, requestId int64) (string, error) {
+func GenerateRequestSequenceId(clientId string, requestId int64) (string, *TalosRuntimeError) {
 	if err := CheckNameValidity(clientId); err != nil {
     errCode := common.ErrorCode_UNEXPECTED_ERROR
 		return "", NewTalosRuntimeError(errCode, err)
