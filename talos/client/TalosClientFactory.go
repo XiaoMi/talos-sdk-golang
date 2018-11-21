@@ -60,16 +60,31 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 		agent:             agent}
 }
 
+func (cf *TalosClientFactory) NewTopicClientDefault() topic.TopicService {
+	cf.checkCredential()
+	return cf.NewTopicClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_TOPIC_SERVICE_PATH)
+}
+
 func (cf *TalosClientFactory) NewTopicClient(url string) topic.TopicService {
 	transportFactory := NewTalosHttpClientTransportFactory(url,
 		cf.credential, cf.httpClient, cf.agent)
 	return &TopicClientProxy{factory: transportFactory, clockOffset: 0}
 }
 
+func (cf *TalosClientFactory) NewMessageClientDefault() message.MessageService {
+	cf.checkCredential()
+	return cf.NewMessageClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_MESSAGE_SERVICE_PATH)
+}
+
 func (cf *TalosClientFactory) NewMessageClient(url string) message.MessageService {
 	transportFactory := NewTalosHttpClientTransportFactory(url,
 		cf.credential, cf.httpClient, cf.agent)
 	return &MessageClientProxy{factory: transportFactory, clockOffset: 0}
+}
+
+func (cf *TalosClientFactory) NewConsumerClientDefault() consumer.ConsumerService {
+	cf.checkCredential()
+	return cf.NewConsumerClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_CONSUMER_SERVICE_PATH)
 }
 
 func (cf *TalosClientFactory) NewConsumerClient(url string) consumer.ConsumerService {
@@ -495,4 +510,11 @@ func (p *QuotaClientProxy) ValidClientVersion(v *common.Version) (err error) {
 	client := quota.NewQuotaServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
 	return client.ValidClientVersion(v)
+}
+
+func (cf *TalosClientFactory) checkCredential() error {
+	if cf.credential == nil {
+		return fmt.Errorf("Credential is not set! ")
+	}
+	return nil
 }

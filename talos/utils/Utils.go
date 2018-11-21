@@ -16,6 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
@@ -193,10 +194,9 @@ func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 	}
 }
 
-func GenerateRequestSequenceId(clientId string, requestId int64) (string, *TalosRuntimeError) {
+func GenerateRequestSequenceId(clientId string, requestId int64) (string, error) {
 	if err := CheckNameValidity(clientId); err != nil {
-		errCode := common.ErrorCode_UNEXPECTED_ERROR
-		return "", NewTalosRuntimeError(errCode, err)
+		return "", err
 	}
 	req := atomic.AddInt64(&requestId, 1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
@@ -238,4 +238,104 @@ func IsOffsetOutOfRange(err *TalosRuntimeError) bool {
 
 func IsUnexpectedError(err *TalosRuntimeError) bool {
 	return err.ErrorCode == common.ErrorCode_UNEXPECTED_ERROR
+}
+
+func UpdateMessage(msg *message.Message, messageType message.MessageType) {
+	if !msg.IsSetCreateTimestamp() {
+		curTime := CurrentTimeMills()
+		msg.CreateTimestamp = &curTime
+	}
+
+	if !msg.IsSetMessageType() {
+		msg.MessageType = &messageType
+	}
+}
+
+func CheckMessagesValidity(msgList []*message.Message) error {
+	totalSize := int64(0)
+	for _, msg := range msgList {
+		if err := CheckMessageValidity(msg); err != nil {
+			return err
+		}
+		totalSize += int64(len(msg.GetMessage()))
+	}
+
+	if totalSize > common.TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL*2 {
+		return fmt.Errorf("Total Messages byte must less than %v ",
+			common.TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL*2)
+	}
+	return nil
+}
+
+func CheckMessageValidity(msg *message.Message) error {
+	if err := CheckMessageLenValidity(msg); err != nil {
+		return err
+	}
+	if err := CheckMessageSequenceNumberValidity(msg); err != nil {
+		return err
+	}
+	if err := CheckMessageTypeValidity(msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func CheckMessageLenValidity(msg *message.Message) error {
+	if msg.Message == nil {
+		return fmt.Errorf("Field \"message\" must be set. ")
+	}
+	data := msg.GetMessage()
+	if len(data) > common.TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL ||
+		len(data) < common.TALOS_SINGLE_MESSAGE_BYTES_MINIMAL {
+		return fmt.Errorf("Data must be less than or equal to %v bytes, got bytes: %v ",
+			common.TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL, len(data))
+	}
+	return nil
+}
+
+func CheckMessageSequenceNumberValidity(msg *message.Message) error {
+	if !msg.IsSetSequenceNumber() {
+		return fmt.Errorf("Field \"SequenceNumber\" must be set. ")
+	}
+	sequenceNumber := msg.GetSequenceNumber()
+	if len(sequenceNumber) < common.TALOS_PARTITION_KEY_LENGTH_MINIMAL ||
+		len(sequenceNumber) > common.TALOS_PARTITION_KEY_LENGTH_MAXIMAL {
+		return fmt.Errorf("Invalid sequenceNumber which length must be at least %d "+
+			"and at most %d, got %d ", common.TALOS_PARTITION_KEY_LENGTH_MINIMAL,
+			common.TALOS_PARTITION_KEY_LENGTH_MAXIMAL, len(sequenceNumber))
+	}
+	return nil
+}
+
+func CheckMessageTypeValidity(msg *message.Message) error {
+	if !msg.IsSetMessageType() {
+		return fmt.Errorf("Filed \"messageType\" must be set. ")
+	}
+	return nil
+}
+
+func CheckAddSubResourceNameRequest(credential *auth.Credential,
+	request topic.AddSubResourceNameRequest) error {
+	// check principal
+	if strings.HasPrefix(credential.GetSecretKeyId(), common.TALOS_CLOUD_AK_PREFIX) {
+		return fmt.Errorf("Only Developer principal can add subResourceName. ")
+	}
+
+	// check topic
+	if strings.HasPrefix(request.GetTopicTalosResourceName().
+		GetTopicTalosResourceName(), common.TALOS_CLOUD_ORG_PREFIX) {
+		return fmt.Errorf(
+			"The topic created by cloud-manager role can not add subResourceName. ")
+	}
+
+	// check orgId
+	if !strings.HasPrefix(request.GetOrgId(), common.TALOS_CLOUD_ORG_PREFIX) {
+		return fmt.Errorf("The orgId must starts with 'CL'. ")
+	}
+
+	// check teamId
+	if !strings.HasPrefix(request.GetAdminTeamId(), common.TALOS_CLOUD_TEAM_PREFIX) {
+		return fmt.Errorf("The teamId must starts with 'CI'. ")
+	}
+	return nil
 }

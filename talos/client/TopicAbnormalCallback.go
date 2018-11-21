@@ -11,5 +11,9 @@ import (
 )
 
 type TopicAbnormalCallback interface {
+
+	/**
+	 * User implement this method to process topic abnormal status such as 'TopicNotExist'
+	 */
 	AbnormalHandler(topicTalosResourceName *topic.TopicTalosResourceName, err error)
 }

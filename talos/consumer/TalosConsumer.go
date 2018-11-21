@@ -104,8 +104,7 @@ func NewTalosConsumer(consumerGroupName string, consumerConfig *TalosConsumerCon
 	talosClientFactory := client.NewTalosClientFactory(consumerConfig.TalosClientConfig,
 		credential, time.Duration(socketTimeout*int64(time.Millisecond)))
 
-	consumerClient := talosClientFactory.NewConsumerClient(
-		consumerConfig.TalosClientConfig.ServiceEndpoint() + common.TALOS_CONSUMER_SERVICE_PATH)
+	consumerClient := talosClientFactory.NewConsumerClientDefault()
 	talosConsumer := &TalosConsumer{
 		workerId:                workerId,
 		consumerGroup:           consumerGroupName,
