@@ -11,5 +11,5 @@ type Partitioner interface {
 	/**
 	 * Get partition id for specified partitionKey
 	 */
-	partition(partititonKey string, partitionNumber int) int
+	partition(partititonKey string, partitionNumber int32) int32
 }

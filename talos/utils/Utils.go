@@ -196,7 +196,7 @@ func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 
 func GenerateRequestSequenceId(clientId string, requestId int64) (string, *TalosRuntimeError) {
 	if err := CheckNameValidity(clientId); err != nil {
-    errCode := common.ErrorCode_UNEXPECTED_ERROR
+		errCode := common.ErrorCode_UNEXPECTED_ERROR
 		return "", NewTalosRuntimeError(errCode, err)
 	}
 	req := atomic.AddInt64(&requestId, 1)
@@ -337,6 +337,13 @@ func CheckAddSubResourceNameRequest(credential *auth.Credential,
 	// check teamId
 	if !strings.HasPrefix(request.GetAdminTeamId(), common.TALOS_CLOUD_TEAM_PREFIX) {
 		return fmt.Errorf("The teamId must starts with 'CI'. ")
+	}
+	return nil
+}
+
+func CheckNotNull(T interface{}) error {
+	if T == nil {
+		return fmt.Errorf("NullPointerException")
 	}
 	return nil
 }

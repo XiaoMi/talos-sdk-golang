@@ -31,6 +31,7 @@ func Process(messageList []*message.MessageAndOffset) {
 }
 
 func main() {
+	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
 	log.AddFilter("file", log.INFO, log.NewFileLogWriter("simple_consumer.log", false))
 	defer log.Close()
 	// init client config by put $your_propertyFile in current directory

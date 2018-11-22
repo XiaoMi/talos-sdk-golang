@@ -7,6 +7,7 @@
 package admin
 
 import (
+	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/quota"
@@ -20,15 +21,14 @@ type TalosAdmin struct {
 	credential    *auth.Credential
 }
 
-//func NewTalosAdmin(clientFactory client.TalosClientFactory) *TalosAdmin {
-//	clientConfig := clientFactory.TalosClientConfig
-//	return &TalosAdmin{
-//		topicClient:clientFactory.NewTopicClient(clientConfig.ServiceEndpoint()),
-//		messageClient:
-//		quotaClient   :
-//		credential    :
-//	}
-//}
+func NewTalosAdmin(clientFactory *client.TalosClientFactory) *TalosAdmin {
+	return &TalosAdmin{
+		topicClient:   clientFactory.NewTopicClientDefault(),
+		messageClient: clientFactory.NewMessageClientDefault(),
+		quotaClient:   clientFactory.NewQuotaClientDefault(),
+		credential:    clientFactory.GetCredential(),
+	}
+}
 
 func (a *TalosAdmin) DescribeTopic(request *topic.DescribeTopicRequest) (*topic.Topic, error) {
 	describeTopicResponse, err := a.topicClient.DescribeTopic(request)

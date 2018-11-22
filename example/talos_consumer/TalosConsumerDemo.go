@@ -62,6 +62,7 @@ func (p *MyMessageProcessor) Shutdown(messageCheckpointer consumer.MessageCheckp
 }
 
 func main() {
+	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
 	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_consumer.log", false))
 	defer log.Close()
 

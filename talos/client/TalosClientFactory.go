@@ -57,12 +57,14 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 		talosClientConfig: ClientConfig,
 		credential:        credential,
 		httpClient:        httpClient,
-		agent:             agent}
+		agent:             agent,
+	}
 }
 
 func (cf *TalosClientFactory) NewTopicClientDefault() topic.TopicService {
 	cf.checkCredential()
-	return cf.NewTopicClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_TOPIC_SERVICE_PATH)
+	return cf.NewTopicClient(cf.talosClientConfig.ServiceEndpoint() +
+		common.TALOS_TOPIC_SERVICE_PATH)
 }
 
 func (cf *TalosClientFactory) NewTopicClient(url string) topic.TopicService {
@@ -73,7 +75,8 @@ func (cf *TalosClientFactory) NewTopicClient(url string) topic.TopicService {
 
 func (cf *TalosClientFactory) NewMessageClientDefault() message.MessageService {
 	cf.checkCredential()
-	return cf.NewMessageClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_MESSAGE_SERVICE_PATH)
+	return cf.NewMessageClient(cf.talosClientConfig.ServiceEndpoint() +
+		common.TALOS_MESSAGE_SERVICE_PATH)
 }
 
 func (cf *TalosClientFactory) NewMessageClient(url string) message.MessageService {
@@ -82,15 +85,46 @@ func (cf *TalosClientFactory) NewMessageClient(url string) message.MessageServic
 	return &MessageClientProxy{factory: transportFactory, clockOffset: 0}
 }
 
+func (cf *TalosClientFactory) NewQuotaClientDefault() quota.QuotaService {
+	cf.checkCredential()
+	return cf.NewQuotaClient(cf.talosClientConfig.ServiceEndpoint() +
+		common.TALOS_QUOTA_SERVICE_PATH)
+}
+
+func (cf *TalosClientFactory) NewQuotaClient(url string) quota.QuotaService {
+	transportFactory := NewTalosHttpClientTransportFactory(url,
+		cf.credential, cf.httpClient, cf.agent)
+	return &QuotaClientProxy{factory: transportFactory, clockOffset: 0}
+}
+
 func (cf *TalosClientFactory) NewConsumerClientDefault() consumer.ConsumerService {
 	cf.checkCredential()
-	return cf.NewConsumerClient(cf.talosClientConfig.ServiceEndpoint() + common.TALOS_CONSUMER_SERVICE_PATH)
+	return cf.NewConsumerClient(cf.talosClientConfig.ServiceEndpoint() +
+		common.TALOS_CONSUMER_SERVICE_PATH)
 }
 
 func (cf *TalosClientFactory) NewConsumerClient(url string) consumer.ConsumerService {
 	transportFactory := NewTalosHttpClientTransportFactory(url,
 		cf.credential, cf.httpClient, cf.agent)
 	return &ConsumerClientProxy{factory: transportFactory, clockOffset: 0}
+}
+
+func (cf *TalosClientFactory) SetCredential(credential *auth.Credential) *TalosClientFactory {
+	cf.credential = credential
+	return cf
+}
+
+func (cf *TalosClientFactory) GetCredential() *auth.Credential {
+	return cf.credential
+}
+
+func (cf *TalosClientFactory) SetHttpClient(httpClient *http.Client) *TalosClientFactory {
+	cf.httpClient = httpClient
+	return cf
+}
+
+func (cf *TalosClientFactory) GetHttpClient() *http.Client {
+	return cf.httpClient
 }
 
 /**
@@ -101,7 +135,7 @@ type TopicClientProxy struct {
 	clockOffset int64
 }
 
-func (p *TopicClientProxy) GetServiceVersion() (v *common.Version, err error) {
+func (p *TopicClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
 	defer transport.Close()
@@ -110,13 +144,13 @@ func (p *TopicClientProxy) GetServiceVersion() (v *common.Version, err error) {
 	return client.GetServiceVersion()
 }
 
-func (p *TopicClientProxy) ValidClientVersion(v *common.Version) (err error) {
+func (p *TopicClientProxy) ValidClientVersion(clientVersion *common.Version) (err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=validClientVersion")
 	defer transport.Close()
 	client := topic.NewTopicServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
-	return client.ValidClientVersion(v)
+	return client.ValidClientVersion(clientVersion)
 }
 
 func (p *TopicClientProxy) CreateTopic(request *topic.
@@ -274,7 +308,7 @@ type MessageClientProxy struct {
 	clockOffset int64
 }
 
-func (p *MessageClientProxy) GetServiceVersion() (v *common.Version, err error) {
+func (p *MessageClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
 	defer transport.Close()
@@ -283,13 +317,13 @@ func (p *MessageClientProxy) GetServiceVersion() (v *common.Version, err error) 
 	return client.GetServiceVersion()
 }
 
-func (p *MessageClientProxy) ValidClientVersion(v *common.Version) (err error) {
+func (p *MessageClientProxy) ValidClientVersion(clientVersion *common.Version) (err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=validClientVersion")
 	defer transport.Close()
 	client := message.NewMessageServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
-	return client.ValidClientVersion(v)
+	return client.ValidClientVersion(clientVersion)
 }
 
 func (p *MessageClientProxy) PutMessage(request *message.
@@ -398,7 +432,7 @@ type ConsumerClientProxy struct {
 	clockOffset int64
 }
 
-func (p *ConsumerClientProxy) GetServiceVersion() (v *common.Version, err error) {
+func (p *ConsumerClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
 	defer transport.Close()
@@ -407,13 +441,13 @@ func (p *ConsumerClientProxy) GetServiceVersion() (v *common.Version, err error)
 	return client.GetServiceVersion()
 }
 
-func (p *ConsumerClientProxy) ValidClientVersion(v *common.Version) (err error) {
+func (p *ConsumerClientProxy) ValidClientVersion(clientVersion *common.Version) (err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=validClientVersion")
 	defer transport.Close()
 	client := consumer.NewConsumerServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
-	return client.ValidClientVersion(v)
+	return client.ValidClientVersion(clientVersion)
 }
 
 func (p *ConsumerClientProxy) LockPartition(request *consumer.
@@ -494,7 +528,7 @@ type QuotaClientProxy struct {
 	clockOffset int64
 }
 
-func (p *QuotaClientProxy) GetServiceVersion() (v *common.Version, err error) {
+func (p *QuotaClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
 	defer transport.Close()
@@ -503,13 +537,103 @@ func (p *QuotaClientProxy) GetServiceVersion() (v *common.Version, err error) {
 	return client.GetServiceVersion()
 }
 
-func (p *QuotaClientProxy) ValidClientVersion(v *common.Version) (err error) {
+func (p *QuotaClientProxy) ValidClientVersion(clientVersion *common.Version) (err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=validClientVersion")
 	defer transport.Close()
 	client := quota.NewQuotaServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
-	return client.ValidClientVersion(v)
+	return client.ValidClientVersion(clientVersion)
+}
+
+func (p *QuotaClientProxy) SetUserQuota(request *quota.SetUserQuotaRequest) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=setUserQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.SetUserQuota(request)
+}
+
+func (p *QuotaClientProxy) ListUserQuota() (r *quota.ListUserQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listUserQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListUserQuota()
+}
+
+func (p *QuotaClientProxy) QueryUserQuota() (r *quota.QueryUserQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=queryUserQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.QueryUserQuota()
+}
+
+func (p *QuotaClientProxy) DeleteUserQuota(request *quota.DeleteUserQuotaRequest) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=deleteUserQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.DeleteUserQuota(request)
+}
+
+func (p *QuotaClientProxy) ApplyQuota(request *quota.ApplyQuotaRequest) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=applyQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ApplyQuota(request)
+}
+
+func (p *QuotaClientProxy) AutoApplyQuota(request *quota.AutoApplyQuotaRequest) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=autoApplyQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.AutoApplyQuota(request)
+}
+
+func (p *QuotaClientProxy) ListQuota() (r *quota.ListQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListQuota()
+}
+
+func (p *QuotaClientProxy) ListPendingQuota() (r *quota.ListPendingQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listPendingQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListPendingQuota()
+}
+
+func (p *QuotaClientProxy) ApproveQuota(request *quota.ApproveQuotaRequest) (r *quota.ApproveQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=approveQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ApproveQuota(request)
+}
+
+func (p *QuotaClientProxy) RevokeQuota(request *quota.RevokeQuotaRequest) (r *quota.RevokeQuotaResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=revokeQuota")
+	defer transport.Close()
+	client := quota.NewQuotaServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.RevokeQuota(request)
 }
 
 func (cf *TalosClientFactory) checkCredential() error {

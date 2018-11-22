@@ -329,7 +329,7 @@ func (c *TalosConsumer) makeBalance() {
 				idlePartitions := c.getIdlePartitions()
 				if len(idlePartitions) > 0 {
 					toStealNum := target - has
-					rand.Seed(int64(time.Now().UnixNano()))
+					rand.Seed(time.Now().UnixNano())
 					for toStealNum > 0 && len(idlePartitions) > 0 {
 						randomIndex := rand.Intn(len(idlePartitions))
 						toStealList = append(toStealList, idlePartitions[randomIndex])

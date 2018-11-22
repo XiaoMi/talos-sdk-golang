@@ -36,4 +36,5 @@ func (q *PartitionMessageQueue) AddMessage(messageList []UserMessage) {
 	for i, userMessage := range messageList {
 		q.userMessageList = append(q.userMessageList, userMessage)
 	}
+	q.talosProducer.increaseBufferedCount()
 }
