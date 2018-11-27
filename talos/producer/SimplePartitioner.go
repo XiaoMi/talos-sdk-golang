@@ -14,7 +14,7 @@ import (
 type SimplePartitioner struct {
 }
 
-func (p *SimplePartitioner) partition(partitionKey string, partitionNum int) int {
+func (p *SimplePartitioner) partition(partitionKey string, partitionNum int32) int32 {
 	partitionInterval := math.MaxInt32 / partitionNum
-	return ((utils.HashCode([]rune(partitionKey)) & 0x7FFFFFFF) / partitionInterval) % partitionNum
+	return (int32(utils.HashCode([]rune(partitionKey))&0x7FFFFFFF) / partitionInterval) % partitionNum
 }
