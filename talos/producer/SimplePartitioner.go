@@ -7,14 +7,19 @@
 package producer
 
 import (
-	"../utils"
 	"math"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 )
 
 type SimplePartitioner struct {
 }
 
-func (p *SimplePartitioner) partition(partitionKey string, partitionNum int32) int32 {
+func NewSimplePartitioner() *SimplePartitioner {
+  return &SimplePartitioner{}
+}
+
+func (p *SimplePartitioner) Partition(partitionKey string, partitionNum int32) int32 {
 	partitionInterval := math.MaxInt32 / partitionNum
 	return (int32(utils.HashCode([]rune(partitionKey))&0x7FFFFFFF) / partitionInterval) % partitionNum
 }

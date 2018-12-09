@@ -7,11 +7,12 @@
 package producer
 
 import (
+	"time"
+
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/alecthomas/log4go"
-	"sync"
-	"time"
+  "sync"
 )
 
 type PartitionMessageQueue struct {
@@ -22,7 +23,8 @@ type PartitionMessageQueue struct {
 	maxBufferedTime int64
 	maxPutMsgNumber int64
 	maxPutMsgBytes  int64
-	mu              sync.Mutex
+	mqWg            *sync.WaitGroup
+	mqChan          chan LockState
 }
 
 func NewPartitionMessageQueue(producerConfig *TalosProducerConfig,
@@ -36,42 +38,51 @@ func NewPartitionMessageQueue(producerConfig *TalosProducerConfig,
 		maxBufferedTime: producerConfig.GetMaxBufferedMsgTime(),
 		maxPutMsgNumber: producerConfig.GetMaxPutMsgNumber(),
 		maxPutMsgBytes:  producerConfig.GetMaxPutMsgBytes(),
+		mqChan:          make(chan LockState, 1),
 	}
 }
 
 func (q *PartitionMessageQueue) AddMessage(messageList []*UserMessage) {
-	q.mu.Lock()
-	incrementBytes := int64(0)
+  // notify partitionSender to getUserMessageList
+  defer q.mqWg.Done()
+  log4go.Debug("partition message queue start addMessage")
+  incrementBytes := int64(0)
 	for _, userMessage := range messageList {
 		q.userMessageList = append(q.userMessageList, userMessage)
 		incrementBytes += userMessage.GetMessageSize()
 	}
 	q.curMessageBytes += int64(incrementBytes)
 	// update total buffered count when add messageList
-	q.talosProducer.increaseBufferedCount(int64(len(messageList)),
+	q.talosProducer.IncreaseBufferedCount(int64(len(messageList)),
 		int64(incrementBytes))
-	// TODO:
-	// notify partitionSender to getUserMessageList
-	q.mu.Unlock()
+  log4go.Debug("partition message queue channel put notify")
+	q.mqChan <- NOTIFY
 }
 
 /**
  * return messageList, if not shouldPut, block in this method
  */
 func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
-	q.mu.Lock()
 	for !q.shouldPut() {
 		waitTime := q.getWaitTime()
-		//TODO : make sure == wait()
-		time.Sleep(time.Duration(waitTime))
+    if waitTime == 0 {
+      q.mqWg.Wait()
+    }
+		select {
+		case <- q.mqChan:
+			break
+		case <- time.After(time.Duration(waitTime)):
+			log4go.Error("getUserMessageList for partition: %d, is interrupt "+
+				"when waiting addMessage signal", q.partitionId)
+			return nil
+		}
 	}
 	log4go.Debug("getUserMessageList wake up for partition: %d", q.partitionId)
 
 	returnList := make([]*message.Message, 0)
 	returnMsgBytes, returnMsgNumber := int64(0), int64(0)
 	for len(q.userMessageList) > 0 &&
-		returnMsgNumber < q.maxPutMsgNumber &&
-		returnMsgBytes < q.maxPutMsgBytes {
+		returnMsgNumber < q.maxPutMsgNumber && returnMsgBytes < q.maxPutMsgBytes {
 		userMessage := q.userMessageList[0]
 		q.userMessageList = q.userMessageList[1:]
 		returnList = append(returnList, userMessage.GetMessage())
@@ -81,11 +92,11 @@ func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
 	}
 
 	// update total buffered count when poll messageList
-	q.talosProducer.decreaseBufferedCount(returnMsgNumber, returnMsgBytes)
+	q.talosProducer.DecreaseBufferedCount(returnMsgNumber, returnMsgBytes)
 	log4go.Info("Ready to put message batch: %d, queue size: %d and curBytes: %d"+
 		" for partition: %d", len(returnList), len(q.userMessageList),
 		q.curMessageBytes, q.partitionId)
-	q.mu.Unlock()
+
 	return returnList
 }
 
@@ -113,7 +124,6 @@ func (q *PartitionMessageQueue) shouldPut() bool {
  * Note: wait(0) represents wait infinite until be notified
  * so we wait minimal 1 milli secs when time <= 0
  */
-
 func (q *PartitionMessageQueue) getWaitTime() int64 {
 	if len(q.userMessageList) <= 0 {
 		return 0

@@ -8,10 +8,11 @@ package producer
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/alecthomas/log4go"
-	"time"
 )
 
 type PartitionSender struct {
@@ -61,6 +62,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 }
 
 func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
+  s.partitionMessageQueue.mqWg.Add(1)
 	s.partitionMessageQueue.AddMessage(userMessageList)
 	log4go.Debug("add %d messages to partition: %d",
 		len(userMessageList), s.partitionId)
@@ -82,8 +84,8 @@ func (s *PartitionSender) MessageCallbackTask(userMessageResult *UserMessageResu
 }
 
 func (s *PartitionSender) MessageWriterTask() {
-	s.simpleProducer = NewSimpleProducer(s.talosProducerConfig,
-		s.topicAndPartition, nil, s.messageClient, s.clientId, s.requestId)
+	s.simpleProducer = NewSimpleProducerByMessageClient(s.talosProducerConfig,
+		s.topicAndPartition, s.messageClient, s.clientId, s.requestId)
 	for true {
 		messageList := s.partitionMessageQueue.GetMessageList()
 
@@ -136,5 +138,5 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 	userMessageResult.SetSuccessful(true)
 	go s.MessageCallbackTask(userMessageResult)
 	log4go.Debug("put %d messages for partition: %d", len(messageList), s.partitionId)
-
+	return nil
 }

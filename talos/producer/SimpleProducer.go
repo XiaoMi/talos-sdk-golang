@@ -7,14 +7,18 @@
 package producer
 
 import (
-	"github.com/XiaoMi/talos-sdk-golang/talos/client"
+	"fmt"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	//	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"../utils"
-	"fmt"
-	"github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
 	"github.com/alecthomas/log4go"
+  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
+  "github.com/XiaoMi/talos-sdk-golang/thrift"
+  "github.com/XiaoMi/talos-sdk-golang/talos/client"
+  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
+  "time"
 )
 
 type SimpleProducer struct {
@@ -27,7 +31,19 @@ type SimpleProducer struct {
 }
 
 func NewSimpleProducer(producerConfig *TalosProducerConfig,
-	topicAndPartition *topic.TopicAndPartition, factory *client.TalosClientFactory,
+  topicAndPartition *topic.TopicAndPartition, credential *auth.Credential) *SimpleProducer {
+
+  socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)
+  requestId, _ := utils.CheckAndGenerateClientId("SimpleProducer")
+  clientFactory := client.NewTalosClientFactory(producerConfig.TalosClientConfig,
+    credential, socketTimeout)
+  messageClient := clientFactory.NewMessageClientDefault()
+  return NewSimpleProducerByMessageClient(producerConfig, topicAndPartition,
+    messageClient, requestId, thrift.Int64Ptr(1))
+}
+
+func NewSimpleProducerByMessageClient(producerConfig *TalosProducerConfig,
+	topicAndPartition *topic.TopicAndPartition,
 	messageClient message.MessageService, clientId string,
 	requestId *int64) *SimpleProducer {
 
@@ -58,7 +74,7 @@ func (p *SimpleProducer) PutMessage(msgList []*message.Message) bool {
 }
 
 func (p *SimpleProducer) PutMessageList(msgList []*message.Message) error {
-	if msgList == nil || len(msgList) == 0 {
+	if len(msgList) == 0 {
 		return fmt.Errorf("message list is nil")
 	}
 
@@ -73,7 +89,10 @@ func (p *SimpleProducer) PutMessageList(msgList []*message.Message) error {
 		return err
 	}
 
-	p.doPut(msgList)
+	if err := p.doPut(msgList); err != nil {
+		log4go.Error("doPut message error: %s", err.Error())
+		return err
+	}
 	return nil
 }
 
@@ -86,22 +105,22 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 	messageBlockList := make([]*message.MessageBlock, 0, 1)
 	messageBlockList = append(messageBlockList, messageBlock)
 
-	requestSequenceId, err := utils.GenerateRequestSequenceId(p.clientId, *p.requestId)
+	requestSequenceId, err := utils.GenerateRequestSequenceId(p.clientId, p.requestId)
 	if err != nil {
 		log4go.Error("generate RequestSequenceId error: %s", err.Error())
 		return err
 	}
-	timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
 	putMessageRequest := &message.PutMessageRequest{
 		TopicAndPartition: p.topicAndPartition,
 		MessageBlocks:     messageBlockList,
 		MessageNumber:     int32(len(msgList)),
 		SequenceId:        requestSequenceId,
-		TimeoutTimestamp:  &timestamp,
 	}
+  timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
+  putMessageRequest.TimeoutTimestamp = &timestamp
 	_, err = p.messageClient.PutMessage(putMessageRequest)
 	if err != nil {
-		log4go.Error("putMessage error:%s", err.Error())
+		log4go.Error("putMessage error: %s", err.Error())
 		return err
 	}
 	// TODO: add auto location feature

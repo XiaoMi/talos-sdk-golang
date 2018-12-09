@@ -18,9 +18,9 @@ type UserMessage struct {
 }
 
 func NewUserMessage(msg *message.Message) *UserMessage {
-	messageSize := len(msg.GetMessage())
+	messageSize := int64(len(msg.GetMessage()))
 	if len(msg.GetSequenceNumber()) > 0 {
-		messageSize += len(msg.GetSequenceNumber())
+		messageSize += int64(len(msg.GetSequenceNumber()))
 	}
 	return &UserMessage{
 		message:     msg,

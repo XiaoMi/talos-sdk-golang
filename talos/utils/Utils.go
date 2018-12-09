@@ -132,12 +132,11 @@ func CheckArgument(expr bool) error {
 	return nil
 }
 
-func CheckParameterRange(parameter string, value int64, min int64, max int64) *TalosRuntimeError {
+func CheckParameterRange(parameter string, value int64, min int64, max int64) error {
 	if value < min || value > max {
-		errCode := common.ErrorCode_INVALID_TOPIC_PARAMS
 		err := fmt.Errorf("%s should be in range [%d,%d], got: %d ",
 			parameter, min, max, value)
-		return NewTalosRuntimeError(errCode, err)
+		return err
 	}
 	return nil
 }
@@ -194,12 +193,12 @@ func CheckStartOffsetValidity(startOffset int64) *TalosRuntimeError {
 	}
 }
 
-func GenerateRequestSequenceId(clientId string, requestId int64) (string, *TalosRuntimeError) {
+func GenerateRequestSequenceId(clientId string, requestId *int64) (string, error) {
 	if err := CheckNameValidity(clientId); err != nil {
-		errCode := common.ErrorCode_UNEXPECTED_ERROR
-		return "", NewTalosRuntimeError(errCode, err)
+		return "", err
 	}
-	req := atomic.AddInt64(&requestId, 1)
+	req := atomic.LoadInt64(requestId)
+	atomic.StoreInt64(requestId, atomic.LoadInt64(requestId) + 1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
 }
 
@@ -243,8 +242,7 @@ func IsUnexpectedError(err *TalosRuntimeError) bool {
 
 func UpdateMessage(msg *message.Message, messageType message.MessageType) {
 	if !msg.IsSetCreateTimestamp() {
-		curTime := CurrentTimeMills()
-		msg.CreateTimestamp = &curTime
+		msg.CreateTimestamp = thrift.Int64Ptr(CurrentTimeMills())
 	}
 
 	if !msg.IsSetMessageType() {
@@ -270,19 +268,19 @@ func CheckMessagesValidity(msgList []*message.Message) error {
 
 func CheckMessageValidity(msg *message.Message) error {
 	if err := CheckMessageLenValidity(msg); err != nil {
-		return err
+		return fmt.Errorf("Check MessageLength validity error: %s ", err.Error())
 	}
 	if err := CheckMessageSequenceNumberValidity(msg); err != nil {
-		return err
+		return fmt.Errorf("Check MessageSequenceNumber Validity error: %s ", err.Error())
 	}
 	if err := CheckMessageTypeValidity(msg); err != nil {
-		return err
+		return fmt.Errorf("Check MessageType Validity error: %s ", err.Error())
 	}
 	return nil
 }
 
 func CheckMessageLenValidity(msg *message.Message) error {
-	if msg.Message == nil {
+	if len(msg.Message) == 0 {
 		return fmt.Errorf("Field \"message\" must be set. ")
 	}
 	data := msg.GetMessage()
@@ -296,7 +294,7 @@ func CheckMessageLenValidity(msg *message.Message) error {
 
 func CheckMessageSequenceNumberValidity(msg *message.Message) error {
 	if !msg.IsSetSequenceNumber() {
-		return fmt.Errorf("Field \"SequenceNumber\" must be set. ")
+		return nil
 	}
 	sequenceNumber := msg.GetSequenceNumber()
 	if len(sequenceNumber) < common.TALOS_PARTITION_KEY_LENGTH_MINIMAL ||

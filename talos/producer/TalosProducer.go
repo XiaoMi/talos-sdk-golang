@@ -7,20 +7,21 @@
 package producer
 
 import (
-	"../admin"
-	"../utils"
 	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/admin"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"github.com/alecthomas/log4go"
 	"github.com/nu7hatch/gouuid"
-	"math/rand"
-	"sync"
-	"time"
 )
 
 type ProducerState int32
@@ -33,21 +34,42 @@ const (
 	ACTIVE ProducerState = iota
 	DISABLED
 	SHUTDOWN
-)
 
-const (
 	partitionKeyMinLen = common.TALOS_PARTITION_KEY_LENGTH_MINIMAL
 	partitionKeyMaxLen = common.TALOS_PARTITION_KEY_LENGTH_MAXIMAL
-)
 
-const (
 	WAIT   LockState = 0
 	NOTIFY LockState = 1
+
+	shutdown  StopSignType = 0
+	running                = 1
+
+	interuptTime              = 20
 )
-const (
-	shutdown StopSignType = iota // 0
-	running
-)
+
+type Producer interface {
+	AddUserMessage(msgList []*message.Message) error
+	DoAddUserMessage(msgList []*message.Message) error
+	disableProducer(err error)
+	shutdown()
+	stopAndwait()
+	IsActive() bool
+	IsDisable() bool
+	IsShutdown() bool
+	shouldUpdatePartition() bool
+	checkAndGetTopicInfo(topicTalosResourceName *topic.TopicTalosResourceName) error
+	initPartitionSender()
+	adjustPartitionSender(newPartitionNumber int32)
+	createPartitionSender(partitionId int32)
+	initCheckPartitionTask()
+	getPartitionId(partitionKey string) int32
+	generatePartitionKey() string
+	setPartitionNumber(partitionNumber int32)
+	checkMessagePartitionKeyValidity(partitionKey string) error
+	IncreaseBufferedCount(incrementNumber int64, incrementBytes int64)
+	DecreaseBufferedCount(decrementNumber int64, decrementBytes int64)
+	CheckPartitionTask()
+}
 
 type TalosProducer struct {
 	requestId                  *int64
@@ -120,35 +142,49 @@ func NewTalosProducer(producerConfig *TalosProducerConfig, credential *auth.Cred
 }
 
 func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
-	mutex.Lock()
+	//mutex.Lock()
+	//defer mutex.Unlock()
 	// check producer state
 	if !p.IsActive() {
 		return fmt.Errorf("Producer is not active, current state: %d ", p.producerState)
 	}
 
 	// check total buffered message number
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(interuptTime * time.Second)
+		timeout <- true
+	}()
 	for p.bufferedCount.IsFull() {
 		log4go.Info("too many buffered messages, globalLock is active."+
 			" message number: %d, message bytes: %d",
 			p.bufferedCount.GetBufferedMsgNumber(),
 			p.bufferedCount.GetBufferedMsgBytes())
 
-		if <-p.globalLock != NOTIFY {
-			err := fmt.Errorf("addUserMessage global lock wait is interrupt. ")
-			log4go.Error(err)
-			return err
+		select {
+		case signal := <-p.globalLock:
+			if signal != NOTIFY {
+				err := fmt.Errorf("addUserMessage global lock return wrong  is interrupt. ")
+				log4go.Error(err)
+				return err
+			}
+		case <-timeout:
+      err := fmt.Errorf("addUserMessage global lock wait is interrupt. ")
+      log4go.Error(err)
+      return err
 		}
 	}
-
+  log4go.Debug("producer start doAddUserMessage")
 	p.DoAddUserMessage(msgList)
-	mutex.Unlock()
 	return nil
 }
 
 func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 	var currentPartitionId int32
 	mutex.Lock()
+	defer mutex.Unlock()
 	partitionBufferMap := make(map[int32][]*UserMessage)
+	log4go.Debug("should update partition")
 	if p.shouldUpdatePartition() {
 		p.curPartitionId = (p.curPartitionId + 1) % p.partitionNumber
 		p.lastUpdatePartitionIdTime = utils.CurrentTimeMills()
@@ -158,7 +194,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 	p.lastAddMsgNumber += int64(len(msgList))
 
 	partitionBufferMap[currentPartitionId] = make([]*UserMessage, 0)
-
+  log4go.Debug("doAddUserMessage......")
 	for _, msg := range msgList {
 		// set timestamp and messageType if not set;
 		utils.UpdateMessage(msg, message.MessageType_BINARY)
@@ -171,6 +207,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 			// straightforward put to cur partitionId queue
 			partitionBufferMap[currentPartitionId] = append(
 				partitionBufferMap[currentPartitionId], NewUserMessage(msg))
+      log4go.Debug("!msg.IsSetPartitionKey()")
 		} else {
 			p.checkMessagePartitionKeyValidity(msg.GetPartitionKey())
 			// construct UserMessage and dispatch to buffer by partitionId
@@ -180,17 +217,18 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 			}
 			partitionBufferMap[partitionId] = append(
 				partitionBufferMap[partitionId], NewUserMessage(msg))
+      log4go.Debug("msg.IsSetPartitionKey()")
 		}
 	}
 
 	// add to partitionSender
-	for partitionId, usrMsg := range partitionBufferMap {
+	for partitionId, usrMsgList := range partitionBufferMap {
 		if _, ok := p.partitionSenderMap[partitionId]; !ok {
 			return fmt.Errorf("Illegal Argument Error! ")
 		}
-		p.partitionSenderMap[partitionId].AddMessage(usrMsg)
+		p.partitionSenderMap[partitionId].AddMessage(usrMsgList)
 	}
-	mutex.Unlock()
+  log4go.Debug("partition sender is: %v", p.partitionSenderMap)
 	return nil
 }
 
@@ -198,24 +236,24 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 // when topic not exist during producer running
 func (p *TalosProducer) disableProducer(err error) {
 	mutex.Lock()
+	defer mutex.Unlock()
 	if !p.IsActive() {
 		return
 	}
 	p.producerState = DISABLED
 	p.stopAndwait()
 	p.topicAbnormalCallback.AbnormalHandler(p.topicTalosResourceName, err)
-	mutex.Unlock()
 }
 
 func (p *TalosProducer) shutdown() {
 	mutex.Lock()
+	defer mutex.Unlock()
 	if !p.IsActive() {
 		return
 	}
 
 	p.producerState = SHUTDOWN
 	p.stopAndwait()
-	mutex.Unlock()
 }
 
 func (p *TalosProducer) stopAndwait() {
@@ -248,6 +286,7 @@ func (p *TalosProducer) checkAndGetTopicInfo(
 	var err error
 	rand.Seed(time.Now().UnixNano())
 	mutex.Lock()
+	defer mutex.Unlock()
 	p.topicName, err = utils.GetTopicNameByResourceName(
 		topicTalosResourceName.GetTopicTalosResourceName())
 	if err != nil {
@@ -267,46 +306,50 @@ func (p *TalosProducer) checkAndGetTopicInfo(
 	}
 	p.partitionNumber = getTopic.GetTopicAttribute().GetPartitionNumber()
 	p.curPartitionId = rand.Int31n(p.partitionNumber)
-	mutex.Unlock()
+	log4go.Debug("Check ant get topic info success")
 	return nil
 }
 
 func (p *TalosProducer) initPartitionSender() {
 	mutex.Lock()
+	defer mutex.Unlock()
 	for partitionId := int32(0); partitionId < p.partitionNumber; partitionId++ {
 		p.createPartitionSender(partitionId)
 	}
-	mutex.Unlock()
+	log4go.Info("init partition sender finished")
 }
 
 func (p *TalosProducer) adjustPartitionSender(newPartitionNumber int32) {
 	// Note: we do not allow and process 'newPartitionNum < partitionNumber'
 	mutex.Lock()
+	defer mutex.Unlock()
 	for partitionId := p.partitionNumber; partitionId < newPartitionNumber; partitionId++ {
 		p.createPartitionSender(partitionId)
 	}
-	mutex.Unlock()
 	log4go.Info("Adjust partitionSender and partitionNumber from: %d to %d.",
 		p.partitionNumber, newPartitionNumber)
 }
 
 func (p *TalosProducer) createPartitionSender(partitionId int32) {
 	mutex.Lock()
+	defer mutex.Unlock()
 	partitionSender := NewPartitionSender(partitionId, p.topicName,
 		p.topicTalosResourceName, p.requestId, p.clientId, p.producerConfig,
 		p.talosClientFactory.NewMessageClientDefault(), p.userMessageCallback,
 		p.globalLock, p)
 	p.partitionSenderMap[partitionId] = partitionSender
-	mutex.Unlock()
 }
 
 func (p *TalosProducer) initCheckPartitionTask() {
 	mutex.Lock()
+	defer mutex.Unlock()
 	// check and update partition number every 3 minutes by default
 	duration := time.Duration(p.producerConfig.GetCheckPartitionInterval()) *
 		time.Millisecond
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
+	log4go.Info("start check partition Task")
+  p.CheckPartitionTask()
 	for {
 		select {
 		case <-ticker.C:
@@ -316,11 +359,10 @@ func (p *TalosProducer) initCheckPartitionTask() {
 			return
 		}
 	}
-	mutex.Unlock()
 }
 
 func (p *TalosProducer) getPartitionId(partitionKey string) int32 {
-	return p.partitioner.partition(partitionKey, p.partitionNumber)
+	return p.partitioner.Partition(partitionKey, p.partitionNumber)
 }
 
 func (p *TalosProducer) generatePartitionKey() string {
@@ -330,8 +372,8 @@ func (p *TalosProducer) generatePartitionKey() string {
 
 func (p *TalosProducer) setPartitionNumber(partitionNumber int32) {
 	mutex.Lock()
+	defer mutex.Unlock()
 	p.partitionNumber = partitionNumber
-	mutex.Unlock()
 }
 
 func (p *TalosProducer) checkMessagePartitionKeyValidity(partitionKey string) error {
@@ -347,12 +389,12 @@ func (p *TalosProducer) checkMessagePartitionKeyValidity(partitionKey string) er
 	return nil
 }
 
-func (p *TalosProducer) increaseBufferedCount(incrementNumber int64,
+func (p *TalosProducer) IncreaseBufferedCount(incrementNumber int64,
 	incrementBytes int64) {
 	p.bufferedCount.Increase(incrementNumber, incrementBytes)
 }
 
-func (p *TalosProducer) decreaseBufferedCount(decrementNumber int64,
+func (p *TalosProducer) DecreaseBufferedCount(decrementNumber int64,
 	decrementBytes int64) {
 	p.bufferedCount.Decrease(decrementNumber, decrementNumber)
 }
@@ -374,11 +416,14 @@ func (p *TalosProducer) CheckPartitionTask() {
 		//}
 		return
 	}
-	if p.topicTalosResourceName !=
-		getTopic.GetTopicInfo().GetTopicTalosResourceName() {
+  log4go.Debug("describe topic %s success", getTopic.TopicInfo.TopicName)
+
+  if p.topicTalosResourceName.GetTopicTalosResourceName() !=
+		getTopic.GetTopicInfo().GetTopicTalosResourceName().GetTopicTalosResourceName() {
 		err := fmt.Errorf("The topic: %s not exist. It might have been deleted. "+
 			"The putMessage threads will be cancel. ", p.topicTalosResourceName.
 			GetTopicTalosResourceName())
+		log4go.Debug("get topic is: %s", getTopic.GetTopicInfo().GetTopicTalosResourceName())
 		log4go.Error(err)
 		p.disableProducer(err)
 		return
@@ -391,4 +436,5 @@ func (p *TalosProducer) CheckPartitionTask() {
 		// update partitionNumber
 		p.setPartitionNumber(topicPartitionNum)
 	}
+	log4go.Debug("Check partition Task finished")
 }
