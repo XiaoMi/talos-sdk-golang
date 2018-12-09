@@ -8,18 +8,18 @@ package main
 
 import (
 	"flag"
+	"sync/atomic"
+	"time"
 
-	"../../talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/admin"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"github.com/alecthomas/log4go"
-	"sync/atomic"
-	"time"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	defer log4go.Close()
 
 	var propertyFilename string
-	flag.StringVar(&propertyFilename, "conf", "talos-sdk-golang/example/simple_consumer/simpleConsumer.conf", "conf: simpleConsumer.conf'")
+	flag.StringVar(&propertyFilename, "conf", "simpleProducer.conf", "conf: simpleProducer.conf'")
 	flag.Parse()
 	secretKeyId := ""
 	secretKey := ""
@@ -66,16 +66,16 @@ func main() {
 		PartitionId:            partitionId,
 	}
 
-	simpleProducer := producer.NewSimpleProducer(producerConfig, topicAndPartition, credential)
+	simpleProducer := producer.NewSimpleProducerDefault(producerConfig, topicAndPartition, credential)
 	messageStr := "test message: this message is a text string."
 	msg := &message.Message{
 		Message: []byte(messageStr),
 	}
 	msgList := make([]*message.Message, 0)
 	msgList = append(msgList, msg)
+
 	// a toy demo for putting messages to Talos server continuously
 	// by using a infinite loop
-
 	for true {
 		err := simpleProducer.PutMessageList(msgList)
 		if err != nil {

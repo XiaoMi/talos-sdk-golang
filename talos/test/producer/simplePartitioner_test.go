@@ -7,10 +7,11 @@
 package producer
 
 import (
-	"../../../talos/producer"
+	"testing"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/nu7hatch/gouuid"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Partition(t *testing.T) {

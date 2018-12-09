@@ -7,11 +7,11 @@
 package producer
 
 import (
-	"testing"
-
-	"../../../talos/producer"
 	"bytes"
 	"fmt"
+	"testing"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/test/mock_message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"

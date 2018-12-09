@@ -7,12 +7,13 @@
 package producer
 
 import (
-	"../../../talos/producer"
 	"bytes"
+	"testing"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var msg *message.Message

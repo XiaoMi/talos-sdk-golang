@@ -8,7 +8,6 @@ package producer
 
 import (
 	"fmt"
-
 	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
@@ -31,19 +30,19 @@ type SimpleProducer struct {
 	//scheduleInfoCache ScheduleInfoCache
 }
 
-func NewSimpleProducer(producerConfig *TalosProducerConfig,
+func NewSimpleProducerDefault(producerConfig *TalosProducerConfig,
 	topicAndPartition *topic.TopicAndPartition, credential *auth.Credential) *SimpleProducer {
 
-	socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)
+	socketTimeout := common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT * time.Second
 	requestId, _ := utils.CheckAndGenerateClientId("SimpleProducer")
 	clientFactory := client.NewTalosClientFactory(producerConfig.TalosClientConfig,
 		credential, socketTimeout)
 	messageClient := clientFactory.NewMessageClientDefault()
-	return NewSimpleProducerByMessageClient(producerConfig, topicAndPartition,
+	return NewSimpleProducer(producerConfig, topicAndPartition,
 		messageClient, requestId, thrift.Int64Ptr(1))
 }
 
-func NewSimpleProducerByMessageClient(producerConfig *TalosProducerConfig,
+func NewSimpleProducer(producerConfig *TalosProducerConfig,
 	topicAndPartition *topic.TopicAndPartition,
 	messageClient message.MessageService, clientId string,
 	requestId *int64) *SimpleProducer {

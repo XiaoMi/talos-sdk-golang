@@ -84,7 +84,7 @@ func (s *PartitionSender) MessageCallbackTask(userMessageResult *UserMessageResu
 }
 
 func (s *PartitionSender) MessageWriterTask() {
-	s.simpleProducer = NewSimpleProducerByMessageClient(s.talosProducerConfig,
+	s.simpleProducer = NewSimpleProducer(s.talosProducerConfig,
 		s.topicAndPartition, s.messageClient, s.clientId, s.requestId)
 	for true {
 		messageList := s.partitionMessageQueue.GetMessageList()

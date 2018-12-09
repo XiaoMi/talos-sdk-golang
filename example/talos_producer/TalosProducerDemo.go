@@ -7,16 +7,17 @@
 package main
 
 import (
-	"../../talos/producer"
 	"flag"
+	"time"
+
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	log "github.com/alecthomas/log4go"
-	"time"
 )
 
 type MyMessageCallback struct {
@@ -44,7 +45,7 @@ func main() {
 	   galaxy.talos.service.endpoint=$talosServiceURI
 	*/
 	var propertyFilename string
-	flag.StringVar(&propertyFilename, "conf", "talos-sdk-golang/example/simple_consumer/simpleConsumer.conf", "conf: talosConsumer.conf'")
+	flag.StringVar(&propertyFilename, "conf", "talos-sdk-golang/example/simple_consumer/simpleProducer.conf", "conf: talosConsumer.conf'")
 	flag.Parse()
 	props := utils.LoadProperties(propertyFilename)
 

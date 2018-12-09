@@ -7,15 +7,16 @@
 package producer
 
 import (
-	"../../../talos/producer"
+	"strconv"
+	"testing"
+
 	"../mock_producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
 )
 
 var msgStr string
