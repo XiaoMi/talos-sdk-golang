@@ -21,7 +21,7 @@ type SimpleConsumer struct {
 	topicAndPartition *topic.TopicAndPartition
 	messageClient     message.MessageService
 	consumerConfig    *TalosConsumerConfig
-	requestId         int64
+	requestId         *int64
 	simpleConsumerId  string
 	//scheduleInfoCache client.ScheduleInfo
 }
@@ -93,7 +93,7 @@ func (c *SimpleConsumer) PartitionId() int32 {
 }
 
 func (c *SimpleConsumer) FetchMessage(startOffset int64,
-	maxFetchedNumber int64) ([]*message.MessageAndOffset, *utils.TalosRuntimeError) {
+	maxFetchedNumber int64) ([]*message.MessageAndOffset, error) {
 
 	if err := utils.CheckStartOffsetValidity(startOffset); err != nil {
 		return nil, err

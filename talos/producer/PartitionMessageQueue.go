@@ -12,7 +12,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/alecthomas/log4go"
-  "sync"
+	"sync"
 )
 
 type PartitionMessageQueue struct {
@@ -43,10 +43,10 @@ func NewPartitionMessageQueue(producerConfig *TalosProducerConfig,
 }
 
 func (q *PartitionMessageQueue) AddMessage(messageList []*UserMessage) {
-  // notify partitionSender to getUserMessageList
-  defer q.mqWg.Done()
-  log4go.Debug("partition message queue start addMessage")
-  incrementBytes := int64(0)
+	// notify partitionSender to getUserMessageList
+	defer q.mqWg.Done()
+	log4go.Debug("partition message queue start addMessage")
+	incrementBytes := int64(0)
 	for _, userMessage := range messageList {
 		q.userMessageList = append(q.userMessageList, userMessage)
 		incrementBytes += userMessage.GetMessageSize()
@@ -55,7 +55,7 @@ func (q *PartitionMessageQueue) AddMessage(messageList []*UserMessage) {
 	// update total buffered count when add messageList
 	q.talosProducer.IncreaseBufferedCount(int64(len(messageList)),
 		int64(incrementBytes))
-  log4go.Debug("partition message queue channel put notify")
+	log4go.Debug("partition message queue channel put notify")
 	q.mqChan <- NOTIFY
 }
 
@@ -65,13 +65,13 @@ func (q *PartitionMessageQueue) AddMessage(messageList []*UserMessage) {
 func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
 	for !q.shouldPut() {
 		waitTime := q.getWaitTime()
-    if waitTime == 0 {
-      q.mqWg.Wait()
-    }
+		if waitTime == 0 {
+			q.mqWg.Wait()
+		}
 		select {
-		case <- q.mqChan:
+		case <-q.mqChan:
 			break
-		case <- time.After(time.Duration(waitTime)):
+		case <-time.After(time.Duration(waitTime)):
 			log4go.Error("getUserMessageList for partition: %d, is interrupt "+
 				"when waiting addMessage signal", q.partitionId)
 			return nil

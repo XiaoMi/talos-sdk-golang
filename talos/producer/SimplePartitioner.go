@@ -16,7 +16,7 @@ type SimplePartitioner struct {
 }
 
 func NewSimplePartitioner() *SimplePartitioner {
-  return &SimplePartitioner{}
+	return &SimplePartitioner{}
 }
 
 func (p *SimplePartitioner) Partition(partitionKey string, partitionNum int32) int32 {

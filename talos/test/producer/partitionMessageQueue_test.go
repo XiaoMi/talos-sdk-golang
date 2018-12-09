@@ -1,21 +1,21 @@
 /**
  * Copyright 2018, Xiaomi.
  * All rights reserved.
- * Author: wangfan8@xiaomi.com  
-*/
+ * Author: wangfan8@xiaomi.com
+ */
 
 package producer
 
 import (
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-  "../../../talos/producer"
-  "github.com/XiaoMi/talos-sdk-golang/talos/utils"
-  "strconv"
-  "github.com/XiaoMi/talos-sdk-golang/talos/client"
-  "testing"
-  "github.com/golang/mock/gomock"
-  "../mock_producer"
-  "github.com/stretchr/testify/assert"
+	"../../../talos/producer"
+	"../mock_producer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/client"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"strconv"
+	"testing"
 )
 
 var msgStr string
@@ -31,54 +31,51 @@ var userMessageList []*producer.UserMessage
 var messageList []*message.Message
 
 func setUpBefore() {
-  msgStr = "hello, partitionMessageQueueTest"
-  msg1 = &message.Message{
-    Message: []byte(msgStr),
-  }
-  partitionId = 7
-  maxPutMsgNumber = 3
-  maxBufferedMillSecs = 200
+	msgStr = "hello, partitionMessageQueueTest"
+	msg1 = &message.Message{
+		Message: []byte(msgStr),
+	}
+	partitionId = 7
+	maxPutMsgNumber = 3
+	maxBufferedMillSecs = 200
 
-  properties := utils.NewProperties()
-  properties.SetProperty(producer.GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_NUMBER,
-    strconv.FormatInt(maxPutMsgNumber, 10))
-  properties.SetProperty(producer.GALAXY_TALOS_PRODUCER_MAX_BUFFERED_MILLI_SECS,
-    strconv.FormatInt(maxBufferedMillSecs, 10))
-  properties.SetProperty(client.GALAXY_TALOS_SERVICE_ENDPOINT, "testURI")
-  producerConfig = producer.NewTalosProducerConfigByProperties(properties)
+	properties := utils.NewProperties()
+	properties.SetProperty(producer.GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_NUMBER,
+		strconv.FormatInt(maxPutMsgNumber, 10))
+	properties.SetProperty(producer.GALAXY_TALOS_PRODUCER_MAX_BUFFERED_MILLI_SECS,
+		strconv.FormatInt(maxBufferedMillSecs, 10))
+	properties.SetProperty(client.GALAXY_TALOS_SERVICE_ENDPOINT, "testURI")
+	producerConfig = producer.NewTalosProducerConfigByProperties(properties)
 
-  userMessage1 = producer.NewUserMessage(msg1)
-  userMessage2 = producer.NewUserMessage(msg1)
-  userMessage3 = producer.NewUserMessage(msg1)
-
+	userMessage1 = producer.NewUserMessage(msg1)
+	userMessage2 = producer.NewUserMessage(msg1)
+	userMessage3 = producer.NewUserMessage(msg1)
 
 }
 
 func TestPartitionMessageQueue(t *testing.T) {
-  setUpBefore()
-  ctrl := gomock.NewController(t)
-  defer ctrl.Finish()
+	setUpBefore()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-  mockProducer := mock_producer.NewMockProducer(ctrl)
+	mockProducer := mock_producer.NewMockProducer(ctrl)
 
-  partitionMessageQueue = producer.NewPartitionMessageQueue(producerConfig, partitionId, mockProducer)
-  userMessageList = make([]*producer.UserMessage, 0)
-  userMessageList = append(userMessageList, userMessage1)
-  userMessageList = append(userMessageList, userMessage2)
-  userMessageList = append(userMessageList, userMessage3)
+	partitionMessageQueue = producer.NewPartitionMessageQueue(producerConfig, partitionId, mockProducer)
+	userMessageList = make([]*producer.UserMessage, 0)
+	userMessageList = append(userMessageList, userMessage1)
+	userMessageList = append(userMessageList, userMessage2)
+	userMessageList = append(userMessageList, userMessage3)
 
-  messageList = make([]*message.Message, 0)
-  messageList = append(messageList, msg1)
-  messageList = append(messageList, msg1)
-  messageList = append(messageList, msg1)
+	messageList = make([]*message.Message, 0)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
 
-  mockProducer.EXPECT().IncreaseBufferedCount(3, len(msgStr) * 3).Do(nil)
-  mockProducer.EXPECT().IsActive().Return(true)
-  mockProducer.EXPECT().DecreaseBufferedCount(3, len(msgStr) * 3).Do(nil)
+	mockProducer.EXPECT().IncreaseBufferedCount(3, len(msgStr)*3).Do(nil)
+	mockProducer.EXPECT().IsActive().Return(true)
+	mockProducer.EXPECT().DecreaseBufferedCount(3, len(msgStr)*3).Do(nil)
 
-  partitionMessageQueue.AddMessage(userMessageList)
-  assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
+	partitionMessageQueue.AddMessage(userMessageList)
+	assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
 
 }
-
-

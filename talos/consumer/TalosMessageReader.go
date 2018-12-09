@@ -87,7 +87,7 @@ func (r *TalosMessageReader) FetchData() {
 		log.Warn("Reading message from topic: %v of partition: %d failed: %s",
 			r.topicAndPartition.GetTopicTalosResourceName(),
 			r.topicAndPartition.GetPartitionId(), err.Error())
-		r.processFetchException(err)
+		//r.processFetchException(err)
 		r.lastFetchTime = utils.CurrentTimeMills()
 		return
 	}

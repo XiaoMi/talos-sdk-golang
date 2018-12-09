@@ -9,16 +9,17 @@ package producer
 import (
 	"fmt"
 
+	"time"
+
+	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client/compression"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	"../utils"
+	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
 	"github.com/alecthomas/log4go"
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-  "github.com/XiaoMi/talos-sdk-golang/thrift"
-  "github.com/XiaoMi/talos-sdk-golang/talos/client"
-  "github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
-  "time"
 )
 
 type SimpleProducer struct {
@@ -31,15 +32,15 @@ type SimpleProducer struct {
 }
 
 func NewSimpleProducer(producerConfig *TalosProducerConfig,
-  topicAndPartition *topic.TopicAndPartition, credential *auth.Credential) *SimpleProducer {
+	topicAndPartition *topic.TopicAndPartition, credential *auth.Credential) *SimpleProducer {
 
-  socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)
-  requestId, _ := utils.CheckAndGenerateClientId("SimpleProducer")
-  clientFactory := client.NewTalosClientFactory(producerConfig.TalosClientConfig,
-    credential, socketTimeout)
-  messageClient := clientFactory.NewMessageClientDefault()
-  return NewSimpleProducerByMessageClient(producerConfig, topicAndPartition,
-    messageClient, requestId, thrift.Int64Ptr(1))
+	socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)
+	requestId, _ := utils.CheckAndGenerateClientId("SimpleProducer")
+	clientFactory := client.NewTalosClientFactory(producerConfig.TalosClientConfig,
+		credential, socketTimeout)
+	messageClient := clientFactory.NewMessageClientDefault()
+	return NewSimpleProducerByMessageClient(producerConfig, topicAndPartition,
+		messageClient, requestId, thrift.Int64Ptr(1))
 }
 
 func NewSimpleProducerByMessageClient(producerConfig *TalosProducerConfig,
@@ -116,8 +117,8 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 		MessageNumber:     int32(len(msgList)),
 		SequenceId:        requestSequenceId,
 	}
-  timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
-  putMessageRequest.TimeoutTimestamp = &timestamp
+	timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
+	putMessageRequest.TimeoutTimestamp = &timestamp
 	_, err = p.messageClient.PutMessage(putMessageRequest)
 	if err != nil {
 		log4go.Error("putMessage error: %s", err.Error())

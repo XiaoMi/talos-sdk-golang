@@ -41,10 +41,10 @@ const (
 	WAIT   LockState = 0
 	NOTIFY LockState = 1
 
-	shutdown  StopSignType = 0
-	running                = 1
+	shutdown StopSignType = 0
+	running               = 1
 
-	interuptTime              = 20
+	interuptTime = 20
 )
 
 type Producer interface {
@@ -169,12 +169,12 @@ func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
 				return err
 			}
 		case <-timeout:
-      err := fmt.Errorf("addUserMessage global lock wait is interrupt. ")
-      log4go.Error(err)
-      return err
+			err := fmt.Errorf("addUserMessage global lock wait is interrupt. ")
+			log4go.Error(err)
+			return err
 		}
 	}
-  log4go.Debug("producer start doAddUserMessage")
+	log4go.Debug("producer start doAddUserMessage")
 	p.DoAddUserMessage(msgList)
 	return nil
 }
@@ -194,7 +194,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 	p.lastAddMsgNumber += int64(len(msgList))
 
 	partitionBufferMap[currentPartitionId] = make([]*UserMessage, 0)
-  log4go.Debug("doAddUserMessage......")
+	log4go.Debug("doAddUserMessage......")
 	for _, msg := range msgList {
 		// set timestamp and messageType if not set;
 		utils.UpdateMessage(msg, message.MessageType_BINARY)
@@ -207,7 +207,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 			// straightforward put to cur partitionId queue
 			partitionBufferMap[currentPartitionId] = append(
 				partitionBufferMap[currentPartitionId], NewUserMessage(msg))
-      log4go.Debug("!msg.IsSetPartitionKey()")
+			log4go.Debug("!msg.IsSetPartitionKey()")
 		} else {
 			p.checkMessagePartitionKeyValidity(msg.GetPartitionKey())
 			// construct UserMessage and dispatch to buffer by partitionId
@@ -217,7 +217,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 			}
 			partitionBufferMap[partitionId] = append(
 				partitionBufferMap[partitionId], NewUserMessage(msg))
-      log4go.Debug("msg.IsSetPartitionKey()")
+			log4go.Debug("msg.IsSetPartitionKey()")
 		}
 	}
 
@@ -228,7 +228,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 		}
 		p.partitionSenderMap[partitionId].AddMessage(usrMsgList)
 	}
-  log4go.Debug("partition sender is: %v", p.partitionSenderMap)
+	log4go.Debug("partition sender is: %v", p.partitionSenderMap)
 	return nil
 }
 
@@ -349,7 +349,7 @@ func (p *TalosProducer) initCheckPartitionTask() {
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
 	log4go.Info("start check partition Task")
-  p.CheckPartitionTask()
+	p.CheckPartitionTask()
 	for {
 		select {
 		case <-ticker.C:
@@ -416,9 +416,9 @@ func (p *TalosProducer) CheckPartitionTask() {
 		//}
 		return
 	}
-  log4go.Debug("describe topic %s success", getTopic.TopicInfo.TopicName)
+	log4go.Debug("describe topic %s success", getTopic.TopicInfo.TopicName)
 
-  if p.topicTalosResourceName.GetTopicTalosResourceName() !=
+	if p.topicTalosResourceName.GetTopicTalosResourceName() !=
 		getTopic.GetTopicInfo().GetTopicTalosResourceName().GetTopicTalosResourceName() {
 		err := fmt.Errorf("The topic: %s not exist. It might have been deleted. "+
 			"The putMessage threads will be cancel. ", p.topicTalosResourceName.

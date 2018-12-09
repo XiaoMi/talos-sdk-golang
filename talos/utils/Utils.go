@@ -198,7 +198,7 @@ func GenerateRequestSequenceId(clientId string, requestId *int64) (string, error
 		return "", err
 	}
 	req := atomic.LoadInt64(requestId)
-	atomic.StoreInt64(requestId, atomic.LoadInt64(requestId) + 1)
+	atomic.StoreInt64(requestId, atomic.LoadInt64(requestId)+1)
 	return fmt.Sprintf("%s%s%d", clientId, common.TALOS_IDENTIFIER_DELIMITER, req), nil
 }
 

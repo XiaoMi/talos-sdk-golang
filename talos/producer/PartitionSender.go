@@ -62,7 +62,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 }
 
 func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
-  s.partitionMessageQueue.mqWg.Add(1)
+	s.partitionMessageQueue.mqWg.Add(1)
 	s.partitionMessageQueue.AddMessage(userMessageList)
 	log4go.Debug("add %d messages to partition: %d",
 		len(userMessageList), s.partitionId)
