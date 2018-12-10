@@ -60,7 +60,7 @@ func Test_SimpleProducer(t *testing.T) {
 	msgList := make([]*message.Message, 0)
 	msgList = append(msgList, msg)
 	clientId, _ := utils.CheckAndGenerateClientId("simpleProduce")
-	simpleProducer := producer.NewSimpleProducerByMessageClient(producerConfig, topicAndParition,
+	simpleProducer := producer.NewSimpleProducer(producerConfig, topicAndParition,
 		mockMessageClient, clientId, thrift.Int64Ptr(1))
 
 	// Test PutMessage
@@ -75,7 +75,7 @@ func Test_SimpleProducer(t *testing.T) {
 		&topic.TopicTalosResourceName{resourceName},
 		partitionId,
 	}
-	assert.Nil(t, producer.NewSimpleProducerByMessageClient(producerConfig, topicAndPartititon1,
+	assert.Nil(t, producer.NewSimpleProducer(producerConfig, topicAndPartititon1,
 		mockMessageClient, clientId, new(int64)))
 
 	// Test PutMessage Error

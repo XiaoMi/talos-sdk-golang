@@ -12,7 +12,7 @@ import (
 
 	"../mock_producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
+	"../../../talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/golang/mock/gomock"
@@ -61,7 +61,7 @@ func TestPartitionMessageQueue(t *testing.T) {
 
 	mockProducer := mock_producer.NewMockProducer(ctrl)
 
-	partitionMessageQueue = producer.NewPartitionMessageQueue(producerConfig, partitionId, mockProducer)
+	partitionMessageQueue = producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
 	userMessageList = make([]*producer.UserMessage, 0)
 	userMessageList = append(userMessageList, userMessage1)
 	userMessageList = append(userMessageList, userMessage2)
