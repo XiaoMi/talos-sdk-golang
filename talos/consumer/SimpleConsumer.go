@@ -14,7 +14,8 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
-	log "github.com/alecthomas/log4go"
+	"github.com/XiaoMi/talos-sdk-golang/thrift"
+	"github.com/alecthomas/log4go"
 )
 
 type SimpleConsumer struct {
@@ -32,13 +33,13 @@ func NewSimpleConsumer(consumerConfig *TalosConsumerConfig,
 	consumerIdPrefix string) *SimpleConsumer {
 
 	if err := utils.CheckTopicAndPartition(topicAndPartition); err != nil {
-		log.Error("topicAndPartition error: %s, initial simpleConsumer failed",
+		log4go.Error("topicAndPartition error: %s, initial simpleConsumer failed",
 			err.Error())
 		return nil
 	}
 	consumerId, e := utils.CheckAndGenerateClientId(consumerIdPrefix)
 	if e != nil {
-		log.Error("generate clientId failed: %s, initial simpleConsumer failed",
+		log4go.Error("generate clientId failed: %s, initial simpleConsumer failed",
 			e.Error())
 		return nil
 	}
@@ -49,6 +50,7 @@ func NewSimpleConsumer(consumerConfig *TalosConsumerConfig,
 		topicAndPartition: topicAndPartition,
 		messageClient:     messageClient,
 		simpleConsumerId:  consumerId,
+		requestId:         thrift.Int64Ptr(1),
 		//scheduleInfoCache: infoCache,
 	}
 }
@@ -58,7 +60,7 @@ func NewSimpleConsumerForTest(consumerConfig *TalosConsumerConfig,
 	messageClient message.MessageService) *SimpleConsumer {
 
 	if err := utils.CheckTopicAndPartition(topicAndPartition); err != nil {
-		log.Error("topicAndPartition error: %s, initial simpleConsumer failed",
+		log4go.Error("topicAndPartition error: %s, initial simpleConsumer failed",
 			err.Error())
 		return nil
 	}
@@ -119,35 +121,24 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 		MaxGetMessageBytes:  GALAXY_TALOS_CONSUMER_MAX_FETCH_BYTES_DEFAULT,
 		TimeoutTimestamp:    &timestamp,
 	}
-	//getMessageResponse, err := c.scheduleInfoCache.GetOrCreateMessageClient(
-	//	c.topicAndPartition).GetMessage(getMessageRequest)
-	//if err != nil {
-	//	if c.scheduleInfoCache != nil && c.scheduleInfoCache.IsAutoLocation() {
-	//		log.Warn("can't connect to the host directly, refresh scheduleInfo and "+
-	//			"request using url. The exception message is :%s", err.Error())
-	//		c.scheduleInfoCache.UpdateScheduleInfoCache()
-	//		getMessageResponse, _ = c.messageClient.GetMessage(getMessageRequest)
-	//	} else {
-	//		return nil, err
-	//	}
-	//}
-	////update scheduleInfocache when request have been transfered and talos auto location was set up
-	//if getMessageResponse.IsSetIsTransfer() && getMessageResponse.GetIsTransfer() &&
-	//	c.scheduleInfoCache != nil && c.scheduleInfoCache.IsAutoLocation() {
-	//	log.Info("request has been transfered when talos auto location set up, " +
-	//		"refresh scheduleInfo")
-	//	c.scheduleInfoCache.UpdateScheduleInfoCache()
-	//}
 
 	getMessageResponse, e := c.messageClient.GetMessage(getMessageRequest)
 	if e != nil {
 		if getMessageRequest.GetMessageOffset() != -1 {
-			errCode := common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
-			log.Warn("getMessage error: %v, %s", errCode, e.Error())
-			return nil, utils.NewTalosRuntimeError(errCode, e)
+			getTopicOffsetRequest := &message.GetTopicOffsetRequest{
+				TopicTalosResourceName: c.TopicTalosResourceName(),
+			}
+			getTopicOffsetResponse, e2 := c.messageClient.GetTopicOffset(getTopicOffsetRequest)
+			if e2 == nil && getTopicOffsetResponse.GetOffsetInfoList()[c.PartitionId()].GetStartOffset() != startOffset {
+				errCode := common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
+				log4go.Warn("getMessage error: %v, %s", errCode, e.Error())
+				return nil, utils.NewTalosRuntimeError(errCode, e)
+			}
+			log4go.Warn("getTopicOffset error: %s", e2.Error())
+			return nil, utils.NewTalosRuntimeError(common.ErrorCode_UNEXPECTED_ERROR, e2)
 		} else {
 			errCode := common.ErrorCode_UNEXPECTED_ERROR
-			log.Warn("getMessage error: %v, %s", errCode, e.Error())
+			log4go.Warn("getMessage error: %v, %s", errCode, e.Error())
 			return nil, utils.NewTalosRuntimeError(errCode, e)
 		}
 	}
@@ -158,7 +149,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 		getMessageResponse.GetUnHandledMessageNumber())
 	if e != nil {
 		errCode := common.ErrorCode_UNEXPECTED_ERROR
-		log.Error("decompress messageBlock error: %s", e.Error())
+		log4go.Error("decompress messageBlock error: %s", e.Error())
 		return nil, utils.NewTalosRuntimeError(errCode, e)
 	}
 	if len(messageAndOffsetList) <= 0 {
