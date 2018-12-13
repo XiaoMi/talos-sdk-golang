@@ -70,3 +70,39 @@ func (m *MockTalosClient) NewConsumerClient(url string) consumer.ConsumerService
 func (mr *MockTalosClientMockRecorder) NewConsumerClient(url interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewConsumerClient", reflect.TypeOf((*MockTalosClient)(nil).NewConsumerClient), url)
 }
+
+// NewTopicClientDefault mocks base method
+func (m *MockTalosClient) NewTopicClientDefault() topic.TopicService {
+	ret := m.ctrl.Call(m, "NewTopicClientDefault")
+	ret0, _ := ret[0].(topic.TopicService)
+	return ret0
+}
+
+// NewTopicClientDefault indicates an expected call of NewTopicClientDefault
+func (mr *MockTalosClientMockRecorder) NewTopicClientDefault() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewTopicClientDefault", reflect.TypeOf((*MockTalosClient)(nil).NewTopicClientDefault))
+}
+
+// NewMessageClientDefault mocks base method
+func (m *MockTalosClient) NewMessageClientDefault() message.MessageService {
+	ret := m.ctrl.Call(m, "NewMessageClientDefault")
+	ret0, _ := ret[0].(message.MessageService)
+	return ret0
+}
+
+// NewMessageClientDefault indicates an expected call of NewMessageClientDefault
+func (mr *MockTalosClientMockRecorder) NewMessageClientDefault() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewMessageClientDefault", reflect.TypeOf((*MockTalosClient)(nil).NewMessageClientDefault))
+}
+
+// NewConsumerClientDefault mocks base method
+func (m *MockTalosClient) NewConsumerClientDefault() consumer.ConsumerService {
+	ret := m.ctrl.Call(m, "NewConsumerClientDefault")
+	ret0, _ := ret[0].(consumer.ConsumerService)
+	return ret0
+}
+
+// NewConsumerClientDefault indicates an expected call of NewConsumerClientDefault
+func (mr *MockTalosClientMockRecorder) NewConsumerClientDefault() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewConsumerClientDefault", reflect.TypeOf((*MockTalosClient)(nil).NewConsumerClientDefault))
+}

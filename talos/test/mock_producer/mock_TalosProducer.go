@@ -6,7 +6,6 @@ package mock_producer
 
 import (
 	message "github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-	topic "github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -58,36 +57,6 @@ func (mr *MockProducerMockRecorder) DoAddUserMessage(msgList interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoAddUserMessage", reflect.TypeOf((*MockProducer)(nil).DoAddUserMessage), msgList)
 }
 
-// disableProducer mocks base method
-func (m *MockProducer) disableProducer(err error) {
-	m.ctrl.Call(m, "disableProducer", err)
-}
-
-// disableProducer indicates an expected call of disableProducer
-func (mr *MockProducerMockRecorder) disableProducer(err interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "disableProducer", reflect.TypeOf((*MockProducer)(nil).disableProducer), err)
-}
-
-// shutdown mocks base method
-func (m *MockProducer) shutdown() {
-	m.ctrl.Call(m, "shutdown")
-}
-
-// shutdown indicates an expected call of shutdown
-func (mr *MockProducerMockRecorder) shutdown() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "shutdown", reflect.TypeOf((*MockProducer)(nil).shutdown))
-}
-
-// stopAndwait mocks base method
-func (m *MockProducer) stopAndwait() {
-	m.ctrl.Call(m, "stopAndwait")
-}
-
-// stopAndwait indicates an expected call of stopAndwait
-func (mr *MockProducerMockRecorder) stopAndwait() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "stopAndwait", reflect.TypeOf((*MockProducer)(nil).stopAndwait))
-}
-
 // IsActive mocks base method
 func (m *MockProducer) IsActive() bool {
 	ret := m.ctrl.Call(m, "IsActive")
@@ -122,116 +91,6 @@ func (m *MockProducer) IsShutdown() bool {
 // IsShutdown indicates an expected call of IsShutdown
 func (mr *MockProducerMockRecorder) IsShutdown() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsShutdown", reflect.TypeOf((*MockProducer)(nil).IsShutdown))
-}
-
-// shouldUpdatePartition mocks base method
-func (m *MockProducer) shouldUpdatePartition() bool {
-	ret := m.ctrl.Call(m, "shouldUpdatePartition")
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// shouldUpdatePartition indicates an expected call of shouldUpdatePartition
-func (mr *MockProducerMockRecorder) shouldUpdatePartition() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "shouldUpdatePartition", reflect.TypeOf((*MockProducer)(nil).shouldUpdatePartition))
-}
-
-// checkAndGetTopicInfo mocks base method
-func (m *MockProducer) checkAndGetTopicInfo(topicTalosResourceName *topic.TopicTalosResourceName) error {
-	ret := m.ctrl.Call(m, "checkAndGetTopicInfo", topicTalosResourceName)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// checkAndGetTopicInfo indicates an expected call of checkAndGetTopicInfo
-func (mr *MockProducerMockRecorder) checkAndGetTopicInfo(topicTalosResourceName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "checkAndGetTopicInfo", reflect.TypeOf((*MockProducer)(nil).checkAndGetTopicInfo), topicTalosResourceName)
-}
-
-// initPartitionSender mocks base method
-func (m *MockProducer) initPartitionSender() {
-	m.ctrl.Call(m, "initPartitionSender")
-}
-
-// initPartitionSender indicates an expected call of initPartitionSender
-func (mr *MockProducerMockRecorder) initPartitionSender() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "initPartitionSender", reflect.TypeOf((*MockProducer)(nil).initPartitionSender))
-}
-
-// adjustPartitionSender mocks base method
-func (m *MockProducer) adjustPartitionSender(newPartitionNumber int32) {
-	m.ctrl.Call(m, "adjustPartitionSender", newPartitionNumber)
-}
-
-// adjustPartitionSender indicates an expected call of adjustPartitionSender
-func (mr *MockProducerMockRecorder) adjustPartitionSender(newPartitionNumber interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "adjustPartitionSender", reflect.TypeOf((*MockProducer)(nil).adjustPartitionSender), newPartitionNumber)
-}
-
-// createPartitionSender mocks base method
-func (m *MockProducer) createPartitionSender(partitionId int32) {
-	m.ctrl.Call(m, "createPartitionSender", partitionId)
-}
-
-// createPartitionSender indicates an expected call of createPartitionSender
-func (mr *MockProducerMockRecorder) createPartitionSender(partitionId interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "createPartitionSender", reflect.TypeOf((*MockProducer)(nil).createPartitionSender), partitionId)
-}
-
-// initCheckPartitionTask mocks base method
-func (m *MockProducer) initCheckPartitionTask() {
-	m.ctrl.Call(m, "initCheckPartitionTask")
-}
-
-// initCheckPartitionTask indicates an expected call of initCheckPartitionTask
-func (mr *MockProducerMockRecorder) initCheckPartitionTask() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "initCheckPartitionTask", reflect.TypeOf((*MockProducer)(nil).initCheckPartitionTask))
-}
-
-// getPartitionId mocks base method
-func (m *MockProducer) getPartitionId(partitionKey string) int32 {
-	ret := m.ctrl.Call(m, "getPartitionId", partitionKey)
-	ret0, _ := ret[0].(int32)
-	return ret0
-}
-
-// getPartitionId indicates an expected call of getPartitionId
-func (mr *MockProducerMockRecorder) getPartitionId(partitionKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getPartitionId", reflect.TypeOf((*MockProducer)(nil).getPartitionId), partitionKey)
-}
-
-// generatePartitionKey mocks base method
-func (m *MockProducer) generatePartitionKey() string {
-	ret := m.ctrl.Call(m, "generatePartitionKey")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// generatePartitionKey indicates an expected call of generatePartitionKey
-func (mr *MockProducerMockRecorder) generatePartitionKey() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "generatePartitionKey", reflect.TypeOf((*MockProducer)(nil).generatePartitionKey))
-}
-
-// setPartitionNumber mocks base method
-func (m *MockProducer) setPartitionNumber(partitionNumber int32) {
-	m.ctrl.Call(m, "setPartitionNumber", partitionNumber)
-}
-
-// setPartitionNumber indicates an expected call of setPartitionNumber
-func (mr *MockProducerMockRecorder) setPartitionNumber(partitionNumber interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "setPartitionNumber", reflect.TypeOf((*MockProducer)(nil).setPartitionNumber), partitionNumber)
-}
-
-// checkMessagePartitionKeyValidity mocks base method
-func (m *MockProducer) checkMessagePartitionKeyValidity(partitionKey string) error {
-	ret := m.ctrl.Call(m, "checkMessagePartitionKeyValidity", partitionKey)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// checkMessagePartitionKeyValidity indicates an expected call of checkMessagePartitionKeyValidity
-func (mr *MockProducerMockRecorder) checkMessagePartitionKeyValidity(partitionKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "checkMessagePartitionKeyValidity", reflect.TypeOf((*MockProducer)(nil).checkMessagePartitionKeyValidity), partitionKey)
 }
 
 // IncreaseBufferedCount mocks base method

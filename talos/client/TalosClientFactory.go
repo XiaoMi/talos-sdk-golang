@@ -30,6 +30,9 @@ type TalosClient interface {
 	NewTopicClient(url string) topic.TopicService
 	NewMessageClient(url string) message.MessageService
 	NewConsumerClient(url string) consumer.ConsumerService
+	NewTopicClientDefault() topic.TopicService
+	NewMessageClientDefault() message.MessageService
+	NewConsumerClientDefault() consumer.ConsumerService
 }
 
 type TalosClientFactory struct {

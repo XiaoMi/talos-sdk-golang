@@ -10,11 +10,12 @@ import (
 	"strconv"
 	"testing"
 
+	"../../../talos/producer"
 	"../mock_producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"../../../talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
+	"github.com/alecthomas/log4go"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,8 +26,6 @@ var partitionId int32
 var maxPutMsgNumber int64
 var maxBufferedMillSecs int64
 var producerConfig *producer.TalosProducerConfig
-var talosProducer *producer.TalosProducer
-var partitionMessageQueue *producer.PartitionMessageQueue
 var userMessage1, userMessage2, userMessage3 *producer.UserMessage
 var userMessageList []*producer.UserMessage
 var messageList []*message.Message
@@ -54,14 +53,14 @@ func setUpBefore() {
 
 }
 
-func TestPartitionMessageQueue(t *testing.T) {
+func TestAddAndGetMessageWhenMaxPutNumber(t *testing.T) {
 	setUpBefore()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockProducer := mock_producer.NewMockProducer(ctrl)
+	partitionMessageQueue := producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
 
-	partitionMessageQueue = producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
 	userMessageList = make([]*producer.UserMessage, 0)
 	userMessageList = append(userMessageList, userMessage1)
 	userMessageList = append(userMessageList, userMessage2)
@@ -72,11 +71,108 @@ func TestPartitionMessageQueue(t *testing.T) {
 	messageList = append(messageList, msg1)
 	messageList = append(messageList, msg1)
 
-	mockProducer.EXPECT().IncreaseBufferedCount(3, len(msgStr)*3).Do(nil)
-	mockProducer.EXPECT().IsActive().Return(true)
-	mockProducer.EXPECT().DecreaseBufferedCount(3, len(msgStr)*3).Do(nil)
+	// Test AddAndGetMessageWhenMaxPutNumber
+	gomock.InOrder(
+		mockProducer.EXPECT().IncreaseBufferedCount(int64(3), int64(len(msgStr)*3)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(true).Times(1),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(3), int64(len(msgStr)*3)).Times(1),
+	)
 
+	partitionMessageQueue.MqWg.Add(1)
 	partitionMessageQueue.AddMessage(userMessageList)
 	assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
+}
 
+func TestAddAndGetWaitMessageWhenNumberNotEnough(t *testing.T) {
+	defer log4go.Close()
+	setUpBefore()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProducer := mock_producer.NewMockProducer(ctrl)
+	partitionMessageQueue := producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
+
+	userMessageList = make([]*producer.UserMessage, 0)
+	userMessageList = append(userMessageList, userMessage1)
+	userMessageList = append(userMessageList, userMessage2)
+
+	messageList = make([]*message.Message, 0)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
+
+	gomock.InOrder(
+		mockProducer.EXPECT().IncreaseBufferedCount(int64(2), int64(len(msgStr)*2)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(true).Times(2),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(2), int64(len(msgStr)*2)).Times(1),
+	)
+
+	partitionMessageQueue.MqWg.Add(1)
+	partitionMessageQueue.AddMessage(userMessageList)
+	// check log has waiting time or not
+	assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
+}
+
+func TestAddAndGetMessageWhenNotAlive(t *testing.T) {
+	setUpBefore()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProducer := mock_producer.NewMockProducer(ctrl)
+	partitionMessageQueue := producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
+
+	userMessageList = make([]*producer.UserMessage, 0)
+	userMessageList = append(userMessageList, userMessage1)
+	userMessageList = append(userMessageList, userMessage2)
+	userMessageList = append(userMessageList, userMessage3)
+
+	messageList = make([]*message.Message, 0)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
+
+	gomock.InOrder(
+		mockProducer.EXPECT().IncreaseBufferedCount(int64(3), int64(len(msgStr)*3)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(true).Times(1),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(3), int64(len(msgStr)*3)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(false).Times(1),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(0), int64(len(msgStr)*0)).Times(1),
+	)
+
+	partitionMessageQueue.MqWg.Add(1)
+	partitionMessageQueue.AddMessage(userMessageList)
+	// check log has waiting time or not
+	assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
+	assert.Equal(t, 0, len(partitionMessageQueue.GetMessageList()))
+}
+
+func TestAddAndGetWaitMessageWhenNotAlive(t *testing.T) {
+	defer log4go.Close()
+	setUpBefore()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockProducer := mock_producer.NewMockProducer(ctrl)
+	partitionMessageQueue := producer.NewPartitionMessageQueueForTest(producerConfig, partitionId, mockProducer)
+
+	userMessageList = make([]*producer.UserMessage, 0)
+	userMessageList = append(userMessageList, userMessage1)
+	userMessageList = append(userMessageList, userMessage2)
+
+	messageList = make([]*message.Message, 0)
+	messageList = append(messageList, msg1)
+	messageList = append(messageList, msg1)
+
+	gomock.InOrder(
+		mockProducer.EXPECT().IncreaseBufferedCount(int64(2), int64(len(msgStr)*2)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(true).Times(2),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(2), int64(len(msgStr)*2)).Times(1),
+		mockProducer.EXPECT().IsActive().Return(false).Times(1),
+		mockProducer.EXPECT().DecreaseBufferedCount(int64(0), int64(len(msgStr)*0)).Times(1),
+	)
+
+	partitionMessageQueue.MqWg.Add(1)
+	partitionMessageQueue.AddMessage(userMessageList)
+	// check log has waiting time or not
+	assert.Equal(t, len(messageList), len(partitionMessageQueue.GetMessageList()))
+	assert.Equal(t, 0, len(partitionMessageQueue.GetMessageList()))
 }

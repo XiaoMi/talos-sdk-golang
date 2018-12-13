@@ -647,13 +647,14 @@ func (c *TalosConsumer) ReNewTask() {
 		WorkerId:               c.workerId,
 	}
 	renewRequest := &consumer.RenewRequest{ConsumeUnit: consumeUnit}
-	var renewResponse consumer.RenewResponse
+	var renewResponse *consumer.RenewResponse
+	var err error
 
 	// plus 1 to include the first renew operation
 	maxRetry := c.talosConsumerConfig.GetRenewMaxRetry() + 1
 	for maxRetry > 0 {
 		maxRetry--
-		renewResponse, err := c.consumerClient.Renew(renewRequest)
+		renewResponse, err = c.consumerClient.Renew(renewRequest)
 		if err != nil {
 			log.Error("Worker: %s renew error: %s", c.workerId, err.Error())
 			continue
@@ -670,7 +671,7 @@ func (c *TalosConsumer) ReNewTask() {
 
 	// 2) make heart beat failed, cancel all partitions
 	// no need to renew anything, so block the renew thread and cancel all task
-	if !renewResponse.GetHeartbeatSuccess() {
+	if renewResponse != nil && !renewResponse.GetHeartbeatSuccess() {
 		log.Error("Worker: %s failed to make heartbeat, cancel all consumer task",
 			c.workerId)
 		c.cancelAllConsumingTask()
@@ -680,7 +681,7 @@ func (c *TalosConsumer) ReNewTask() {
 	// stop read, commit offset, unlock for renew failed partitions
 	// the release process is graceful, so may be a long time,
 	// do not block the renew thread and switch thread to re-balance thread
-	if len(renewResponse.GetFailedPartitionList()) > 0 {
+	if renewResponse != nil && len(renewResponse.GetFailedPartitionList()) > 0 {
 		failedRenewList := renewResponse.GetFailedPartitionList()
 		log.Error("Worker: %s failed to renew partitions: %v",
 			c.workerId, failedRenewList)

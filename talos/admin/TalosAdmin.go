@@ -14,6 +14,10 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 )
 
+type Admin interface {
+	DescribeTopic(request *topic.DescribeTopicRequest) (*topic.Topic, error)
+}
+
 type TalosAdmin struct {
 	topicClient   topic.TopicService
 	messageClient message.MessageService

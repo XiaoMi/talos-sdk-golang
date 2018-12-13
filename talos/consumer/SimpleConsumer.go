@@ -129,7 +129,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset int64,
 				TopicTalosResourceName: c.TopicTalosResourceName(),
 			}
 			getTopicOffsetResponse, e2 := c.messageClient.GetTopicOffset(getTopicOffsetRequest)
-			if e2 == nil && getTopicOffsetResponse.GetOffsetInfoList()[c.PartitionId()].GetStartOffset() != startOffset {
+			if e2 == nil && getTopicOffsetResponse.GetOffsetInfoList()[c.PartitionId()].GetStartOffset()+1 != startOffset {
 				errCode := common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
 				log4go.Warn("getMessage error: %v, %s", errCode, e.Error())
 				return nil, utils.NewTalosRuntimeError(errCode, e)
