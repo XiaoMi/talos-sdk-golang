@@ -32,17 +32,18 @@ type PartitionSender struct {
 	userMessageCallback   UserMessageCallback
 	topicAndPartition     *topic.TopicAndPartition
 	partitionMessageQueue *PartitionMessageQueue
-	talosProducer         *TalosProducer
+	talosProducer         Producer
 	globalLock            chan LockState
 	userMessageResult     *UserMessageResult
 	simpleProducer        *SimpleProducer
+	MessageWriterStopSign chan StopSignType
 }
 
 func NewPartitionSender(partitionId int32, topicName string,
 	topicTalosResourceName *topic.TopicTalosResourceName, requestId *int64,
 	clientId string, producerConfig *TalosProducerConfig,
 	messageClient message.MessageService, userMessageCallback UserMessageCallback,
-	globalLock chan LockState, talosProducer *TalosProducer) *PartitionSender {
+	globalLock chan LockState, talosProducer Producer) *PartitionSender {
 
 	topicAndPartition := &topic.TopicAndPartition{
 		TopicName:              topicName,
@@ -62,27 +63,12 @@ func NewPartitionSender(partitionId int32, topicName string,
 		talosProducer:         talosProducer,
 		topicAndPartition:     topicAndPartition,
 		partitionMessageQueue: partitionMessageQueue,
+		MessageWriterStopSign: make(chan StopSignType, 1),
 	}
 
 	go partitionSender.MessageWriterTask()
 
 	return partitionSender
-}
-
-func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
-	s.partitionMessageQueue.MqWg.Add(1)
-	s.partitionMessageQueue.AddMessage(userMessageList)
-	log4go.Debug("add %d messages to partition: %d",
-		len(userMessageList), s.partitionId)
-}
-
-func (s *PartitionSender) Shutdown() {
-	// notify PartitionMessageQueue::getMessageList return;
-  if len(s.partitionMessageQueue.userMessageList) > 0 {
-    s.AddMessage(make([]*UserMessage, 0))
-  }
-	// TODO:add shutdown logical
-	log4go.Info("PartitionSender for partition: %d finish stop", s.partitionId)
 }
 
 func (s *PartitionSender) MessageCallbackTask(userMessageResult *UserMessageResult) {
@@ -98,23 +84,28 @@ func (s *PartitionSender) MessageWriterTask() {
 	s.simpleProducer = NewSimpleProducer(s.talosProducerConfig,
 		s.topicAndPartition, s.messageClient, s.clientId, s.requestId)
 	for true {
-		messageList := s.partitionMessageQueue.GetMessageList()
+		select {
+		case <-s.MessageWriterStopSign:
+			log4go.Info("MessageWriterTask stop")
+			return
+		default:
+			messageList := s.partitionMessageQueue.GetMessageList()
 
-		// when messageList return no message, this means TalosProducer not
-		// alive and there is no more message to send , then we should exit
-		// write message right now;
-		if len(messageList) == 0 {
-			// notify to wake up producer's global lock
-			s.globalLock <- NOTIFY
-			break
+			// when messageList return no message, this means TalosProducer not
+			// alive and there is no more message to send , then we should exit
+			// write message right now;
+			if len(messageList) == 0 {
+				// notify to wake up producer's global lock
+				s.globalLock <- NOTIFY
+				break
+			}
+			err := s.putMessage(messageList)
+			if err != nil {
+				log4go.Error("PutMessageTask for topicAndPartition: %v error: %s",
+					s.topicAndPartition, err.Error())
+			}
+			// s.globalLock <- NOTIFY
 		}
-		log4go.Debug("partitionSender putMessage")
-		err := s.putMessage(messageList)
-		if err != nil {
-			log4go.Error("PutMessageTask for topicAndPartition: %v error: %s",
-				s.topicAndPartition, err.Error())
-		}
-		// s.globalLock <- NOTIFY
 	}
 }
 
@@ -130,8 +121,7 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 			s.topicAndPartition.GetTopicTalosResourceName())
 	}
 
-	err := s.simpleProducer.doPut(messageList)
-	if err != nil {
+	if err := s.simpleProducer.doPut(messageList); err != nil {
 		log4go.Error("Failed to put %d messages for partition: %d",
 			len(messageList), s.partitionId)
 		for _, msg := range messageList {
@@ -139,7 +129,7 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 		}
 		// putMessage failed callback
 		userMessageResult.SetSuccessful(false).SetCause(err)
-		go s.MessageCallbackTask(userMessageResult)
+		s.MessageCallbackTask(userMessageResult)
 
 		// delay when partitionNotServing
 		// TODO: judge utils.IsPartitionNotServing
@@ -149,7 +139,23 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 	}
 	// putMessage success callback
 	userMessageResult.SetSuccessful(true)
-	go s.MessageCallbackTask(userMessageResult)
+	s.MessageCallbackTask(userMessageResult)
 	log4go.Debug("put %d messages for partition: %d", len(messageList), s.partitionId)
 	return nil
+}
+
+func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
+	s.partitionMessageQueue.MqWg.Add(1)
+	s.partitionMessageQueue.AddMessage(userMessageList)
+	log4go.Debug("add %d messages to partition: %d",
+		len(userMessageList), s.partitionId)
+}
+
+func (s *PartitionSender) Shutdown() {
+	// notify PartitionMessageQueue::getMessageList return;
+	if s.partitionMessageQueue.userMessageList.Len() > 0 {
+		s.AddMessage(make([]*UserMessage, 0))
+	}
+	s.MessageWriterStopSign <- Shutdown
+	log4go.Info("PartitionSender for partition: %d finish stop", s.partitionId)
 }

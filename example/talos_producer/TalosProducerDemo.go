@@ -9,9 +9,12 @@ package main
 import (
 	"flag"
 	"time"
+	"fmt"
+	"sync/atomic"
 
+	"../../talos/producer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/admin"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
@@ -23,35 +26,48 @@ import (
 type MyMessageCallback struct {
 }
 
-func (c *MyMessageCallback) OnSuccess(result *producer.UserMessageResult) {
-	for _, msg := range result.GetMessageList() {
+func (c *MyMessageCallback) OnSuccess(userMessageResult *producer.UserMessageResult) {
+	atomic.StoreInt64(successPutNumber, atomic.LoadInt64(successPutNumber)+int64(len(userMessageResult.GetMessageList())))
+	count := atomic.LoadInt64(successPutNumber)
+
+	for _, msg := range userMessageResult.GetMessageList() {
 		log.Info("success to put message: %s", string(msg.GetMessage()))
 	}
-	log.Info("put success")
+	log.Info("success to put message: %d so far.", count)
 }
 
 func (c *MyMessageCallback) OnError(userMessageResult *producer.UserMessageResult) {
-
+	for _, msg := range userMessageResult.GetMessageList() {
+		log.Info("failed to put message: %d , will retry to put it.", msg)
+	}
+	err := talosProducer.AddUserMessage(userMessageResult.GetMessageList())
+	if err != nil {
+		log.Error("put message retry failed: %s", err.Error())
+	}
 }
 
-func main() {
-	log.AddFilter("stdout", log.DEBUG, log.NewConsoleLogWriter())
-	log.AddFilter("file", log.DEBUG, log.NewFileLogWriter("talos_producer.log", false))
-	defer log.Close()
+var successPutNumber *int64
+var talosProducer *producer.TalosProducer
 
+func main() {
+	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
+	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_producer.log", false))
+	defer log.Close()
+	successPutNumber = new(int64)
+	atomic.StoreInt64(successPutNumber, 0)
 	// init client config by put $your_propertyFile in your classpath
 	// with the content of:
 	/*
 	   galaxy.talos.service.endpoint=$talosServiceURI
 	*/
 	var propertyFilename string
-	flag.StringVar(&propertyFilename, "conf", "talos-sdk-golang/example/simple_consumer/simpleProducer.conf", "conf: talosConsumer.conf'")
+	flag.StringVar(&propertyFilename, "conf", "talosProducer.conf", "conf: talosConsumer.conf'")
 	flag.Parse()
 	props := utils.LoadProperties(propertyFilename)
 
-	topicName := ""
-	secretKeyId := ""
-	secretKey := ""
+  topicName := props.Get("galaxy.talos.topic.name")
+  secretKeyId := props.Get("galaxy.talos.access.key")
+  secretKey := props.Get("galaxy.talos.access.secret")
 	userType := auth.UserType_DEV_XIAOMI
 	socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT * time.Second)
 	// credential
@@ -63,41 +79,34 @@ func main() {
 
 	clientConfig := client.NewTalosClientConfigByProperties(props)
 	producerConfig := producer.NewTalosProducerConfigByProperties(props)
-	endpoint := clientConfig.ServiceEndpoint()
 	clientFactory := client.NewTalosClientFactory(clientConfig, credential, socketTimeout)
-	topicClient := clientFactory.NewTopicClient(endpoint + common.TALOS_TOPIC_SERVICE_PATH)
 
-	describeTopicRequest := &topic.DescribeTopicRequest{TopicName: topicName}
-	var topicTalosResourceName *topic.TopicTalosResourceName
-
-	// get topic info
-	describeTopicResponse, err := topicClient.DescribeTopic(describeTopicRequest)
+	talosAdmin := admin.NewTalosAdmin(&clientFactory)
+	topic, err := talosAdmin.DescribeTopic(&topic.DescribeTopicRequest{topicName})
 	if err != nil {
-		log.Error("describeTopic error: %s", err.Error())
-	} else {
-		topic := topic.Topic{
-			TopicInfo:      describeTopicResponse.GetTopicInfo(),
-			TopicAttribute: describeTopicResponse.GetTopicAttribute(),
-			TopicState:     describeTopicResponse.GetTopicState(),
-			TopicQuota:     describeTopicResponse.GetTopicQuota(),
-			TopicAcl:       describeTopicResponse.GetAclMap(),
-		}
-		topicTalosResourceName = topic.GetTopicInfo().GetTopicTalosResourceName()
+		log.Error(err)
+		return
 	}
-	// init talosConsumer
+	topicTalosResourceName := topic.GetTopicInfo().GetTopicTalosResourceName()
+
 	talosProducer := producer.NewTalosProducer(producerConfig,
 		credential, topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
 		new(MyMessageCallback))
-	log.Debug("New TalosProducer success")
-	messageStr := "This message is a text string."
-	msg := message.NewMessage()
-	msg.Message = []byte(messageStr)
+
+	toPutMsgNumber := 7
 	messageList := make([]*message.Message, 0)
-	messageList = append(messageList, msg)
-	log.Debug("Talos producer start putMessage")
-	e := talosProducer.AddUserMessage(messageList)
-	if e != nil {
-		log.Error(e.Error())
+	for i := 0; i < toPutMsgNumber; i++ {
+		messageStr := fmt.Sprintf("This message is a text string. messageId: %d", i)
+		msg := &message.Message{Message: []byte(messageStr)}
+		messageList = append(messageList, msg)
 	}
-	log.Info("Talos producer is shutdown...")
+
+	if err := talosProducer.AddUserMessage(messageList); err != nil {
+		log.Error(err)
+		return
+	}
+	time.Sleep(5000 * time.Millisecond)
+
+	//talosProducer.Shutdown()
+	//log.Info("Talos producer is shutdown...")
 }

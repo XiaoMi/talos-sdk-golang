@@ -112,9 +112,9 @@ func NewTalosProducer(producerConfig *TalosProducerConfig, credential *auth.Cred
 		clientId:                   utils.GenerateClientId(),
 		talosClientFactory:         &clientFactory,
 		talosAdmin:                 admin.NewTalosAdmin(&clientFactory),
-		globalLock:                 make(chan LockState),
+		globalLock:                 make(chan LockState, 1),
 		StopSign:                   make(chan StopSignType, 1),
-		checkPartTaskSign:          make(chan StopSignType),
+		checkPartTaskSign:          make(chan StopSignType, 1),
 	}
 
 	talosProducer.checkAndGetTopicInfo(topicTalosResourceName)
@@ -156,12 +156,15 @@ func NewTalosProducerForTest(producerConfig *TalosProducerConfig,
 		clientId:                   utils.GenerateClientId(),
 		talosClientFactory:         talosClientFactory,
 		talosAdmin:                 talosAdmin,
-		globalLock:                 make(chan LockState),
+		globalLock:                 make(chan LockState, 1),
 		StopSign:                   make(chan StopSignType, 1),
-		checkPartTaskSign:          make(chan StopSignType),
+		checkPartTaskSign:          make(chan StopSignType, 1),
 	}
 
-	talosProducer.checkAndGetTopicInfo(topicTalosResourceName)
+	if err := talosProducer.checkAndGetTopicInfo(topicTalosResourceName); err != nil {
+		log4go.Error("Initialize talosProducer error: %s", err)
+		return nil
+	}
 
 	talosProducer.initPartitionSender()
 	go talosProducer.initCheckPartitionTask()
@@ -179,8 +182,8 @@ func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
 	}
 
 	// check total buffered message number
-	timeout := time.Duration(60 * time.Second)
 	for p.bufferedCount.IsFull() {
+		timeout := time.Duration(3600 * time.Second)
 		log4go.Info("too many buffered messages, globalLock is active."+
 			" message number: %d, message bytes: %d",
 			p.bufferedCount.GetBufferedMsgNumber(),
@@ -196,9 +199,12 @@ func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
 		case <-time.After(timeout):
 			err := fmt.Errorf("addUserMessage global lock is waitting. ")
 			log4go.Warn(err)
+			return err
 		}
 	}
-	p.DoAddUserMessage(msgList)
+	if err := p.DoAddUserMessage(msgList); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -216,6 +222,11 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 
 	partitionBufferMap[currentPartitionId] = make([]*UserMessage, 0)
 	for _, msg := range msgList {
+		if msg == nil {
+			err := fmt.Errorf("Message nil pointer error. ")
+			log4go.Error(err)
+			return err
+		}
 		// set timestamp and messageType if not set;
 		utils.UpdateMessage(msg, message.MessageType_BINARY)
 		// check data validity
@@ -234,10 +245,8 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 				log4go.Error("checkMessagePartitionKeyValidity error: %s", err.Error())
 				return err
 			}
-			log4go.Debug("checkMessagePartitionKeyValidity:%s", msg.GetPartitionKey())
 			// construct UserMessage and dispatch to buffer by partitionId
 			partitionId := p.getPartitionId(msg.GetPartitionKey())
-			log4go.Debug("partitionID: %d", partitionId)
 			if _, ok := partitionBufferMap[partitionId]; !ok {
 				partitionBufferMap[partitionId] = make([]*UserMessage, 0)
 			}
@@ -252,7 +261,6 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 			log4go.Error(err)
 			return err
 		}
-		log4go.Debug("talos producer addmessage")
 		p.partitionSenderMap[partitionId].AddMessage(usrMsgList)
 	}
 	return nil
@@ -364,7 +372,6 @@ func (p *TalosProducer) initCheckPartitionTask() {
 		time.Millisecond
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
-	log4go.Debug("start check partition Task")
 	for {
 		select {
 		case <-ticker.C:
@@ -392,7 +399,6 @@ func (p *TalosProducer) CheckPartitionTask() {
 		//}
 		return
 	}
-	log4go.Debug("describe topic %s success", getTopic.TopicInfo.TopicName)
 
 	if p.topicTalosResourceName.GetTopicTalosResourceName() !=
 		getTopic.GetTopicInfo().GetTopicTalosResourceName().GetTopicTalosResourceName() {
@@ -411,7 +417,6 @@ func (p *TalosProducer) CheckPartitionTask() {
 		// update partitionNumber
 		p.setPartitionNumber(topicPartitionNum)
 	}
-	log4go.Debug("Check partition Task finished")
 }
 
 func (p *TalosProducer) getPartitionId(partitionKey string) int32 {
