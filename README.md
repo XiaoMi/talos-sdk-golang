@@ -49,8 +49,8 @@ talosProducer.conf -> TalosProducerDemo.go
 * Coding
 
 ```
-    talosProducer := producer.NewTalosProducer(producerConfig,
-		credential, topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
+    talosProducer := producer.NewTalosProducer(producerConfig,credential, 
+        topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
 		new(MyMessageCallback))
 
 	toPutMsgNumber := 8
