@@ -36,9 +36,45 @@ import (
 
 ```
 
+## Run producerDemo
+
+We have an demo in example/simple_producer/TalosSimpleProducerDemo.go and example/talos_producer/TalosProducerDemo.go, users can run this demo.
+
+* Configured:
+
+simpleProducer.conf -> TalosSimpleProducerDemo.go
+
+talosProducer.conf -> TalosProducerDemo.go
+
+* Coding
+
+```
+    talosProducer := producer.NewTalosProducer(producerConfig,
+		credential, topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
+		new(MyMessageCallback))
+
+	toPutMsgNumber := 8
+	messageList := make([]*message.Message, 0)
+	for i := 0; i < toPutMsgNumber; i++ {
+		messageStr := fmt.Sprintf("This message is a text string. messageId: %d", i)
+		msg := &message.Message{Message: []byte(messageStr)}
+		messageList = append(messageList, msg)
+	}
+	talosProducer.AddUserMessage(messageList)
+```
+
+* Then:
+
+```
+$ cd example/simple_producer [example/talos_producer]
+$ go get
+$ go build TalosSimpleProducerDemo.go [TalosConsumerDemo.go]
+$ ./TalosSimpleProducerDemo [./TalosConsumerDemo]
+```
+
 ## Run consumerDemo
 
-We have an demo in example/TalosSimpleConsumerDemo.go and example/TalosConsumerDemo.go, users can run this demo.
+We have an demo in example/simple_consumer/TalosSimpleConsumerDemo.go and example/talos_consumer/TalosConsumerDemo.go, users can run this demo.
 
 * Configured:
 
@@ -49,9 +85,10 @@ talosConsumer.conf -> TalosConsumerDemo.go
 * Then:
 
 ```
-$ cd example
+$ cd example/simple_consumer [example/talos_consumer]
 $ go get
-$ go run TalosConsumerDemo.go
+$ go build TalosSimpleConsumerDemo.go [TalosConsumerDemo.go]
+$ ./TalosSimpleConsumerDemo [TalosConsumerDemo]
 ```
 
 # Talos Book
