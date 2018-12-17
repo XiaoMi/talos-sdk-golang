@@ -50,7 +50,7 @@ var successPutNumber *int64
 var talosProducer *producer.TalosProducer
 
 func main() {
-	log.AddFilter("stdout", log.DEBUG, log.NewConsoleLogWriter())
+	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
 	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_producer.log", false))
 	defer log.Close()
 	successPutNumber = new(int64)
