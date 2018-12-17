@@ -8,11 +8,11 @@ package main
 
 import (
 	"flag"
-	"time"
 	"fmt"
 	"sync/atomic"
+	"time"
 
-	"../../talos/producer"
+	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/admin"
 	"github.com/XiaoMi/talos-sdk-golang/talos/client"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
@@ -50,7 +50,7 @@ var successPutNumber *int64
 var talosProducer *producer.TalosProducer
 
 func main() {
-	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
+	log.AddFilter("stdout", log.DEBUG, log.NewConsoleLogWriter())
 	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_producer.log", false))
 	defer log.Close()
 	successPutNumber = new(int64)
@@ -65,9 +65,9 @@ func main() {
 	flag.Parse()
 	props := utils.LoadProperties(propertyFilename)
 
-  topicName := props.Get("galaxy.talos.topic.name")
-  secretKeyId := props.Get("galaxy.talos.access.key")
-  secretKey := props.Get("galaxy.talos.access.secret")
+	topicName := props.Get("galaxy.talos.topic.name")
+	secretKeyId := props.Get("galaxy.talos.access.key")
+	secretKey := props.Get("galaxy.talos.access.secret")
 	userType := auth.UserType_DEV_XIAOMI
 	socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT * time.Second)
 	// credential
@@ -101,12 +101,17 @@ func main() {
 		messageList = append(messageList, msg)
 	}
 
-	if err := talosProducer.AddUserMessage(messageList); err != nil {
-		log.Error(err)
-		return
-	}
-	time.Sleep(5000 * time.Millisecond)
+	//go func() {
+	//  time.Sleep(5*time.Second)
+	//  talosProducer.Shutdown()
+	//  log.Info("Talos producer is shutdown...")
+	//}()
 
-	//talosProducer.Shutdown()
-	//log.Info("Talos producer is shutdown...")
+	for {
+		if err := talosProducer.AddUserMessage(messageList); err != nil {
+			log.Error(err)
+			return
+		}
+		time.Sleep(2 * time.Second)
+	}
 }

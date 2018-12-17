@@ -7,10 +7,10 @@
 package producer
 
 import (
+	"container/list"
 	"sync"
 	"time"
 
-	"container/list"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 	"github.com/alecthomas/log4go"
@@ -83,8 +83,11 @@ func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
 	defer q.Mutex.Unlock()
 	for !q.shouldPut() {
 		if waitTime := q.getWaitTime(); waitTime == 0 {
+			// TODO make logical better
 			// q.Mqwg.Add(1)
-			q.MqWg.Wait()
+			q.Mutex.Unlock()
+			time.Sleep(time.Duration(200 * time.Millisecond))
+			q.Mutex.Lock()
 		} else {
 			time.Sleep(time.Duration(waitTime) * time.Millisecond)
 		}

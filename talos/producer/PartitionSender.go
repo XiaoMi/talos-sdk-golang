@@ -10,16 +10,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XiaoMi/talos-sdk-golang/talos/producer"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
 	"github.com/alecthomas/log4go"
 )
 
 type Sender interface {
-	AddMessage(userMessageList []*producer.UserMessage)
+	AddMessage(userMessageList []*UserMessage)
 	Shutdown()
-	MessageCallbackTask(userMessageResult *producer.UserMessageResult)
+	MessageCallbackTask(userMessageResult *UserMessageResult)
 	MessageWriterTask()
 }
 
