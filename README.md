@@ -51,16 +51,16 @@ talosProducer.conf -> TalosProducerDemo.go
 ```
     talosProducer := producer.NewTalosProducer(producerConfig,credential, 
         topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
-		new(MyMessageCallback))
+        new(MyMessageCallback))
 
-	toPutMsgNumber := 8
-	messageList := make([]*message.Message, 0)
-	for i := 0; i < toPutMsgNumber; i++ {
-		messageStr := fmt.Sprintf("This message is a text string. messageId: %d", i)
-		msg := &message.Message{Message: []byte(messageStr)}
-		messageList = append(messageList, msg)
-	}
-	talosProducer.AddUserMessage(messageList)
+    toPutMsgNumber := 8
+    messageList := make([]*message.Message, 0)
+    for i := 0; i < toPutMsgNumber; i++ {
+    	messageStr := fmt.Sprintf("This message is a text string. messageId: %d", i)
+    	msg := &message.Message{Message: []byte(messageStr)}
+    	messageList = append(messageList, msg)
+    }
+    talosProducer.AddUserMessage(messageList)
 ```
 
 * Then:

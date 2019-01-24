@@ -18,7 +18,8 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 
 	log "github.com/alecthomas/log4go"
-    "github.com/golang/snappy"
+	//"github.com/golang/snappy"
+	"github.com/eapache/go-xerial-snappy"
 )
 
 func Compress(messageList []*message.Message,
@@ -57,7 +58,7 @@ func DoCompress(messageList []*message.Message,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = append(messageBlockData, messageSerializedBuffer.Bytes()...)
 	case message.MessageCompressionType_SNAPPY:
-        compressedMessage := snappy.Encode(nil, messageSerializedBuffer.Bytes())
+		compressedMessage := snappy.Encode(messageSerializedBuffer.Bytes())
 		messageBlockData = append(messageBlockData, compressedMessage...)
 	case message.MessageCompressionType_GZIP:
 		gzipBuf := bytes.NewBuffer(make([]byte, 0))
@@ -111,12 +112,12 @@ func DoDecompress(messageBlock *message.MessageBlock,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = bytes.NewBuffer(messageBlock.GetMessageBlock())
 	case message.MessageCompressionType_SNAPPY:
-        messageByteSlice, err := snappy.Decode(nil, messageBlock.GetMessageBlock())
-        if err != nil {
-            log.Error("decode messageBlock error: %s", err.Error())
-            return nil, err
-        }
-        messageBlockData = bytes.NewBuffer(messageByteSlice)
+		messageByteSlice, err := snappy.Decode(messageBlock.GetMessageBlock())
+		if err != nil {
+			log.Error("decode messageBlock error: %s", err.Error())
+			return nil, err
+		}
+		messageBlockData = bytes.NewBuffer(messageByteSlice)
 	case message.MessageCompressionType_GZIP:
 		reader, _ := gzip.NewReader(bytes.NewBuffer(messageBlock.GetMessageBlock()))
 		messageByteSlice, err := ioutil.ReadAll(reader)

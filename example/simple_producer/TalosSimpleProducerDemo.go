@@ -24,7 +24,7 @@ import (
 
 func main() {
 	log4go.AddFilter("stdout", log4go.INFO, log4go.NewConsoleLogWriter())
-	log4go.AddFilter("file", log4go.INFO, log4go.NewFileLogWriter("simple_producer.log4go", false))
+	log4go.AddFilter("file", log4go.INFO, log4go.NewFileLogWriter("simple_producer.log", false))
 	defer log4go.Close()
 
 	var propertyFilename string
