@@ -58,7 +58,7 @@ func DoCompress(messageList []*message.Message,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = append(messageBlockData, messageSerializedBuffer.Bytes()...)
 	case message.MessageCompressionType_SNAPPY:
-		compressedMessage := snappy.Encode(messageSerializedBuffer.Bytes())
+		compressedMessage := snappy.EncodeStream(nil, messageSerializedBuffer.Bytes())
 		messageBlockData = append(messageBlockData, compressedMessage...)
 	case message.MessageCompressionType_GZIP:
 		gzipBuf := bytes.NewBuffer(make([]byte, 0))
@@ -112,7 +112,7 @@ func DoDecompress(messageBlock *message.MessageBlock,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = bytes.NewBuffer(messageBlock.GetMessageBlock())
 	case message.MessageCompressionType_SNAPPY:
-		messageByteSlice, err := snappy.Decode(messageBlock.GetMessageBlock())
+		messageByteSlice, err := snappy.DecodeInto(nil, messageBlock.GetMessageBlock())
 		if err != nil {
 			log.Error("decode messageBlock error: %s", err.Error())
 			return nil, err
