@@ -18,7 +18,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
 
 	log "github.com/alecthomas/log4go"
-	//"github.com/golang/snappy"
 	"github.com/eapache/go-xerial-snappy"
 )
 

@@ -54,7 +54,7 @@ func WriteMessageVersion(version MessageVersion, buf *bytes.Buffer) {
 	versionBuffer := make([]byte, 2)
 	binary.BigEndian.PutUint16(versionBuffer, uint16(version))
 	buf.Write(versionBuffer)
-	buf.WriteByte('0')
+	buf.WriteByte(0)
 }
 
 func (s *MessageSerialer) Serialize(message *message.Message, buf *bytes.Buffer) error {
