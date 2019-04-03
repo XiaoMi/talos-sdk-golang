@@ -454,5 +454,5 @@ func (p *TalosProducer) IncreaseBufferedCount(incrementNumber int64,
 
 func (p *TalosProducer) DecreaseBufferedCount(decrementNumber int64,
 	decrementBytes int64) {
-	p.bufferedCount.Decrease(decrementNumber, decrementNumber)
+	p.bufferedCount.Decrease(decrementNumber, decrementBytes)
 }
