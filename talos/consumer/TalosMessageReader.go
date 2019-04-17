@@ -97,12 +97,7 @@ func (r *TalosMessageReader) FetchData() {
 	r.lastFetchTime = utils.CurrentTimeMills()
 	//return and check should commit when no message get
 	if messageList == nil || len(messageList) == 0 {
-		if r.ShouldCommit() {
-			err := r.innerCheckpoint()
-			if err != nil {
-				log4go.Error("commit offset error: %s, we skip to it.", err.Error())
-			}
-		}
+		r.CheckAndCommit(false)
 		return
 	}
 
@@ -113,13 +108,7 @@ func (r *TalosMessageReader) FetchData() {
 	r.finishedOffset = messageList[len(messageList)-1].GetMessageOffset()
 	r.messageProcessor.Process(messageList, r)
 	atomic.StoreInt64(r.startOffset, r.finishedOffset+1)
-
-	if r.ShouldCommit() {
-		if err := r.innerCheckpoint(); err != nil {
-			// when commitOffset failed, we just do nothing;
-			log4go.Error("commit offset error: %s, we skip to it.", err.Error())
-		}
-	}
+	r.CheckAndCommit(true)
 }
 
 func (r *TalosMessageReader) queryStartOffset() (int64, error) {
@@ -219,6 +208,15 @@ func (r *TalosMessageReader) CleanReader() {
 			log4go.Error("Topic: %s, partition: %d commit offset error: %s",
 				r.topicAndPartition.GetTopicTalosResourceName(),
 				r.topicAndPartition.GetPartitionId(), err.Error())
+		}
+	}
+}
+
+func (r *TalosMessageReader) CheckAndCommit(isContinuous bool) {
+	if r.ShouldCommit(isContinuous) {
+		err := r.innerCheckpoint()
+		if err != nil {
+			log4go.Error("commit offset error: %s, we skip to it.", err.Error())
 		}
 	}
 }

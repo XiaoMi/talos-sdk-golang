@@ -114,9 +114,15 @@ func (r *MessageReader) GetCurCheckpoint() int64 {
 	return r.lastCommitOffset + 1
 }
 
-func (r *MessageReader) ShouldCommit() bool {
-	return (utils.CurrentTimeMills()-r.lastCommitTime >= r.commitInterval) ||
-		(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
+func (r *MessageReader) ShouldCommit(isContinuous bool) bool {
+	if isContinuous {
+		return (utils.CurrentTimeMills()-r.lastCommitTime >= r.commitInterval) ||
+			(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
+	} else {
+		return (utils.CurrentTimeMills()-r.lastCommitTime >= r.commitInterval) &&
+			(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
+	}
+
 }
 
 func (r *MessageReader) processFetchException(err *utils.TalosRuntimeError) {
