@@ -1,0 +1,16 @@
+.idea
+.vscode
+*.iml
+.classpath
+.project
+.settings/
+target/
+vendor/
+.travis.yml
+*.pyc
+*.swp
+.git/arc/
+.git/modules/sdk/galaxy-sdk-java/arc/
+_book
+build/
+dist/

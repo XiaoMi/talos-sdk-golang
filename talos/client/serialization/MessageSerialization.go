@@ -39,7 +39,7 @@ func (s *MessageSerialization) SerializeMessage(message *message.Message,
 
 func (s *MessageSerialization) DeserializeMessage(buffer *bytes.Buffer) (*message.Message, error) {
 
-	header := make([]byte, VERSION_NUMBER_LENGTH)
+	header := make([]byte, VERSION_NUMBER_LENGTH_V3)
 	buffer.Read(header)
 	messageVersion, err := DecodeMessageVersionNumber(header)
 	if err != nil {
@@ -52,12 +52,12 @@ func (s *MessageSerialization) DeserializeMessage(buffer *bytes.Buffer) (*messag
 		log.Error("get messageSerializer error: %s", err.Error())
 		return nil, err
 	}
-	message, err := serializer.Deserialize(header, buffer)
+	msg, err := serializer.Deserialize(header, buffer)
 	if err != nil {
 		log.Error("Deserialize message error: %s", err.Error())
 		return nil, err
 	}
-	return message, nil
+	return msg, nil
 }
 
 func (s *MessageSerialization) GetMessageSize(message *message.Message,
@@ -65,8 +65,4 @@ func (s *MessageSerialization) GetMessageSize(message *message.Message,
 	serializer, _ := NewMessageSerializationFactory().GetMessageSerializer(version)
 	size, _ := serializer.GetMessageSize(message)
 	return size
-}
-
-func GetDefaultMessageVersion() MessageVersion {
-	return V3
 }

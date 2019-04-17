@@ -206,11 +206,20 @@ func CurrentTimeMills() int64 {
 	return time.Now().UnixNano() / 1000000
 }
 
-func Serialize(tStruct thrift.TStruct) ([]byte, error) {
+func Serialize(msg *message.Message) ([]byte, error) {
 	transport := thrift.NewTMemoryBufferLen(1024)
 	protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
-	serializer := thrift.TSerializer{Transport: transport, Protocol: protocol}
-	return serializer.Write(tStruct)
+	serializer := &thrift.TSerializer{Transport: transport, Protocol: protocol}
+	return serializer.Write(msg)
+}
+
+func Deserialize(bytes []byte) (*message.Message, error) {
+    transport := thrift.NewTMemoryBufferLen(1024)
+    protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
+    deserializer := &thrift.TDeserializer{Transport: transport, Protocol: protocol}
+    var msg = message.NewMessage()
+    e := deserializer.Read(msg, bytes)
+    return msg, e
 }
 
 func HashCode(value []rune) int {
