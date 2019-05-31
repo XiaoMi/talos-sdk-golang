@@ -39,10 +39,9 @@ func NewProperties() *Properties {
 }
 
 func LoadProperties(filename string) *Properties {
-
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Warn("Open file faild, ", err)
+		log.Warn("Open file failed, ", err)
 		return nil
 	}
 	defer file.Close()
@@ -112,7 +111,6 @@ func (e *TalosRuntimeError) Error() string {
  * Note the 'ownerId' may contains the symbol '#',
  * so return topicName parsing from the tail of resourceName.
  */
-
 func GetTopicNameByResourceName(topicTalosResourceName string) (string, error) {
 	itemList := strings.Split(topicTalosResourceName, "#")
 	len := len(itemList)
@@ -126,8 +124,7 @@ func GetTopicNameByResourceName(topicTalosResourceName string) (string, error) {
 
 func CheckArgument(expr bool) error {
 	if !expr {
-		err := errors.New("Illegal Argument! ")
-		return err
+		return fmt.Errorf("Illegal Argument! ")
 	}
 	return nil
 }
@@ -155,7 +152,6 @@ func CheckNameValidity(str string) error {
 	if str == "" || len(str) <= 0 {
 		return nil
 	}
-
 	matchBody, _ := regexp.MatchString(common.TALOS_NAME_BODY_REGEX, str)
 	matchWrongHead, _ := regexp.MatchString(common.TALOS_NAME_HEAD_REGEX, str)
 	if !(matchBody && !matchWrongHead) || len(str) > 80 {
@@ -214,12 +210,12 @@ func Serialize(msg *message.Message) ([]byte, error) {
 }
 
 func Deserialize(bytes []byte) (*message.Message, error) {
-    transport := thrift.NewTMemoryBufferLen(1024)
-    protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
-    deserializer := &thrift.TDeserializer{Transport: transport, Protocol: protocol}
-    var msg = message.NewMessage()
-    e := deserializer.Read(msg, bytes)
-    return msg, e
+	transport := thrift.NewTMemoryBufferLen(1024)
+	protocol := thrift.NewTCompactProtocolFactory().GetProtocol(transport)
+	deserializer := &thrift.TDeserializer{Transport: transport, Protocol: protocol}
+	var msg = message.NewMessage()
+	e := deserializer.Read(msg, bytes)
+	return msg, e
 }
 
 func HashCode(value []rune) int {
@@ -323,7 +319,7 @@ func CheckMessageTypeValidity(msg *message.Message) error {
 }
 
 func CheckAddSubResourceNameRequest(credential *auth.Credential,
-	request topic.AddSubResourceNameRequest) error {
+	request *topic.AddSubResourceNameRequest) error {
 	// check principal
 	if strings.HasPrefix(credential.GetSecretKeyId(), common.TALOS_CLOUD_AK_PREFIX) {
 		return fmt.Errorf("Only Developer principal can add subResourceName. ")
@@ -351,6 +347,22 @@ func CheckAddSubResourceNameRequest(credential *auth.Credential,
 func CheckNotNull(T interface{}) error {
 	if T == nil {
 		return fmt.Errorf("NullPointerException")
+	}
+	return nil
+}
+
+// The format of cloud topicName is: orgId/topicName
+func CheckCloudTopicNameValidity(topicName string) error {
+	if topicName == "" || len(topicName) == 0 {
+		return fmt.Errorf("Illegal Argument! ")
+	}
+	items := strings.Split(topicName, common.TALOS_CLOUD_TOPIC_NAME_DELIMITER)
+	//either 'xxx/xxx/'(split 2), '/xxx'(split 2) or 'xx//xx'(split 3) are invalid
+	if len(items) != 2 || strings.HasSuffix(topicName,
+		common.TALOS_CLOUD_TOPIC_NAME_DELIMITER) ||
+		!strings.HasPrefix(topicName, common.TALOS_CLOUD_ORG_PREFIX) {
+		return fmt.Errorf(
+			"The format of topicName used by cloud-manager must be: orgId/topicName. ")
 	}
 	return nil
 }
