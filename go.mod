@@ -1,4 +1,4 @@
-module talos-sdk-golang/v2.4.0
+module talos-sdk-golang
 
 go 1.12
 
