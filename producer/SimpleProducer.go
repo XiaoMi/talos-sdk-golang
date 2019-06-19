@@ -11,12 +11,13 @@ import (
 	"sync/atomic"
 
 	"strconv"
-	"talos-sdk-golang/client"
-	"talos-sdk-golang/client/compression"
-	"talos-sdk-golang/thrift/auth"
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/thrift/topic"
-	"talos-sdk-golang/utils"
+
+	"github.com/XiaoMi/talos-sdk-golang/client"
+	"github.com/XiaoMi/talos-sdk-golang/client/compression"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
 	log "github.com/sirupsen/logrus"
 )

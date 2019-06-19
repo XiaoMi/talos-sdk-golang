@@ -34,8 +34,8 @@ import (
 	"strings"
 	"time"
 
-	"talos-sdk-golang/thrift/auth"
-	"talos-sdk-golang/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 
 	"git.apache.org/thrift.git/lib/go/thrift"
 	"github.com/gofrs/uuid"

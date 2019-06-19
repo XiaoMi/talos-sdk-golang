@@ -16,11 +16,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"talos-sdk-golang/thrift/common"
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 
-	"talos-sdk-golang/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 
 	"git.apache.org/thrift.git/lib/go/thrift"
 	"github.com/gofrs/uuid"

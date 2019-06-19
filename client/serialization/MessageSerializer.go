@@ -11,7 +11,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 )
 
 type MessageSerializer interface {

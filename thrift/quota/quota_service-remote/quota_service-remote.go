@@ -12,7 +12,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"talos-sdk-golang/thrift/quota"
+
+	"github.com/XiaoMi/talos-sdk-golang/thrift/quota"
 
 	"git.apache.org/thrift.git/lib/go/thrift"
 )

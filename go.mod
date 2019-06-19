@@ -1,4 +1,4 @@
-module talos-sdk-golang
+module github.com/XiaoMi/talos-sdk-golang
 
 go 1.12
 

@@ -9,7 +9,7 @@ package client
 import (
 	"fmt"
 
-	"talos-sdk-golang/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 )
 
 type TalosErrorCodePeeker interface {

@@ -12,11 +12,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"talos-sdk-golang/client"
-	"talos-sdk-golang/producer"
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/client"
+	"github.com/XiaoMi/talos-sdk-golang/producer"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 
-	"talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
 	log "github.com/sirupsen/logrus"
 )

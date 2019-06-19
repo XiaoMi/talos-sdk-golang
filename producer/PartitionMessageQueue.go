@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
 	log "github.com/sirupsen/logrus"
 )

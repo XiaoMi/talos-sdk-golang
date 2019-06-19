@@ -7,15 +7,13 @@
 package main
 
 import (
-	"talos-sdk-golang/utils"
-
-	"talos-sdk-golang/admin"
-	"talos-sdk-golang/client"
-
-	"talos-sdk-golang/thrift/auth"
-	"talos-sdk-golang/thrift/authorization"
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/admin"
+	"github.com/XiaoMi/talos-sdk-golang/client"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/authorization"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
 	"git.apache.org/thrift.git/lib/go/thrift"
 	log "github.com/sirupsen/logrus"

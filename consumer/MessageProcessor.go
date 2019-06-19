@@ -7,7 +7,7 @@
 package consumer
 
 import (
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 )
 
 type MessageProcessor interface {

@@ -7,7 +7,7 @@
 package producer
 
 import (
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 )
 
 type UserMessageResult struct {

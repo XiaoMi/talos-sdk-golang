@@ -9,7 +9,7 @@ package serialization
 import (
 	"bytes"
 
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 
 	log "github.com/sirupsen/logrus"
 )

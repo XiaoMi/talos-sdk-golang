@@ -10,11 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"talos-sdk-golang/thrift/consumer"
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/thrift/topic"
-
-	"talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
 	log "github.com/sirupsen/logrus"
 )

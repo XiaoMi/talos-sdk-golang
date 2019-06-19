@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 
-	"talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	"talos-sdk-golang/client/compression"
+	"github.com/XiaoMi/talos-sdk-golang/client/compression"
 )
 
 func setUp() []*message.Message {
