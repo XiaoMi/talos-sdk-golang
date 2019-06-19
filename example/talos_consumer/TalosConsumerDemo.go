@@ -11,14 +11,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"github.com/XiaoMi/talos-sdk-golang/talos/consumer"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/common"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
-	log "github.com/alecthomas/log4go"
+	"talos-sdk-golang/client"
+	"talos-sdk-golang/consumer"
+	"talos-sdk-golang/thrift/message"
+	"talos-sdk-golang/utils"
+
+	log "github.com/sirupsen/logrus"
 )
 
 /**
@@ -27,29 +25,28 @@ import (
 type MyMessageProcessorFactory struct {
 }
 
+func NewMyMessageProcessorFactory() *MyMessageProcessorFactory {
+	return &MyMessageProcessorFactory{}
+}
+
 // using for thread-safe when processing different partition data
 func (f *MyMessageProcessorFactory) CreateProcessor() consumer.MessageProcessor {
 	processor := new(MyMessageProcessor)
 	return processor
 }
 
+var successGetNumber = new(int64)
+
 type MyMessageProcessor struct {
 }
-
-func (p *MyMessageProcessor) Init(topicAndPartition *topic.TopicAndPartition,
-	startMessageOffset int64) {
-
-}
-
-var successGetNumber = new(int64)
 
 func (p *MyMessageProcessor) Process(messages []*message.MessageAndOffset,
 	messageCheckpointer consumer.MessageCheckpointer) {
 	for _, msg := range messages {
-		log.Info("Message content: %s", string(msg.GetMessage().GetMessage()))
+		log.Infof("Message content: %s", string(msg.GetMessage().GetMessage()))
 	}
 	atomic.AddInt64(successGetNumber, int64(len(messages)))
-	log.Info("Consuming total data so far: %d", atomic.LoadInt64(successGetNumber))
+	log.Infof("Consuming total data so far: %d", atomic.LoadInt64(successGetNumber))
 
 	/** if user has set 'galaxy.talos.consumer.checkpoint.auto.commit' to false,
 	 * then you can call the 'checkpoint' to commit the list of messages.
@@ -57,15 +54,8 @@ func (p *MyMessageProcessor) Process(messages []*message.MessageAndOffset,
 	//messageCheckpointer.CheckpointByFinishedOffset()
 }
 
-func (p *MyMessageProcessor) Shutdown(messageCheckpointer consumer.MessageCheckpointer) {
-
-}
-
 func main() {
-	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
-	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_consumer.log", false))
-	defer log.Close()
-
+	utils.InitLog()
 	// init client config by put $your_propertyFile in your classpath
 	// with the content of:
 	/*
@@ -74,53 +64,22 @@ func main() {
 	var propertyFilename string
 	flag.StringVar(&propertyFilename, "conf", "talosConsumer.conf", "conf: talosConsumer.conf'")
 	flag.Parse()
-	props := utils.LoadProperties(propertyFilename)
 
-	topicName := props.Get("galaxy.talos.topic.name")
-	consumerGroup := props.Get("galaxy.talos.group.name")
-	clientPrefix := props.Get("galaxy.talos.client.prefix")
-	secretKeyId := props.Get("galaxy.talos.access.key")
-	secretKey := props.Get("galaxy.talos.access.secret")
-	userType := auth.UserType_DEV_XIAOMI
-	socketTimeout := time.Duration(common.GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT * time.Second)
-	// credential
-	credential := &auth.Credential{
-		TypeA1:      &userType,
-		SecretKeyId: &secretKeyId,
-		SecretKey:   &secretKey,
-	}
-
-	clientConfig := client.NewTalosClientConfigByProperties(props)
-	consumerConfig, _ := consumer.NewTalosConsumerConfigByProperties(props)
-	endpoint := clientConfig.ServiceEndpoint()
-	clientFactory := client.NewTalosClientFactory(clientConfig, credential, socketTimeout)
-	topicClient := clientFactory.NewTopicClient(endpoint + common.TALOS_TOPIC_SERVICE_PATH)
-
-	describeTopicRequest := &topic.DescribeTopicRequest{TopicName: topicName}
-	var topicTalosResourceName *topic.TopicTalosResourceName
-
-	// get topic info
-	describeTopicResponse, err := topicClient.DescribeTopic(describeTopicRequest)
-	if err != nil {
-		log.Error("describeTopic error: %s", err.Error())
-	} else {
-		topic := topic.Topic{
-			TopicInfo:      describeTopicResponse.GetTopicInfo(),
-			TopicAttribute: describeTopicResponse.GetTopicAttribute(),
-			TopicState:     describeTopicResponse.GetTopicState(),
-			TopicQuota:     describeTopicResponse.GetTopicQuota(),
-			TopicAcl:       describeTopicResponse.GetAclMap(),
-		}
-		topicTalosResourceName = topic.GetTopicInfo().GetTopicTalosResourceName()
-	}
 	// init talosConsumer
-	talosConsumer := consumer.NewTalosConsumer(consumerGroup, consumerConfig,
-		credential, topicTalosResourceName, new(consumer.TalosMessageReaderFactory),
-		new(MyMessageProcessorFactory), clientPrefix,
-		new(client.SimpleTopicAbnormalCallback), make(map[int32]consumer.Long))
-
-	for i := 0; i < 3; i++ {
-		<-talosConsumer.StopSign
+	talosConsumer, err := consumer.NewTalosConsumerByFilename(propertyFilename, NewMyMessageProcessorFactory(),
+		client.NewSimpleTopicAbnormalCallback())
+	log.Infof("12124124")
+	if err != nil {
+		log.Errorf("init talosConsumer failed: %s", err.Error())
+		return
 	}
-	log.Info("Talos consumer is shutdown...")
+
+	go func() {
+		time.Sleep(5 * time.Second)
+		talosConsumer.ShutDown()
+	}()
+
+	// block main function
+	talosConsumer.WaitGroup.Wait()
+
 }

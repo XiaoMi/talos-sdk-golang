@@ -49,9 +49,11 @@ talosProducer.conf -> TalosProducerDemo.go
 * Coding
 
 ```
-    talosProducer := producer.NewTalosProducer(producerConfig,credential, 
-        topicTalosResourceName, new(client.SimpleTopicAbnormalCallback),
-        new(MyMessageCallback))
+    var propertyFilename string
+	flag.StringVar(&propertyFilename, "conf", "talosProducer.conf", "conf: talosConsumer.conf'")
+	flag.Parse()
+    talosProducer, err := producer.NewTalosProducerByFilename(propertyFilename,
+    		client.NewSimpleTopicAbnormalCallback(), new(MyMessageCallback))
 
     toPutMsgNumber := 8
     messageList := make([]*message.Message, 0)

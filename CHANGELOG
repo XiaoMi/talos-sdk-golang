@@ -1,0 +1,13 @@
+# 2.4.0
+  * D159273: feature: go modules & update thrift to 0.9.2 & modify log4go to logrus & update gouuid import &
+             auto location & getWorkId/getDescribeInfo/queryConsumerOffsetLag interface & reduce consume interval;
+             optimization: read/write goroutine model & update use manual and tutorial;
+             bug fix: auto location log incorrect & buffer full logic error;
+
+# 2.3.1
+  * D157260: add talos admin functions
+
+# 2.3.0 
+  * fix snappy compress bug
+  * Compatible with older versions of parse
+  * fix non-Continuous flow commit bug

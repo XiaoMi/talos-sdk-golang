@@ -7,16 +7,18 @@
 package main
 
 import (
-	"github.com/XiaoMi/talos-sdk-golang/talos/admin"
-	"github.com/XiaoMi/talos-sdk-golang/talos/client"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/auth"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/authorization"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/message"
-	"github.com/XiaoMi/talos-sdk-golang/talos/thrift/topic"
-	"github.com/XiaoMi/talos-sdk-golang/talos/utils"
-	"github.com/XiaoMi/talos-sdk-golang/thrift"
+	"talos-sdk-golang/utils"
 
-	log "github.com/alecthomas/log4go"
+	"talos-sdk-golang/admin"
+	"talos-sdk-golang/client"
+
+	"talos-sdk-golang/thrift/auth"
+	"talos-sdk-golang/thrift/authorization"
+	"talos-sdk-golang/thrift/message"
+	"talos-sdk-golang/thrift/topic"
+
+	"git.apache.org/thrift.git/lib/go/thrift"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -145,10 +147,7 @@ func (demo TalosAdminDemo) listTopicsInfo() ([]*topic.Topic, error) {
 }
 
 func main() {
-	log.AddFilter("stdout", log.INFO, log.NewConsoleLogWriter())
-	log.AddFilter("file", log.INFO, log.NewFileLogWriter("talos_admin.log", false))
-	defer log.Close()
-
+	utils.InitLog()
 	talosAdminDemo := NewTalosAdminDemo()
 	talosAdminDemo.createTopic()
 	//resourceName, _ :=
