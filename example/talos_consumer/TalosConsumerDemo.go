@@ -68,7 +68,6 @@ func main() {
 	// init talosConsumer
 	talosConsumer, err := consumer.NewTalosConsumerByFilename(propertyFilename, NewMyMessageProcessorFactory(),
 		client.NewSimpleTopicAbnormalCallback())
-	log.Infof("12124124")
 	if err != nil {
 		log.Errorf("init talosConsumer failed: %s", err.Error())
 		return
