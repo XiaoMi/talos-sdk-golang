@@ -1,3 +1,6 @@
+# v0.2.5
+  * change version number to go modules format
+
 # 2.4.0
   * D159273: feature: go modules & update thrift to 0.9.2 & modify log4go to logrus & update gouuid import &
              auto location & getWorkId/getDescribeInfo/queryConsumerOffsetLag interface & reduce consume interval;
