@@ -5,7 +5,6 @@
 .project
 .settings/
 target/
-vendor/
 .travis.yml
 *.pyc
 *.swp
