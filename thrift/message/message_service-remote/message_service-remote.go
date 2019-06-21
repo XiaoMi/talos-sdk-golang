@@ -15,7 +15,7 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/utils/thrift"
 )
 
 func Usage() {

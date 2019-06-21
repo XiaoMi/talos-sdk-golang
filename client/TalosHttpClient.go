@@ -37,7 +37,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/utils/thrift"
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 )
