@@ -60,7 +60,8 @@ func main() {
 	flag.StringVar(&propertyFilename, "conf", "talosProducer.conf", "conf: talosConsumer.conf'")
 	flag.Parse()
 
-	talosProducer, err := producer.NewTalosProducerByFilename(propertyFilename,
+	var err error
+	talosProducer, err = producer.NewTalosProducerByFilename(propertyFilename,
 		client.NewSimpleTopicAbnormalCallback(), new(MyMessageCallback))
 	if err != nil {
 		log.Errorf("Init talosProducer failed: %s", err.Error())

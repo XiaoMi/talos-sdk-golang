@@ -214,19 +214,24 @@ func HashCode(value []rune) int {
 }
 
 func IsTopicNotExist(err error) bool {
-	return err.(*common.GalaxyTalosException).GetErrorCode() == common.ErrorCode_TOPIC_NOT_EXIST
+	if talosError, ok := err.(*common.GalaxyTalosException); ok {
+		return talosError.GetErrorCode() == common.ErrorCode_TOPIC_NOT_EXIST
+	}
+	return false
 }
 
 func IsPartitionNotServing(err error) bool {
-	return err.(*common.GalaxyTalosException).GetErrorCode() == common.ErrorCode_PARTITION_NOT_SERVING
+	if talosError, ok := err.(*common.GalaxyTalosException); ok {
+		return talosError.GetErrorCode() == common.ErrorCode_PARTITION_NOT_SERVING
+	}
+	return false
 }
 
 func IsOffsetOutOfRange(err error) bool {
-	return err.(*common.GalaxyTalosException).GetErrorCode() == common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
-}
-
-func IsUnexpectedError(err error) bool {
-	return err.(*common.GalaxyTalosException).GetErrorCode() == common.ErrorCode_UNEXPECTED_ERROR
+	if talosError, ok := err.(*common.GalaxyTalosException); ok {
+		return talosError.GetErrorCode() == common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
+	}
+	return false
 }
 
 func UpdateMessage(msg *message.Message, messageType message.MessageType) {
