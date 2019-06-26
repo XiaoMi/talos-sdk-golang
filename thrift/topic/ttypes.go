@@ -6,11 +6,10 @@ package topic
 import (
 	"bytes"
 	"fmt"
-
+	"git.apache.org/thrift.git/lib/go/thrift"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/authorization"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/quota"
-	"github.com/XiaoMi/talos-sdk-golang/utils/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)

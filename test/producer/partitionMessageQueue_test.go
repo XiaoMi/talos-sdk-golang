@@ -18,8 +18,8 @@ import (
 	"talos-sdk-golang/producer"
 	"talos-sdk-golang/testos-sdk-golang/test/mock_producer"
 
-	"github.com/alecthomas/log4go"
 	"github.com/golang/mock/gomock"
+	log4go "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,8 +6,7 @@ package authorization
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/XiaoMi/talos-sdk-golang/utils/thrift"
+	"git.apache.org/thrift.git/lib/go/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)
