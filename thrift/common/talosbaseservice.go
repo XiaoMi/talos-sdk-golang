@@ -6,7 +6,8 @@ package common
 import (
 	"bytes"
 	"fmt"
-	"git.apache.org/thrift.git/lib/go/thrift"
+
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)

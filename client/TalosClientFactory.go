@@ -21,7 +21,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 )
 
 //var log = utils.Instance

@@ -6,7 +6,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"git.apache.org/thrift.git/lib/go/thrift"
 	"math"
 	"net"
 	"net/url"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"thrift/topic"
+
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 )
 
 func Usage() {

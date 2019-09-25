@@ -15,7 +15,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	log "github.com/sirupsen/logrus"
 )
 

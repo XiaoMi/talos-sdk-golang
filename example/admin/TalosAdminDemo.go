@@ -12,10 +12,9 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/authorization"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	"git.apache.org/thrift.git/lib/go/thrift"
 	log "github.com/sirupsen/logrus"
 )
 

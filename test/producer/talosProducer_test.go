@@ -30,7 +30,7 @@ import (
 
 	"talos-sdk-golang/thrift/auth"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/golang/mock/gomock"
 	log4go "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

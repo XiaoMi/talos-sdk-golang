@@ -21,7 +21,7 @@ import (
 	"talos-sdk-golang/testos-sdk-golang/test/mock_message"
 	"talos-sdk-golang/testos-sdk-golang/test/mock_producer"
 
-	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

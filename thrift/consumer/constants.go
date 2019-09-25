@@ -6,8 +6,9 @@ package consumer
 import (
 	"bytes"
 	"fmt"
-	"git.apache.org/thrift.git/lib/go/thrift"
+
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 )
 
