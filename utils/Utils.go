@@ -369,3 +369,12 @@ func InitLog() {
 		FullTimestamp:   true,
 	})
 }
+
+func NewTDeserializer() *thrift.TDeserializer {
+	transport := thrift.NewTMemoryBufferLen(1024)
+	procotol := thrift.NewTCompactProtocol(transport)
+	return &thrift.TDeserializer{
+		Transport: transport,
+		Protocol:  procotol,
+	}
+}
