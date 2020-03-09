@@ -122,9 +122,8 @@ func (r *MessageReader) ShouldCommit(isContinuous bool) bool {
 			(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
 	} else {
 		return (utils.CurrentTimeMills()-r.lastCommitTime >= r.commitInterval) &&
-			(r.finishedOffset-r.lastCommitOffset >= r.commitThreshold)
+			(r.finishedOffset > r.lastCommitOffset)
 	}
-
 }
 
 func (r *MessageReader) processFetchException(err error) {

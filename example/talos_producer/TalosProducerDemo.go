@@ -57,7 +57,7 @@ func main() {
 	   galaxy.talos.service.endpoint=$talosServiceURI
 	*/
 	var propertyFilename string
-	flag.StringVar(&propertyFilename, "conf", "talosProducer.conf", "conf: talosConsumer.conf'")
+	flag.StringVar(&propertyFilename, "conf", "talosProducer.conf", "conf: talosProducer.conf'")
 	flag.Parse()
 
 	var err error

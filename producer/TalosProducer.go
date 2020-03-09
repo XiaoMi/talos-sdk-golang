@@ -182,6 +182,47 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 	return talosProducer, nil
 }
 
+func (p *TalosProducer) AddUserMessageWithTimeout(msgList []*message.Message, timeoutMillis int64) error {
+	p.producerLock.Lock()
+	defer p.producerLock.Unlock()
+
+	// check producer state
+	if !p.IsActive() {
+		return fmt.Errorf("Producer is not active, "+
+			"current state: %d ", p.producerState)
+	}
+
+	// check total buffered message number
+	startWaitTime := utils.CurrentTimeMills()
+	for p.bufferedCount.IsFull() {
+		log.Infof("too many buffered messages, globalLock is active."+
+			" message number: %d, message bytes: %d",
+			p.bufferedCount.GetBufferedMsgNumber(),
+			p.bufferedCount.GetBufferedMsgBytes())
+		p.producerLock.Unlock()
+		p.BufferFullChan <- utils.NOTIFY
+
+		// judging wait exit by 'timeout' or 'notify'
+		select {
+		case <-p.NotifyChan:
+			// if receive notify, just break wait and judge if should addMessage
+		case <-time.After(time.Duration(timeoutMillis) * time.Millisecond):
+			if utils.CurrentTimeMills()-startWaitTime >= timeoutMillis {
+				p.producerLock.Lock()
+				return fmt.Errorf("Producer buffer is full and AddUserMessage"+
+					" timeout by: %d millis. ", timeoutMillis)
+			}
+		}
+
+		p.producerLock.Lock()
+	}
+
+	if err := p.DoAddUserMessage(msgList); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
 	p.producerLock.Lock()
 	defer p.producerLock.Unlock()
