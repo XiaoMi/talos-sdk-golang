@@ -15,38 +15,39 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 /**
  * Returns a talos message processor to processing data for a (assigned) partition.
  */
 type MyMessageProcessorFactory struct {
+	log *logrus.Logger
 }
 
-func NewMyMessageProcessorFactory() *MyMessageProcessorFactory {
-	return &MyMessageProcessorFactory{}
+func NewMyMessageProcessorFactory(logger *logrus.Logger) *MyMessageProcessorFactory {
+	return &MyMessageProcessorFactory{log: logger}
 }
 
 // using for thread-safe when processing different partition data
 func (f *MyMessageProcessorFactory) CreateProcessor() consumer.MessageProcessor {
-	processor := new(MyMessageProcessor)
+	processor := &MyMessageProcessor{log: f.log}
 	return processor
 }
 
 var successGetNumber = new(int64)
 
 type MyMessageProcessor struct {
+	log *logrus.Logger
 }
 
 func (p *MyMessageProcessor) Process(messages []*message.MessageAndOffset,
 	messageCheckpointer consumer.MessageCheckpointer) {
 	for _, msg := range messages {
-		log.Infof("Message content: %s", string(msg.GetMessage().GetMessage()))
+		p.log.Infof("Message content: %s", string(msg.GetMessage().GetMessage()))
 	}
 	atomic.AddInt64(successGetNumber, int64(len(messages)))
-	log.Infof("Consuming total data so far: %d", atomic.LoadInt64(successGetNumber))
+	p.log.Infof("Consuming total data so far: %d", atomic.LoadInt64(successGetNumber))
 
 	/** if user has set 'galaxy.talos.consumer.checkpoint.auto.commit' to false,
 	 * then you can call the 'checkpoint' to commit the list of messages.
@@ -55,7 +56,7 @@ func (p *MyMessageProcessor) Process(messages []*message.MessageAndOffset,
 }
 
 func main() {
-	utils.InitLog()
+	log := utils.InitLogger()
 	// init client config by put $your_propertyFile in your classpath
 	// with the content of:
 	/*
@@ -66,8 +67,8 @@ func main() {
 	flag.Parse()
 
 	// init talosConsumer
-	talosConsumer, err := consumer.NewTalosConsumerByFilename(propertyFilename, NewMyMessageProcessorFactory(),
-		client.NewSimpleTopicAbnormalCallback())
+	talosConsumer, err := consumer.NewTalosConsumerWithLogger(propertyFilename, NewMyMessageProcessorFactory(log),
+		client.NewSimpleTopicAbnormalCallback(), log)
 	if err != nil {
 		log.Errorf("init talosConsumer failed: %s", err.Error())
 		return

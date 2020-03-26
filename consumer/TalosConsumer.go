@@ -19,8 +19,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type WorkerPair struct {
@@ -75,6 +74,7 @@ type TalosConsumer struct {
 	checkWorkerTaskChan    chan utils.StopSign
 	renewTaskChan          chan utils.StopSign
 	WaitGroup              *sync.WaitGroup
+	log                    *logrus.Logger
 }
 
 func NewTalosConsumerByProperties(properties *utils.Properties,
@@ -97,7 +97,7 @@ func NewTalosConsumerByProperties(properties *utils.Properties,
 
 	return NewDefaultTalosConsumer(consumerGroupName, consumerConfig, credential,
 		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
-		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0))
+		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0), utils.InitLogger())
 }
 
 func NewTalosConsumerByFilename(propertyFilename string,
@@ -121,16 +121,40 @@ func NewTalosConsumerByFilename(propertyFilename string,
 
 	return NewDefaultTalosConsumer(consumerGroupName, consumerConfig, credential,
 		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
-		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0))
+		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0), utils.InitLogger())
+}
+
+func NewTalosConsumerWithLogger(propertyFilename string,
+	messageProcessorFactory MessageProcessorFactory,
+	abnormalCallback client.TopicAbnormalCallback, logger *logrus.Logger) (*TalosConsumer, error) {
+
+	props := utils.LoadProperties(propertyFilename)
+	topicName := props.Get("galaxy.talos.topic.name")
+	consumerGroupName := props.Get("galaxy.talos.group.name")
+	clientIdPrefix := props.Get("galaxy.talos.client.prefix")
+	secretKeyId := props.Get("galaxy.talos.access.key")
+	secretKey := props.Get("galaxy.talos.access.secret")
+	userType := auth.UserType_DEV_XIAOMI
+	// credential
+	credential := &auth.Credential{
+		TypeA1:      &userType,
+		SecretKeyId: &secretKeyId,
+		SecretKey:   &secretKey,
+	}
+	consumerConfig := NewTalosConsumerConfigByProperties(props)
+
+	return NewDefaultTalosConsumer(consumerGroupName, consumerConfig, credential,
+		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
+		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0), logger)
 }
 
 func NewTalosConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
 	credential *auth.Credential, topicName string,
 	messageProcessorFactory MessageProcessorFactory, clientIdPrefix string,
-	abnormalCallback client.TopicAbnormalCallback) (*TalosConsumer, error) {
+	abnormalCallback client.TopicAbnormalCallback, logger *logrus.Logger) (*TalosConsumer, error) {
 	return NewDefaultTalosConsumer(consumerGroupName, consumerConfig, credential,
 		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
-		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0))
+		clientIdPrefix, abnormalCallback, make(map[int32]Long, 0), logger)
 }
 
 func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
@@ -138,7 +162,7 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 	messageReaderFactory *TalosMessageReaderFactory,
 	messageProcessorFactory MessageProcessorFactory, clientIdPrefix string,
 	abnormalCallback client.TopicAbnormalCallback,
-	partitionCheckpoint map[int32]Long) (*TalosConsumer, error) {
+	partitionCheckpoint map[int32]Long, logger *logrus.Logger) (*TalosConsumer, error) {
 
 	workerId, err := utils.CheckAndGenerateClientId(clientIdPrefix)
 	if err != nil {
@@ -163,9 +187,9 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 
 	scheduleInfoCache := client.GetScheduleInfoCache(
 		topicTalosResourceName, consumerConfig.TalosClientConfig,
-		talosClientFactory.NewMessageClientDefault(), talosClientFactory)
+		talosClientFactory.NewMessageClientDefault(), talosClientFactory, logger)
 
-	talosConsumer := &TalosConsumer{
+	c := &TalosConsumer{
 		workerId:                workerId,
 		consumerGroup:           consumerGroupName,
 		messageProcessorFactory: messageProcessorFactory,
@@ -184,38 +208,39 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 		checkWorkerTaskChan:     make(chan utils.StopSign),
 		renewTaskChan:           make(chan utils.StopSign),
 		WaitGroup:               new(sync.WaitGroup),
+		log:                     logger,
 	}
-	log.Infof("The worker: %s is initializing...", workerId)
+	c.log.Infof("The worker: %s is initializing...", workerId)
 
 	// check and get topic info such as partitionNumber
-	err = talosConsumer.checkAndGetTopicInfo()
+	err = c.checkAndGetTopicInfo()
 	if err != nil {
 		return nil, err
 	}
 
 	// register self workerId
-	err = talosConsumer.registerSelf()
+	err = c.registerSelf()
 	if err != nil {
 		return nil, err
 	}
 
 	// get worker info
-	err = talosConsumer.getWorkerInfo()
+	err = c.getWorkerInfo()
 	if err != nil {
 		return nil, err
 	}
 
 	// do balance and init simple consumer
-	talosConsumer.makeBalance()
+	c.makeBalance()
 
 	// start CheckPartitionTask/CheckWorkerInfoTask/RenewTask
-	talosConsumer.WaitGroup.Add(3)
+	c.WaitGroup.Add(3)
 
-	go talosConsumer.initCheckPartitionTask()
-	go talosConsumer.initCheckWorkerInfoTask()
-	go talosConsumer.initRenewTask()
+	go c.initCheckPartitionTask()
+	go c.initCheckWorkerInfoTask()
+	go c.initRenewTask()
 
-	return talosConsumer, nil
+	return c, nil
 }
 
 func (c *TalosConsumer) checkAndGetTopicInfo() error {
@@ -231,7 +256,7 @@ func (c *TalosConsumer) checkAndGetTopicInfo() error {
 
 	c.setPartitionNumber(partitionNumber)
 	c.topicTalosResourceName = resourceNameFromServer
-	log.Infof("The worker: %s check and get topic info done", c.workerId)
+	c.log.Infof("The worker: %s check and get topic info done", c.workerId)
 	return nil
 }
 
@@ -254,10 +279,10 @@ func (c *TalosConsumer) registerSelf() error {
 			continue
 		}
 		if lockWorkerResponse.GetRegisterSuccess() {
-			log.Infof("The worker: %s register self success", c.workerId)
+			c.log.Infof("The worker: %s register self success", c.workerId)
 			return nil
 		}
-		log.Debugf("The worker: %s register self failed, make %d retry",
+		c.log.Debugf("The worker: %s register self failed, make %d retry",
 			c.workerId, tryCount+1)
 	}
 	return fmt.Errorf("The worker: %s register self failed: %s ",
@@ -322,7 +347,7 @@ func (c *TalosConsumer) calculateTargetList(copyPartitionNum, workerNumber int,
 
 	// sort target by descending
 	sort.Sort(sort.Reverse(sort.IntSlice(*targetList)))
-	log.Infof("Worker: %s calculate target partitions done: %v",
+	c.log.Infof("Worker: %s calculate target partitions done: %v",
 		c.workerId, *targetList)
 	return nil
 }
@@ -334,7 +359,7 @@ func (c *TalosConsumer) calculateWorkerPairs(copyWorkerMap map[string][]int32,
 			NewWorkerPair(workerId, len(partitionIdList)))
 	}
 	sort.Sort(sortedWorkerPairs) // descending
-	log.Infof("worker: %s calculate sorted worker pairs: %v",
+	c.log.Infof("worker: %s calculate sorted worker pairs: %v",
 		c.workerId, sortedWorkerPairs)
 }
 
@@ -352,7 +377,7 @@ func (c *TalosConsumer) makeBalance() {
 	 * so just return and do not care balance.
 	 */
 	if _, ok := copyWorkerInfoMap[c.workerId]; !ok {
-		log.Errorf("WorkerInfoMap not contains worker: %s. There may be some error"+
+		c.log.Errorf("WorkerInfoMap not contains worker: %s. There may be some error"+
 			" for renew task.", c.workerId)
 		return
 	}
@@ -377,7 +402,7 @@ func (c *TalosConsumer) makeBalance() {
 			}
 			target := targetList[i]
 
-			log.Infof("Worker: %s has: %d partition, target: %d", c.workerId, has, target)
+			c.log.Infof("Worker: %s has: %d partition, target: %d", c.workerId, has, target)
 
 			// a balanced state, do nothing
 			if has == target {
@@ -410,7 +435,7 @@ func (c *TalosConsumer) makeBalance() {
 
 	// steal or release partition lock or reached a balance state
 	if len(toStealList) > 0 && len(toReleaseList) > 0 {
-		log.Errorf("make balance error: both toStealList and toReleaseList exist")
+		c.log.Errorf("make balance error: both toStealList and toReleaseList exist")
 		return
 	}
 	if len(toStealList) > 0 {
@@ -419,12 +444,12 @@ func (c *TalosConsumer) makeBalance() {
 		c.releasePartitionLock(toReleaseList)
 	} else {
 		// do nothing when reach balance state
-		log.Infof("The worker: %s have reached a balanced state.", c.workerId)
+		c.log.Infof("The worker: %s have reached a balanced state.", c.workerId)
 	}
 }
 
 func (c *TalosConsumer) stealPartitionLock(toStealList []int32) {
-	log.Infof("Worker: %s try to steal %d partition: %v",
+	c.log.Infof("Worker: %s try to steal %d partition: %v",
 		c.workerId, len(toStealList), toStealList)
 	// try to lock and invoke serving partition PartitionFetcher to 'LOCKED' state
 	url := c.talosConsumerConfig.ServiceEndpoint() + utils.TALOS_MESSAGE_SERVICE_PATH
@@ -432,13 +457,13 @@ func (c *TalosConsumer) stealPartitionLock(toStealList []int32) {
 	for _, partitionId := range toStealList {
 		if _, ok := c.partitionFetcherMap[partitionId]; !ok {
 			// Note 'partitionCheckPoint.get(partitionId)' may be null, it's ok
-			messageReader := c.MessageReaderFactory.CreateMessageReader(c.talosConsumerConfig)
+			messageReader := c.MessageReaderFactory.CreateMessageReader(c.talosConsumerConfig, c.log)
 			partitionFetcher := NewPartitionFetcher(c.consumerGroup, c.topicName,
 				c.topicTalosResourceName, partitionId, c.talosConsumerConfig,
 				c.workerId, c.consumerClient, c.scheduleInfoCache,
 				c.talosClientFactory.NewMessageClient(url),
 				c.messageProcessorFactory.CreateProcessor(),
-				messageReader, c.partitionCheckpoint[partitionId])
+				messageReader, c.partitionCheckpoint[partitionId], c.log)
 			c.partitionFetcherMap[partitionId] = partitionFetcher
 		}
 		c.partitionFetcherMap[partitionId].Lock()
@@ -447,12 +472,12 @@ func (c *TalosConsumer) stealPartitionLock(toStealList []int32) {
 }
 
 func (c *TalosConsumer) releasePartitionLock(toReleaseList []int32) {
-	log.Infof("Worker: %s try to release %d parition: %v",
+	c.log.Infof("Worker: %s try to release %d parition: %v",
 		c.workerId, len(toReleaseList), toReleaseList)
 	// stop read, commit offset, unlock the partition async
 	for _, partitionId := range toReleaseList {
 		if _, ok := c.partitionFetcherMap[partitionId]; !ok {
-			log.Errorf("partitionFetcher map not contains partition: %d", partitionId)
+			c.log.Errorf("partitionFetcher map not contains partition: %d", partitionId)
 			return
 		}
 		c.partitionFetcherMap[partitionId].Unlock()
@@ -467,7 +492,7 @@ func (c *TalosConsumer) setPartitionNumber(partitionNum int32) {
 
 func (c *TalosConsumer) getIdlePartitions() []int32 {
 	if c.partitionNumber < 0 {
-		log.Errorf("consumer has error partition num: %d", c.partitionNumber)
+		c.log.Errorf("consumer has error partition num: %d", c.partitionNumber)
 		return nil
 	}
 	idlePartitions := make([]int32, 0)
@@ -515,16 +540,16 @@ func (c *TalosConsumer) shutDownAllFetcher() {
 }
 
 func (c *TalosConsumer) ShutDown() {
-	log.Infof("Worker: %s is shutting down...", c.workerId)
-	c.shutDownAllFetcher()
+	c.log.Infof("Worker: %s is shutting down...", c.workerId)
 	c.checkWorkerTaskChan <- utils.Shutdown
 	c.checkPartTaskChan <- utils.Shutdown
+	c.shutDownAllFetcher()
 	c.renewTaskChan <- utils.Shutdown
 	close(c.checkWorkerTaskChan)
 	close(c.checkPartTaskChan)
 	close(c.renewTaskChan)
 	c.WaitGroup.Wait()
-	log.Infof("Worker: %s is shutdown.", c.workerId)
+	c.log.Infof("Worker: %s is shutdown.", c.workerId)
 }
 
 func (c *TalosConsumer) deepCopyWorkerInfoMap() map[string][]int32 {
@@ -616,7 +641,7 @@ func (c *TalosConsumer) initRenewTask() {
 func (c *TalosConsumer) CheckPartitionTask() {
 	response, err := c.talosAdmin.GetDescribeInfo(&topic.GetDescribeInfoRequest{TopicName: c.topicName})
 	if err != nil {
-		log.Errorf("Exception in CheckPartitionTask: %s", err.Error())
+		c.log.Errorf("Exception in CheckPartitionTask: %s", err.Error())
 		if utils.IsTopicNotExist(err) {
 			c.cancelAllConsumingTask()
 			c.topicAbnormalCallback.AbnormalHandler(c.topicTalosResourceName, err)
@@ -629,7 +654,7 @@ func (c *TalosConsumer) CheckPartitionTask() {
 		err := fmt.Errorf("The topic: %s not exist. It might have been deleted. "+
 			"The getMessage threads will be cancel. ", c.topicTalosResourceName.
 			GetTopicTalosResourceName())
-		log.Errorf(err.Error())
+		c.log.Errorf(err.Error())
 		c.cancelAllConsumingTask()
 		c.topicAbnormalCallback.AbnormalHandler(c.topicTalosResourceName, err)
 		return
@@ -637,7 +662,7 @@ func (c *TalosConsumer) CheckPartitionTask() {
 
 	topicPartitionNum := response.GetPartitionNumber()
 	if int32(c.partitionNumber) < topicPartitionNum {
-		log.Infof("partitionNumber changed from %d to %d, execute re-balance task.",
+		c.log.Infof("partitionNumber changed from %d to %d, execute re-balance task.",
 			c.partitionNumber, topicPartitionNum)
 		// update partition number and call the re-balance task
 		c.setPartitionNumber(topicPartitionNum)
@@ -664,7 +689,7 @@ func (c *TalosConsumer) CheckPartitionTask() {
  */
 func (c *TalosConsumer) CheckWorkerInfoTask() {
 	if err := c.getWorkerInfo(); err != nil {
-		log.Errorf("Get worker info error: %s", err.Error())
+		c.log.Errorf("Get worker info error: %s", err.Error())
 	}
 	// invoke the re-balance task every time
 	c.WaitGroup.Add(1)
@@ -712,14 +737,14 @@ func (c *TalosConsumer) ReNewTask() {
 		maxRetry--
 		renewResponse, err = c.consumerClient.Renew(renewRequest)
 		if err != nil {
-			log.Errorf("Worker: %s renew error: %s", c.workerId, err.Error())
+			c.log.Errorf("Worker: %s renew error: %s", c.workerId, err.Error())
 			continue
 		}
 
 		// 1) make heartbeat success and renew partitions success
 		if renewResponse.GetHeartbeatSuccess() &&
 			len(renewResponse.GetFailedPartitionList()) == 0 {
-			log.Debugf("Worker: %s success heartbeat and renew partitions: %v",
+			c.log.Debugf("Worker: %s success heartbeat and renew partitions: %v",
 				c.workerId, toRenewPartitionList)
 			return
 		}
@@ -728,7 +753,7 @@ func (c *TalosConsumer) ReNewTask() {
 	// 2) make heart beat failed, cancel all partitions
 	// no need to renew anything, so block the renew thread and cancel all task
 	if renewResponse != nil && !renewResponse.GetHeartbeatSuccess() {
-		log.Errorf("Worker: %s failed to make heartbeat, cancel all consumer task",
+		c.log.Errorf("Worker: %s failed to make heartbeat, cancel all consumer task",
 			c.workerId)
 		c.cancelAllConsumingTask()
 	}
@@ -739,7 +764,7 @@ func (c *TalosConsumer) ReNewTask() {
 	// do not block the renew thread and switch thread to re-balance thread
 	if renewResponse != nil && len(renewResponse.GetFailedPartitionList()) > 0 {
 		failedRenewList := renewResponse.GetFailedPartitionList()
-		log.Errorf("Worker: %s failed to renew partitions: %v",
+		c.log.Errorf("Worker: %s failed to renew partitions: %v",
 			c.workerId, failedRenewList)
 		c.releasePartitionLock(failedRenewList)
 	}

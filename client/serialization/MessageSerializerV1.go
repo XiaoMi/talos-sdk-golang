@@ -11,8 +11,6 @@ import (
 	"encoding/binary"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -63,7 +61,6 @@ func (s *MessageSerializerV1) Deserialize(header []byte, buf *bytes.Buffer) (*me
 		sequenceNumberBuffer := make([]byte, sequenceNumLen)
 		n, err := buf.Read(sequenceNumberBuffer)
 		if n != int(sequenceNumLen) || err != nil {
-			log.Errorf("read sequence number error: %s", err.Error())
 			return nil, err
 		}
 		sequenceNumber = string(sequenceNumberBuffer)
@@ -74,7 +71,6 @@ func (s *MessageSerializerV1) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	messageSizeBuffer := make([]byte, MESSAGE_DATA_LENGTH_BYTES_V1)
 	n, err := buf.Read(messageSizeBuffer)
 	if n != MESSAGE_DATA_LENGTH_BYTES_V1 || err != nil {
-		log.Errorf("read message size error: %s", err.Error())
 		return nil, err
 	}
 	messageSize := binary.BigEndian.Uint32(messageSizeBuffer)
@@ -83,7 +79,6 @@ func (s *MessageSerializerV1) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	var messageDataBuffer = make([]byte, messageSize)
 	n, err = buf.Read(messageDataBuffer)
 	if n != int(messageSize) || err != nil {
-		log.Errorf("read message data error: %s", err.Error())
 		return nil, err
 	}
 

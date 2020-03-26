@@ -14,7 +14,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type ScheduleInfoCacheInterface interface {
@@ -39,27 +39,29 @@ type ScheduleInfoCache struct {
 	isAutoLocation         bool
 	talosClientConfig      *TalosClientConfig
 	infoLock               sync.RWMutex
+	log                    *logrus.Logger
 }
 
 func NewNonAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalosResourceName,
-	talosClientConfig *TalosClientConfig, messageClient message.MessageService) *ScheduleInfoCache {
-	scheduleInfoCache := &ScheduleInfoCache{
+	talosClientConfig *TalosClientConfig, messageClient message.MessageService, logger *logrus.Logger) *ScheduleInfoCache {
+	c := &ScheduleInfoCache{
 		topicTalosResourceName: topicTalosResourceName,
 		talosClientConfig:      talosClientConfig,
 		isAutoLocation:         false,
 		messageClient:          messageClient,
 		messageClientMap:       make(map[string]message.MessageService),
 		scheduleInfoMap:        make(map[*topic.TopicAndPartition]string),
+		log:                    logger,
 	}
-	log.Warnf("SimpleProducer or SimpleConsumer was built using improperly" +
+	c.log.Warnf("SimpleProducer or SimpleConsumer was built using improperly" +
 		" constructed function.Auto location was forbidden")
-	return scheduleInfoCache
+	return c
 }
 
 func NewAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalosResourceName,
 	talosClientConfig *TalosClientConfig, messageClient message.MessageService,
-	talosClientFactory TalosClientFactoryInterface) *ScheduleInfoCache {
-	scheduleInfoCache := &ScheduleInfoCache{
+	talosClientFactory TalosClientFactoryInterface, logger *logrus.Logger) *ScheduleInfoCache {
+	c := &ScheduleInfoCache{
 		topicTalosResourceName: topicTalosResourceName,
 		talosClientConfig:      talosClientConfig,
 		isAutoLocation:         talosClientConfig.IsAutoLocation(),
@@ -67,34 +69,35 @@ func NewAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalosRe
 		messageClientMap:       make(map[string]message.MessageService),
 		talosClientFactory:     talosClientFactory,
 		scheduleInfoMap:        make(map[*topic.TopicAndPartition]string),
+		log:                    logger,
 	}
-	log.Infof("Auto location is %v for request of %s ",
+	c.log.Infof("Auto location is %v for request of %s ",
 		talosClientConfig.IsAutoLocation(),
 		topicTalosResourceName.GetTopicTalosResourceName())
 
 	//get and update scheduleInfoMap
-	err := scheduleInfoCache.GetScheduleInfo(topicTalosResourceName)
+	err := c.GetScheduleInfo(topicTalosResourceName)
 	if err != nil {
-		log.Errorf("Exception in GetScheduleInfoTask: %s", err.Error())
+		c.log.Errorf("Exception in GetScheduleInfoTask: %s", err.Error())
 		return nil
 	}
 
-	return scheduleInfoCache
+	return c
 }
 
 func GetScheduleInfoCache(topicTalosResourceName *topic.TopicTalosResourceName,
 	talosClientConfig *TalosClientConfig, messageClient message.MessageService,
-	talosClientFactory TalosClientFactoryInterface) *ScheduleInfoCache {
+	talosClientFactory TalosClientFactoryInterface, logger *logrus.Logger) *ScheduleInfoCache {
 	cacheLock.Lock()
 	defer cacheLock.Unlock()
 	if _, ok := ScheduleInfoCacheMap[topicTalosResourceName]; !ok {
 		if talosClientFactory == nil {
 			// this case should not exist normally, only when interface of simpleAPI improper used
 			ScheduleInfoCacheMap[topicTalosResourceName] = NewNonAutoLocationScheduleInfoCache(
-				topicTalosResourceName, talosClientConfig, messageClient)
+				topicTalosResourceName, talosClientConfig, messageClient, logger)
 		} else {
 			ScheduleInfoCacheMap[topicTalosResourceName] = NewAutoLocationScheduleInfoCache(
-				topicTalosResourceName, talosClientConfig, messageClient, talosClientFactory)
+				topicTalosResourceName, talosClientConfig, messageClient, talosClientFactory, logger)
 		}
 	}
 	return ScheduleInfoCacheMap[topicTalosResourceName]
@@ -110,7 +113,7 @@ func (c *ScheduleInfoCache) UpdateScheduleInfoCache() {
 		go func() {
 			err := c.GetScheduleInfoTask()
 			if err != nil {
-				log.Errorf(err.Error())
+				c.log.Errorf(err.Error())
 			}
 		}()
 	}
@@ -167,7 +170,7 @@ func (c *ScheduleInfoCache) GetScheduleInfo(resourceName *topic.TopicTalosResour
 		c.infoLock.Lock()
 		c.scheduleInfoMap = response.GetScheduleInfo()
 		c.infoLock.Unlock()
-		log.Debugf("get ScheduleInfoMap success: %v", c.scheduleInfoMap)
+		c.log.Debugf("get ScheduleInfoMap success: %v", c.scheduleInfoMap)
 	}
 	return nil
 }
@@ -176,6 +179,6 @@ func (c *ScheduleInfoCache) Shutdown(topicTalosResourceName *topic.TopicTalosRes
 	//log.Infof("scheduleInfoCache of %s is shutting down...",
 	//	topicTalosResourceName.GetTopicTalosResourceName())
 	//ScheduleInfoCacheMap[topicTalosResourceName].statusChan <- utils.Shutdown
-	log.Infof("scheduleInfoCache of %s was shutdown.",
+	c.log.Infof("scheduleInfoCache of %s was shutdown.",
 		topicTalosResourceName.GetTopicTalosResourceName())
 }

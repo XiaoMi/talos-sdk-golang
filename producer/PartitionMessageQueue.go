@@ -13,8 +13,7 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type PartitionMessageQueue struct {
@@ -28,6 +27,7 @@ type PartitionMessageQueue struct {
 	Mutex           sync.Mutex
 	QueueEmptyChan  chan utils.LockState
 	NofityChan      chan utils.LockState
+	log             *logrus.Logger
 }
 
 // Constructor method for test
@@ -56,6 +56,7 @@ func NewPartitionMessageQueue(producerConfig *TalosProducerConfig,
 		maxPutMsgBytes:  producerConfig.GetMaxPutMsgBytes(),
 		QueueEmptyChan:  make(chan utils.LockState, 1),
 		NofityChan:      make(chan utils.LockState),
+		log:             talosProducer.log,
 	}
 }
 
@@ -101,7 +102,7 @@ func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
 			q.Mutex.Lock()
 		}
 	}
-	log.Debugf("getUserMessageList wake up for partition: %d", q.partitionId)
+	q.log.Debugf("getUserMessageList wake up for partition: %d", q.partitionId)
 
 	returnList := make([]*message.Message, 0)
 	returnMsgBytes, returnMsgNumber := int64(0), int64(0)
@@ -118,7 +119,7 @@ func (q *PartitionMessageQueue) GetMessageList() []*message.Message {
 
 	// update total buffered count when poll messageList
 	q.talosProducer.DecreaseBufferedCount(returnMsgNumber, returnMsgBytes)
-	log.Debugf("Ready to put message batch: %d, queue size: %d and curBytes: %d"+
+	q.log.Debugf("Ready to put message batch: %d, queue size: %d and curBytes: %d"+
 		" for partition: %d", len(returnList), q.userMessageList.Len(),
 		q.curMessageBytes, q.partitionId)
 

@@ -12,8 +12,6 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -53,7 +51,6 @@ func (s *MessageSerializerV3) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	messageSizeBuffer := make([]byte, MESSAGE_DATA_LENGTH_BYTES_V3)
 	n, err := buf.Read(messageSizeBuffer)
 	if n != MESSAGE_DATA_LENGTH_BYTES_V3 || err != nil {
-		log.Errorf("read message size error: %s", err.Error())
 		return nil, err
 	}
 	messageSize := binary.BigEndian.Uint32(messageSizeBuffer)
@@ -63,7 +60,6 @@ func (s *MessageSerializerV3) Deserialize(header []byte, buf *bytes.Buffer) (*me
 
 	msg, e := utils.Deserialize(messageData)
 	if e != nil {
-		log.Errorf("read message data error: %s", e.Error())
 		return nil, e
 	}
 	return msg, nil
@@ -72,7 +68,6 @@ func (s *MessageSerializerV3) Deserialize(header []byte, buf *bytes.Buffer) (*me
 func (s *MessageSerializerV3) GetMessageSize(msg *message.Message) (int, error) {
 	messageData, err := utils.Serialize(msg)
 	if err != nil {
-		log.Errorf("serialize messageData error: %s", err.Error())
 		return 0, err
 	}
 	return MESSAGE_HEADER_BYTES_V3 + len(messageData), nil

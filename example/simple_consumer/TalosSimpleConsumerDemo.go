@@ -13,12 +13,10 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	utils.InitLog()
+	log := utils.InitLogger()
 	// init client config by put $your_propertyFile in current directory
 	// with the content of:
 	/*
@@ -36,7 +34,7 @@ func main() {
 	finishedOffset := int64(-2)
 	maxFetchNum := consumerConfig.GetMaxFetchRecords()
 
-	simpleConsumer, err := consumer.NewSimpleConsumerByFilename(propertyFilename)
+	simpleConsumer, err := consumer.NewSimpleConsumerWithLogger(propertyFilename, log)
 	if err != nil {
 		log.Infof("Init simpleConsumer failed: %s", err.Error())
 	}

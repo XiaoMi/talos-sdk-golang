@@ -15,13 +15,16 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/client"
 	"github.com/XiaoMi/talos-sdk-golang/producer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
-
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type MyMessageCallback struct {
+	log *logrus.Logger
+}
+
+func NewMyMessageCallback(logger *logrus.Logger) *MyMessageCallback {
+	return &MyMessageCallback{log: logger}
 }
 
 func (c *MyMessageCallback) OnSuccess(userMessageResult *producer.UserMessageResult) {
@@ -29,18 +32,18 @@ func (c *MyMessageCallback) OnSuccess(userMessageResult *producer.UserMessageRes
 	count := atomic.LoadInt64(successPutNumber)
 
 	for _, msg := range userMessageResult.GetMessageList() {
-		log.Infof("success to put message: %s", string(msg.GetMessage()))
+		c.log.Infof("success to put message: %s", string(msg.GetMessage()))
 	}
-	log.Infof("success to put message: %d so far.", count)
+	c.log.Infof("success to put message: %d for partition: %d so far.", count, userMessageResult.GetPartitionId())
 }
 
 func (c *MyMessageCallback) OnError(userMessageResult *producer.UserMessageResult) {
 	for _, msg := range userMessageResult.GetMessageList() {
-		log.Infof("failed to put message: %d , will retry to put it.", msg)
+		c.log.Infof("failed to put message: %d , will retry to put it.", msg)
 	}
 	err := talosProducer.AddUserMessage(userMessageResult.GetMessageList())
 	if err != nil {
-		log.Errorf("put message retry failed: %s", err.Error())
+		c.log.Errorf("put message retry failed: %s", err.Error())
 	}
 }
 
@@ -48,7 +51,6 @@ var successPutNumber *int64
 var talosProducer *producer.TalosProducer
 
 func main() {
-	utils.InitLog()
 	successPutNumber = new(int64)
 	atomic.StoreInt64(successPutNumber, 0)
 	// init client config by put $your_propertyFile in your classpath
@@ -61,8 +63,9 @@ func main() {
 	flag.Parse()
 
 	var err error
-	talosProducer, err = producer.NewTalosProducerByFilename(propertyFilename,
-		client.NewSimpleTopicAbnormalCallback(), new(MyMessageCallback))
+	log := utils.InitLogger()
+	talosProducer, err = producer.NewTalosProducerWithLogger(propertyFilename,
+		client.NewSimpleTopicAbnormalCallback(), NewMyMessageCallback(log), log)
 	if err != nil {
 		log.Errorf("Init talosProducer failed: %s", err.Error())
 		return

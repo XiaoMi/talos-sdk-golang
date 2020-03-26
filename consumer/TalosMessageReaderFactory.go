@@ -6,6 +6,10 @@
 
 package consumer
 
+import (
+	"github.com/sirupsen/logrus"
+)
+
 type TalosMessageReaderFactory struct {
 }
 
@@ -13,6 +17,6 @@ func NewTalosMessageReaderFactory() *TalosMessageReaderFactory {
 	return &TalosMessageReaderFactory{}
 }
 
-func (f *TalosMessageReaderFactory) CreateMessageReader(config *TalosConsumerConfig) *TalosMessageReader {
-	return NewTalosMessageReader(config)
+func (f *TalosMessageReaderFactory) CreateMessageReader(config *TalosConsumerConfig, logger *logrus.Logger) *TalosMessageReader {
+	return NewTalosMessageReader(config, logger)
 }

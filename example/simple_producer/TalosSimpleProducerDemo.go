@@ -13,19 +13,17 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/producer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
-	"github.com/XiaoMi/talos-sdk-golang/utils"
-
 	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
-	log "github.com/sirupsen/logrus"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 )
 
 func main() {
-	utils.InitLog()
 	var propertyFilename string
 	flag.StringVar(&propertyFilename, "conf", "simpleProducer.conf", "conf: simpleProducer.conf'")
 	flag.Parse()
 
-	simpleProducer, err := producer.NewSimpleProducerByFilename(propertyFilename)
+	log := utils.InitLogger()
+	simpleProducer, err := producer.NewSimpleProducerWithLogger(propertyFilename, log)
 	if err != nil {
 		log.Errorf("Init simpleProducer failed: %s", err.Error())
 		return

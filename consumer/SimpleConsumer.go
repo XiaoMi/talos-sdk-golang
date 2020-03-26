@@ -16,8 +16,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type SimpleConsumer struct {
@@ -27,6 +26,11 @@ type SimpleConsumer struct {
 	scheduleInfoCache *client.ScheduleInfoCache
 	requestId         atomic.Value
 	simpleConsumerId  string
+	log               *logrus.Logger
+}
+
+func NewSimpleConsumerByFilename(propertyFilename string) (*SimpleConsumer, error) {
+	return NewSimpleConsumerByProperties(utils.LoadProperties(propertyFilename))
 }
 
 func NewSimpleConsumerByProperties(props *utils.Properties) (*SimpleConsumer, error) {
@@ -44,10 +48,10 @@ func NewSimpleConsumerByProperties(props *utils.Properties) (*SimpleConsumer, er
 
 	consumerConfig := NewTalosConsumerConfigByProperties(props)
 	return NewSimpleConsumer(consumerConfig, topicName, int32(partitionId),
-		credential)
+		credential, utils.InitLogger())
 }
 
-func NewSimpleConsumerByFilename(propertyFilename string) (*SimpleConsumer, error) {
+func NewSimpleConsumerWithLogger(propertyFilename string, logger *logrus.Logger) (*SimpleConsumer, error) {
 	props := utils.LoadProperties(propertyFilename)
 	topicName := props.Get("galaxy.talos.topic.name")
 	secretKeyId := props.Get("galaxy.talos.access.key")
@@ -63,20 +67,20 @@ func NewSimpleConsumerByFilename(propertyFilename string) (*SimpleConsumer, erro
 
 	consumerConfig := NewTalosConsumerConfigByProperties(props)
 	return NewSimpleConsumer(consumerConfig, topicName, int32(partitionId),
-		credential)
+		credential, logger)
 }
 
 func NewSimpleConsumer(consumerConfig *TalosConsumerConfig, topicName string,
-	partitionId int32, credential *auth.Credential) (*SimpleConsumer, error) {
+	partitionId int32, credential *auth.Credential, logger *logrus.Logger) (*SimpleConsumer, error) {
 	talosClientFactory := client.NewTalosClientFactory(
 		consumerConfig.TalosClientConfig, credential)
 	return initForSimpleConsumer(consumerConfig, topicName, partitionId,
-		talosClientFactory, "")
+		talosClientFactory, "", logger)
 }
 
 func initForSimpleConsumer(consumerConfig *TalosConsumerConfig, topicName string,
 	partitionId int32, talosClientFactory client.TalosClientFactoryInterface,
-	consumerIdPrefix string) (*SimpleConsumer, error) {
+	consumerIdPrefix string, logger *logrus.Logger) (*SimpleConsumer, error) {
 
 	var requestId atomic.Value
 	requestId.Store(int64(1))
@@ -98,7 +102,7 @@ func initForSimpleConsumer(consumerConfig *TalosConsumerConfig, topicName string
 
 	messageClient := talosClientFactory.NewMessageClientDefault()
 	scheduleInfoCache := client.GetScheduleInfoCache(topicAndPartition.TopicTalosResourceName,
-		consumerConfig.TalosClientConfig, messageClient, talosClientFactory)
+		consumerConfig.TalosClientConfig, messageClient, talosClientFactory, logger)
 
 	return &SimpleConsumer{
 		consumerConfig:    consumerConfig,
@@ -107,22 +111,23 @@ func initForSimpleConsumer(consumerConfig *TalosConsumerConfig, topicName string
 		simpleConsumerId:  consumerId,
 		requestId:         requestId,
 		scheduleInfoCache: scheduleInfoCache,
+		log:               logger,
 	}, nil
 }
 
 func NewSimpleConsumerForHighLvl(consumerConfig *TalosConsumerConfig,
 	topicAndPartition *topic.TopicAndPartition,
 	messageClient message.MessageService,
-	cache *client.ScheduleInfoCache) (*SimpleConsumer, error) {
+	cache *client.ScheduleInfoCache, logger *logrus.Logger) (*SimpleConsumer, error) {
 	return initForTalosConsumer(consumerConfig, topicAndPartition,
-		nil, messageClient, "", cache)
+		nil, messageClient, "", cache, logger)
 }
 
 func initForTalosConsumer(consumerConfig *TalosConsumerConfig,
 	topicAndPartition *topic.TopicAndPartition,
 	talosClientFactory client.TalosClientFactoryInterface,
 	messageClient message.MessageService, consumerIdPrefix string,
-	cache *client.ScheduleInfoCache) (*SimpleConsumer, error) {
+	cache *client.ScheduleInfoCache, logger *logrus.Logger) (*SimpleConsumer, error) {
 
 	var requestId atomic.Value
 	requestId.Store(int64(1))
@@ -144,6 +149,7 @@ func initForTalosConsumer(consumerConfig *TalosConsumerConfig,
 		simpleConsumerId:  consumerId,
 		requestId:         requestId,
 		scheduleInfoCache: cache,
+		log:               logger,
 	}, nil
 }
 
@@ -225,7 +231,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 		c.topicAndPartition).GetMessage(getMessageRequest)
 	if err != nil {
 		if c.scheduleInfoCache != nil && c.scheduleInfoCache.IsAutoLocation() {
-			log.Warnf("can't connect to the host directly, refresh "+
+			c.log.Warnf("can't connect to the host directly, refresh "+
 				"scheduleInfo and retry using url. The exception is: %s."+
 				" Ignore this if not frequently.", err.Error())
 			c.scheduleInfoCache.UpdateScheduleInfoCache()
@@ -233,7 +239,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 			getMessageRequest.TimeoutTimestamp = &timestamp
 			getMessageResponse, err = c.messageClient.GetMessage(getMessageRequest)
 			if err != nil {
-				log.Errorf("getMessage error: %s", err.Error())
+				c.log.Errorf("getMessage error: %s", err.Error())
 				return nil, err
 			}
 		} else {

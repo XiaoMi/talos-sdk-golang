@@ -10,8 +10,6 @@ import (
 	"bytes"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type MessageSerialization struct {
@@ -27,12 +25,10 @@ func (s *MessageSerialization) SerializeMessage(message *message.Message,
 	serializer, err := NewMessageSerializationFactory().
 		GetMessageSerializer(version)
 	if err != nil {
-		log.Error(err)
 		return err
 	}
 	err = serializer.Serialize(message, buffer)
 	if err != nil {
-		log.Errorf("serialize messageData error: %s", err.Error())
 		return err
 	}
 	return nil
@@ -44,18 +40,15 @@ func (s *MessageSerialization) DeserializeMessage(buffer *bytes.Buffer) (*messag
 	buffer.Read(header)
 	messageVersion, err := DecodeMessageVersionNumber(header)
 	if err != nil {
-		log.Errorf("Deserialize message error: %s", err.Error())
 		return nil, err
 	}
 	serializer, err := NewMessageSerializationFactory().
 		GetMessageSerializer(messageVersion)
 	if err != nil {
-		log.Errorf("get messageSerializer error: %s", err.Error())
 		return nil, err
 	}
 	msg, err := serializer.Deserialize(header, buffer)
 	if err != nil {
-		log.Errorf("Deserialize message error: %s", err.Error())
 		return nil, err
 	}
 	return msg, nil

@@ -8,7 +8,6 @@ package client
 
 import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
-
 	log "github.com/sirupsen/logrus"
 )
 

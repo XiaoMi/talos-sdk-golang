@@ -13,8 +13,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/client"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type TalosProducerConfig struct {
@@ -35,7 +33,6 @@ type TalosProducerConfig struct {
 func NewTalosProducerConfigByDefault() *TalosProducerConfig {
 	talosProducerConfig, err := initProducerConfig(utils.NewProperties())
 	if err != nil {
-		log.Errorf("Init producer config error : %s", err.Error())
 		return nil
 	}
 	return talosProducerConfig
@@ -48,11 +45,9 @@ func NewTalosProducerConfigByFilename(filename string) *TalosProducerConfig {
 func NewTalosProducerConfigByProperties(props *utils.Properties) *TalosProducerConfig {
 	talosProducerConfig, err := initProducerConfig(props)
 	if err != nil {
-		log.Errorf("Init producer config error : %s", err.Error())
 		return nil
 	}
 	if err = talosProducerConfig.CheckParameter(); err != nil {
-		log.Errorf("Parameter's wrong : %s", err.Error())
 		return nil
 	}
 	return talosProducerConfig
@@ -61,12 +56,10 @@ func NewTalosProducerConfigByProperties(props *utils.Properties) *TalosProducerC
 func NewTalosProducerConfigForTest(props *utils.Properties, checkParameter bool) *TalosProducerConfig {
 	talosProducerConfig, err := initProducerConfig(props)
 	if err != nil {
-		log.Errorf("Init producer config error : %s", err.Error())
 		return nil
 	}
 	if checkParameter {
 		if err = talosProducerConfig.CheckParameter(); err != nil {
-			log.Errorf("Parameter's wrong : %s", err.Error())
 			return nil
 		}
 	}
@@ -211,7 +204,6 @@ func (p *TalosProducerConfig) GetCompressionType() message.MessageCompressionTyp
 	} else {
 		err := utils.CheckArgument(p.compressionType == "GZIP")
 		if err != nil {
-			log.Errorf("compression type error: %s", err.Error())
 			return message.MessageCompressionType(0)
 		}
 		return message.MessageCompressionType_GZIP
@@ -237,7 +229,6 @@ func (p *TalosProducerConfig) SetMaxPutMsgNumber(maxPutMsgNumber int64) {
 		GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_NUMBER_MINIMUM,
 		GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_NUMBER_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	p.maxPutMsgNumber = maxPutMsgNumber
@@ -250,7 +241,6 @@ func (p *TalosProducerConfig) SetMaxPutMsgBytes(maxPutMsgBytes int64) {
 		GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_BYTES_MINIMUM,
 		GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_BYTES_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	p.maxPutMsgBytes = maxPutMsgBytes
@@ -267,7 +257,6 @@ func (p *TalosProducerConfig) SetCheckPartitionInterval(checkPartitionInterval i
 		GALAXY_TALOS_PRODUCER_CHECK_PARTITION_INTERVAL_MINIMUM,
 		GALAXY_TALOS_PRODUCER_CHECK_PARTITION_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	p.checkPartitionInterval = checkPartitionInterval
@@ -279,7 +268,6 @@ func (p *TalosProducerConfig) SetUpdatePartitionIdInterval(updatePartitionIdInte
 		GALAXY_TALOS_PRODUCER_UPDATE_PARTITIONID_INTERVAL_MINIMUM,
 		GALAXY_TALOS_PRODUCER_UPDATE_PARTITIONID_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	p.updatePartitionIdInterval = updatePartitionIdInterval

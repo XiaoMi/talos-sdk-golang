@@ -24,8 +24,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 )
 
-//var log = utils.Instance
-
 //interface for mock
 type TalosClientFactoryInterface interface {
 	NewTopicClient(url string) topic.TopicService

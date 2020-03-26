@@ -11,8 +11,6 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/client"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type TalosConsumerConfig struct {
@@ -45,7 +43,6 @@ func NewTalosConsumerConfigByFilename(filename string) *TalosConsumerConfig {
 func NewTalosConsumerConfigByProperties(props *utils.Properties) *TalosConsumerConfig {
 	talosConsumerConfig := initConsumerConfig(props)
 	if err := talosConsumerConfig.CheckParameter(); err != nil {
-		log.Errorf("Parameter's wrong : %s", err.Error())
 		return nil
 	}
 	return talosConsumerConfig
@@ -246,7 +243,6 @@ func (c *TalosConsumerConfig) SetPartitionCheckInterval(partitionCheckInterval i
 		GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.partitionCheckInterval = partitionCheckInterval
@@ -258,7 +254,6 @@ func (c *TalosConsumerConfig) SetWorkerInfoCheckInterval(workerInfoCheckInterval
 		GALAXY_TALOS_CONSUMER_CHECK_WORKER_INFO_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_CHECK_WORKER_INFO_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.workerInfoCheckInterval = workerInfoCheckInterval
@@ -270,7 +265,6 @@ func (c *TalosConsumerConfig) SetRenewCheckInterval(renewCheckInterval int64) {
 		GALAXY_TALOS_CONSUMER_RENEW_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_RENEW_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.renewCheckInterval = renewCheckInterval
@@ -282,7 +276,6 @@ func (c *TalosConsumerConfig) SetRenewMaxRetry(renewMaxRetry int64) {
 		GALAXY_TALOS_CONSUMER_RENEW_MAX_RETRY_MINIMUM,
 		GALAXY_TALOS_CONSUMER_RENEW_MAX_RETRY_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.renewMaxRetry = renewMaxRetry
@@ -294,7 +287,6 @@ func (c *TalosConsumerConfig) SetMaxFetchRecords(maxFetchRecords int64) {
 		GALAXY_TALOS_CONSUMER_MAX_FETCH_RECORDS_MINIMUM,
 		GALAXY_TALOS_CONSUMER_MAX_FETCH_RECORDS_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.maxFetchRecords = maxFetchRecords
@@ -310,7 +302,6 @@ func (c *TalosConsumerConfig) SetCommitOffsetThreshold(commitOffsetThreshold int
 		GALAXY_TALOS_CONSUMER_COMMIT_OFFSET_THRESHOLD_MINIMUM,
 		GALAXY_TALOS_CONSUMER_COMMIT_OFFSET_THRESHOLD_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.commitOffsetThreshold = commitOffsetThreshold
@@ -322,7 +313,6 @@ func (c *TalosConsumerConfig) SetCommitOffsetInterval(commitOffsetInterval int64
 		GALAXY_TALOS_CONSUMER_COMMIT_OFFSET_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_COMMIT_OFFSET_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.commitOffsetInterval = commitOffsetInterval
@@ -334,7 +324,6 @@ func (c *TalosConsumerConfig) SetFetchMessageInterval(fetchMessageInterval int64
 		GALAXY_TALOS_CONSUMER_FETCH_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_FETCH_INTERVAL_MAXIMUM)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.fetchMessageInterval = fetchMessageInterval
@@ -366,7 +355,6 @@ func (c *TalosConsumerConfig) SetResetOffsetValueWhenStart(resetOffsetValueWhenS
 		GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_END,
 		GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_START)
 	if err != nil {
-		log.Errorf(err.Error())
 		return
 	}
 	c.resetOffsetValueWhenStart = resetOffsetValueWhenStart

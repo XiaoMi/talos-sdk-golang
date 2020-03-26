@@ -15,8 +15,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type Sender interface {
@@ -39,6 +38,7 @@ type PartitionSender struct {
 	userMessageResult     *UserMessageResult
 	simpleProducer        *SimpleProducer
 	MessageWriterStopSign chan utils.StopSign
+	log                   *logrus.Logger
 }
 
 func NewPartitionSender(partitionId int32, topicName string,
@@ -57,7 +57,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 
 	simpleProducer, err := NewSimpleProducerForHighLvl(producerConfig,
 		topicAndPartition, messageClient, clientId, requestId,
-		talosProducer.scheduleInfoCache)
+		talosProducer.scheduleInfoCache, talosProducer.log)
 	if err != nil {
 		return nil
 	}
@@ -74,6 +74,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 		partitionMessageQueue: partitionMessageQueue,
 		simpleProducer:        simpleProducer,
 		MessageWriterStopSign: make(chan utils.StopSign, 1),
+		log: talosProducer.log,
 	}
 
 	partitionSender.talosProducer.WaitGroup.Add(1)
@@ -97,7 +98,7 @@ func (s *PartitionSender) MessageWriterTask() {
 	for {
 		select {
 		case <-s.MessageWriterStopSign:
-			log.Infof("MessageWriterTask stop")
+			s.log.Infof("MessageWriterTask stop")
 			return
 		default:
 			messageList := s.partitionMessageQueue.GetMessageList()
@@ -107,24 +108,20 @@ func (s *PartitionSender) MessageWriterTask() {
 			// write message right now;
 			if len(messageList) == 0 {
 				// notify to wake up producer's
-				if len(s.talosProducer.NotifyChan) == 0 &&
-					len(s.talosProducer.BufferFullChan) > 0 {
+				if len(s.talosProducer.BufferFullChan) > 0 {
 					<-s.talosProducer.BufferFullChan
-					s.talosProducer.NotifyChan <- utils.NOTIFY
 				}
 				break
 			}
 
 			err := s.putMessage(messageList)
 			if err != nil {
-				log.Errorf("PutMessageTask for topicAndPartition: %v error: %s",
+				s.log.Errorf("PutMessageTask for topicAndPartition: %v error: %s",
 					s.topicAndPartition, err.Error())
 			}
 			// when talosProducer buffer is full, take data and notify
-			if len(s.talosProducer.NotifyChan) == 0 &&
-				len(s.talosProducer.BufferFullChan) > 0 {
+			if len(s.talosProducer.BufferFullChan) > 0 {
 				<-s.talosProducer.BufferFullChan
-				s.talosProducer.NotifyChan <- utils.NOTIFY
 			}
 		}
 	}
@@ -143,10 +140,10 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 	}
 
 	if err := s.simpleProducer.doPut(messageList); err != nil {
-		log.Errorf("Failed to put %d messages for partition: %d",
+		s.log.Errorf("Failed to put %d messages for partition: %d",
 			len(messageList), s.partitionId)
 		for _, msg := range messageList {
-			log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
+			s.log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
 		}
 		// putMessage failed callback
 		userMessageResult.SetSuccessful(false).SetCause(err)
@@ -154,7 +151,7 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 
 		// delay when partitionNotServing
 		if utils.IsPartitionNotServing(err) {
-			log.Warnf("partition: %d is not serving state, sleep "+
+			s.log.Warnf("partition: %d is not serving state, sleep "+
 				"a while for waiting it work.", s.partitionId)
 			time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
 		}
@@ -163,13 +160,13 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 	// putMessage success callback
 	userMessageResult.SetSuccessful(true)
 	go s.MessageCallbackTask(userMessageResult)
-	log.Debugf("put %d messages for partition: %d", len(messageList), s.partitionId)
+	s.log.Debugf("put %d messages for partition: %d", len(messageList), s.partitionId)
 	return nil
 }
 
 func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
 	s.partitionMessageQueue.AddMessage(userMessageList)
-	log.Infof("add %d messages to partition: %d",
+	s.log.Infof("add %d messages to partition: %d",
 		len(userMessageList), s.partitionId)
 }
 
@@ -178,5 +175,5 @@ func (s *PartitionSender) Shutdown() {
 	s.AddMessage(make([]*UserMessage, 0))
 	s.MessageWriterStopSign <- utils.Shutdown
 	s.partitionMessageQueue.shutdown()
-	log.Infof("PartitionSender for partition: %d finish stop", s.partitionId)
+	s.log.Infof("PartitionSender for partition: %d finish stop", s.partitionId)
 }

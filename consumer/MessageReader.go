@@ -14,8 +14,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type Long struct {
@@ -43,9 +42,10 @@ type MessageReader struct {
 	simpleConsumer    *SimpleConsumer
 	consumerClient    consumer.ConsumerService
 	outerCheckpoint   Long
+	log               *logrus.Logger
 }
 
-func NewMessageReader(consumerConfig *TalosConsumerConfig) *MessageReader {
+func NewMessageReader(consumerConfig *TalosConsumerConfig, logger *logrus.Logger) *MessageReader {
 	curTime := utils.CurrentTimeMills()
 	initOffset := int64(-1)
 	return &MessageReader{
@@ -59,6 +59,7 @@ func NewMessageReader(consumerConfig *TalosConsumerConfig) *MessageReader {
 		commitInterval:   consumerConfig.GetCommitOffsetInterval(),
 		fetchInterval:    consumerConfig.GetFetchMessageInterval(),
 		outerCheckpoint:  Long{},
+		log:              logger,
 	}
 }
 
@@ -69,7 +70,7 @@ func (r *MessageReader) SetWorkerId(workerId string) *MessageReader {
 
 func (r *MessageReader) SetConsumerGroup(consumerGroup string) *MessageReader {
 	if err := utils.CheckNameValidity(consumerGroup); err != nil {
-		log.Errorf("consumerGroup: %s", err.Error())
+		r.log.Errorf("consumerGroup: %s", err.Error())
 		return nil
 	}
 	r.consumerGroup = consumerGroup
@@ -128,7 +129,7 @@ func (r *MessageReader) ShouldCommit(isContinuous bool) bool {
 
 func (r *MessageReader) processFetchException(err error) {
 	if utils.IsPartitionNotServing(err) {
-		log.Warnf("Partition: %d is not serving state: %s, "+
+		r.log.Warnf("Partition: %d is not serving state: %s, "+
 			"sleep a while for waiting it work.",
 			r.topicAndPartition.GetPartitionId(), err.Error())
 		time.Sleep(time.Duration(r.consumerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
@@ -137,16 +138,16 @@ func (r *MessageReader) processFetchException(err error) {
 	// process message offset out of range, reset start offset
 	if utils.IsOffsetOutOfRange(err) {
 		if r.consumerConfig.resetLatestOffsetWhenOutOfRange {
-			log.Warnf("Got PartitionOutOfRange error, offset by current latest offset.")
+			r.log.Warnf("Got PartitionOutOfRange error, offset by current latest offset.")
 			atomic.StoreInt64(r.startOffset, int64(message.MessageOffset_LATEST_OFFSET))
 			r.lastCommitTime = utils.CurrentTimeMills()
 		} else {
-			log.Warnf("Got PartitionOutOfRange error, reset offset by current start offset.")
+			r.log.Warnf("Got PartitionOutOfRange error, reset offset by current start offset.")
 			atomic.StoreInt64(r.startOffset, int64(message.MessageOffset_START_OFFSET))
 			r.lastCommitOffset, r.finishedOffset = -1, -1
 			r.lastCommitTime = utils.CurrentTimeMills()
 		}
 	}
 
-	log.Warnf("process unexcepted fetchException: %s", err.Error())
+	r.log.Warnf("process unexcepted fetchException: %s", err.Error())
 }

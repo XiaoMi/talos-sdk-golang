@@ -144,7 +144,6 @@ func (demo TalosAdminDemo) listTopicsInfo() ([]*topic.Topic, error) {
 }
 
 func main() {
-	utils.InitLog()
 	talosAdminDemo := NewTalosAdminDemo()
 	talosAdminDemo.createTopic()
 	//resourceName, _ :=

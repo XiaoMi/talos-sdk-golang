@@ -18,8 +18,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type SimpleProducer struct {
@@ -29,6 +28,11 @@ type SimpleProducer struct {
 	requestId         atomic.Value
 	clientId          string
 	scheduleInfoCache *client.ScheduleInfoCache
+	log               *logrus.Logger
+}
+
+func NewSimpleProducerByFilename(propertyFilename string) (*SimpleProducer, error) {
+	return NewSimpleProducerByProperties(utils.LoadProperties(propertyFilename))
 }
 
 func NewSimpleProducerByProperties(props *utils.Properties) (*SimpleProducer, error) {
@@ -46,10 +50,10 @@ func NewSimpleProducerByProperties(props *utils.Properties) (*SimpleProducer, er
 
 	producerConfig := NewTalosProducerConfigByProperties(props)
 	return NewSimpleProducer(producerConfig, topicName, int32(partitionId),
-		credential)
+		credential, utils.InitLogger())
 }
 
-func NewSimpleProducerByFilename(propertyFilename string) (*SimpleProducer, error) {
+func NewSimpleProducerWithLogger(propertyFilename string, logger *logrus.Logger) (*SimpleProducer, error) {
 	props := utils.LoadProperties(propertyFilename)
 	topicName := props.Get("galaxy.talos.topic.name")
 	secretKeyId := props.Get("galaxy.talos.access.key")
@@ -65,23 +69,23 @@ func NewSimpleProducerByFilename(propertyFilename string) (*SimpleProducer, erro
 
 	producerConfig := NewTalosProducerConfigByProperties(props)
 	return NewSimpleProducer(producerConfig, topicName, int32(partitionId),
-		credential)
+		credential, logger)
 }
 
 func NewSimpleProducer(producerConfig *TalosProducerConfig, topicName string,
-	partitionId int32, credential *auth.Credential) (*SimpleProducer, error) {
+	partitionId int32, credential *auth.Credential, logger *logrus.Logger) (*SimpleProducer, error) {
 	clientId, err := utils.CheckAndGenerateClientId("SimpleProducer")
 	if err != nil {
 		return nil, err
 	}
 	return initForSimpleProducer(producerConfig, topicName, partitionId,
 		client.NewTalosClientFactory(producerConfig.TalosClientConfig, credential),
-		clientId, 1)
+		clientId, 1, logger)
 }
 
 func initForSimpleProducer(producerConfig *TalosProducerConfig,
 	topicName string, partitionId int32, talosClientFactory *client.TalosClientFactory,
-	clientId string, requestId int64) (*SimpleProducer, error) {
+	clientId string, requestId int64, logger *logrus.Logger) (*SimpleProducer, error) {
 
 	var reqId atomic.Value
 	reqId.Store(requestId)
@@ -98,7 +102,7 @@ func initForSimpleProducer(producerConfig *TalosProducerConfig,
 
 	messageClient := talosClientFactory.NewMessageClientDefault()
 	scheduleInfoCache := client.GetScheduleInfoCache(topicAndPartition.TopicTalosResourceName,
-		producerConfig.TalosClientConfig, messageClient, talosClientFactory)
+		producerConfig.TalosClientConfig, messageClient, talosClientFactory, logger)
 
 	return &SimpleProducer{
 		producerConfig:    producerConfig,
@@ -107,21 +111,22 @@ func initForSimpleProducer(producerConfig *TalosProducerConfig,
 		clientId:          clientId,
 		requestId:         reqId,
 		scheduleInfoCache: scheduleInfoCache,
+		log:               logger,
 	}, nil
 }
 
 func NewSimpleProducerForHighLvl(producerConfig *TalosProducerConfig,
 	topicAndPartition *topic.TopicAndPartition,
 	messageClient message.MessageService, clientId string,
-	requestId atomic.Value, cache *client.ScheduleInfoCache) (*SimpleProducer, error) {
+	requestId atomic.Value, cache *client.ScheduleInfoCache, logger *logrus.Logger) (*SimpleProducer, error) {
 	return initForTalosProducer(producerConfig, topicAndPartition, nil,
-		messageClient, clientId, requestId, cache)
+		messageClient, clientId, requestId, cache, logger)
 }
 
 func initForTalosProducer(producerConfig *TalosProducerConfig,
 	topicAndPartition *topic.TopicAndPartition, talosClientFactory *client.TalosClientFactory,
 	messageClient message.MessageService, clientId string,
-	requestId atomic.Value, cache *client.ScheduleInfoCache) (*SimpleProducer, error) {
+	requestId atomic.Value, cache *client.ScheduleInfoCache, logger *logrus.Logger) (*SimpleProducer, error) {
 
 	err := utils.CheckTopicAndPartition(topicAndPartition)
 	if err != nil {
@@ -135,6 +140,7 @@ func initForTalosProducer(producerConfig *TalosProducerConfig,
 		clientId:          clientId,
 		requestId:         requestId,
 		scheduleInfoCache: cache,
+		log:               logger,
 	}, nil
 }
 
@@ -144,7 +150,7 @@ func (p *SimpleProducer) PutMessage(msgList []*message.Message) bool {
 	}
 	err := p.PutMessageList(msgList)
 	if err != nil {
-		log.Errorf("putMessage error: %s, please try to put again", err.Error())
+		p.log.Errorf("putMessage error: %s, please try to put again", err.Error())
 		return false
 	}
 	return true
@@ -162,12 +168,12 @@ func (p *SimpleProducer) PutMessageList(msgList []*message.Message) error {
 
 	//check data validity
 	if err := utils.CheckMessagesValidity(msgList); err != nil {
-		log.Errorf("message data invalidity: %s", err.Error())
+		p.log.Errorf("message data invalidity: %s", err.Error())
 		return err
 	}
 
 	if err := p.doPut(msgList); err != nil {
-		log.Errorf("doPut message error: %s", err.Error())
+		p.log.Errorf("doPut message error: %s", err.Error())
 		return err
 	}
 	return nil
@@ -176,7 +182,7 @@ func (p *SimpleProducer) PutMessageList(msgList []*message.Message) error {
 func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 	messageBlock, err := p.compressMessageList(msgList)
 	if err != nil {
-		log.Errorf("compress message list error: %s", err.Error())
+		p.log.Errorf("compress message list error: %s", err.Error())
 		return err
 	}
 	messageBlockList := make([]*message.MessageBlock, 0, 1)
@@ -184,7 +190,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 
 	requestSequenceId, err := utils.GenerateRequestSequenceId(p.clientId, p.requestId)
 	if err != nil {
-		log.Errorf("generate RequestSequenceId error: %s", err.Error())
+		p.log.Errorf("generate RequestSequenceId error: %s", err.Error())
 		return err
 	}
 	putMessageRequest := &message.PutMessageRequest{
@@ -200,7 +206,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 		PutMessage(putMessageRequest)
 	if err != nil {
 		if p.scheduleInfoCache != nil && p.scheduleInfoCache.IsAutoLocation() {
-			log.Warnf("can't connect to the host directly, refresh "+
+			p.log.Warnf("can't connect to the host directly, refresh "+
 				"scheduleInfo and retry using url. The exception is: %s."+
 				" Ignore this if not frequently.", err.Error())
 			p.scheduleInfoCache.UpdateScheduleInfoCache()
@@ -208,7 +214,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 			putMessageRequest.TimeoutTimestamp = &timestamp
 			_, err = p.messageClient.PutMessage(putMessageRequest)
 			if err != nil {
-				log.Errorf("putMessage error: %s", err.Error())
+				p.log.Errorf("putMessage error: %s", err.Error())
 				return err
 			}
 		} else {

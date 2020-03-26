@@ -22,7 +22,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/gofrs/uuid"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 /**
@@ -361,13 +361,18 @@ func CheckTopicName(topicName string) error {
 	return nil
 }
 
-func InitLog() {
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
-	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05.000",
-		FullTimestamp:   true,
-	})
+func InitLogger() *logrus.Logger {
+	return &logrus.Logger{
+		Out: os.Stdout,
+		Formatter: &logrus.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05.000",
+			FullTimestamp:   true,
+		},
+		Hooks:        make(logrus.LevelHooks),
+		Level:        logrus.InfoLevel,
+		ExitFunc:     os.Exit,
+		ReportCaller: false,
+	}
 }
 
 func NewTDeserializer() *thrift.TDeserializer {

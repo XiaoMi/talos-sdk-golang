@@ -13,17 +13,16 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type TalosMessageReader struct {
 	*MessageReader
 }
 
-func NewTalosMessageReader(config *TalosConsumerConfig) *TalosMessageReader {
+func NewTalosMessageReader(config *TalosConsumerConfig, logger *logrus.Logger) *TalosMessageReader {
 	return &TalosMessageReader{
-		MessageReader: NewMessageReader(config),
+		MessageReader: NewMessageReader(config, logger),
 	}
 }
 
@@ -57,7 +56,7 @@ func (r *TalosMessageReader) InitStartOffset() error {
 		r.lastCommitOffset = atomic.LoadInt64(r.startOffset) - 1
 		r.finishedOffset = r.lastCommitOffset
 	}
-	log.Infof("Init startOffset: %d lastCommitOffset: %d for partition: %d ",
+	r.log.Infof("Init startOffset: %d lastCommitOffset: %d for partition: %d ",
 		atomic.LoadInt64(r.startOffset), r.lastCommitOffset,
 		r.topicAndPartition.GetPartitionId())
 	return nil
@@ -80,20 +79,20 @@ func (r *TalosMessageReader) FetchData() {
 	}
 
 	// fetch data and process them
-	log.Debugf("Reading message from offset: %d of partition: %d ",
+	r.log.Debugf("Reading message from offset: %d of partition: %d ",
 		atomic.LoadInt64(r.startOffset), r.topicAndPartition.GetPartitionId())
 	messageList, err := r.simpleConsumer.FetchMessage(
 		atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
 	if err != nil {
 		if t, ok := err.(*common.GalaxyTalosException); ok {
-			log.Errorf("Reading message from topic: %v of partition: %d failed: %s",
+			r.log.Errorf("Reading message from topic: %v of partition: %d failed: %s",
 				r.topicAndPartition.GetTopicTalosResourceName(),
 				r.topicAndPartition.GetPartitionId(), t.GetDetails())
 			r.processFetchException(t)
 			r.lastFetchTime = utils.CurrentTimeMills()
 			return
 		}
-		log.Errorf("Unknow Exception when fetchMessage: %s", err.Error())
+		r.log.Errorf("Unknow Exception when fetchMessage: %s", err.Error())
 	}
 
 	r.lastFetchTime = utils.CurrentTimeMills()
@@ -147,15 +146,15 @@ func (r *TalosMessageReader) CheckpointByFinishedOffset() bool {
 }
 
 func (r *TalosMessageReader) Checkpoint(messageOffset int64) bool {
-	log.Infof("Start checkpoint: %v", messageOffset)
+	r.log.Infof("Start checkpoint: %v", messageOffset)
 	if r.consumerConfig.GetCheckpointAutoCommit() {
-		log.Infof("You can not checkpoint through MessageCheckpointer when you set " +
+		r.log.Infof("You can not checkpoint through MessageCheckpointer when you set " +
 			"\"galaxy.talos.consumer.checkpoint.message.offset\" as \"true\"")
 		return false
 	}
 
 	if messageOffset <= r.lastCommitOffset || messageOffset > r.finishedOffset {
-		log.Infof("checkpoint messageOffset: %v in wrong range, lastCheckpoint "+
+		r.log.Infof("checkpoint messageOffset: %v in wrong range, lastCheckpoint "+
 			"messageOffset: %v , last deliver messageOffset: %v", messageOffset,
 			r.lastCommitOffset, r.finishedOffset)
 		return false
@@ -163,7 +162,7 @@ func (r *TalosMessageReader) Checkpoint(messageOffset int64) bool {
 
 	err := r.commitOffset(messageOffset)
 	if err != nil {
-		log.Errorf("Error: %s when getting messages from topic: %v, partition: %d",
+		r.log.Errorf("Error: %s when getting messages from topic: %v, partition: %d",
 			err.Error(), r.topicAndPartition.GetTopicTalosResourceName(),
 			r.topicAndPartition.GetPartitionId())
 		return false
@@ -193,10 +192,10 @@ func (r *TalosMessageReader) commitOffset(messageOffset int64) error {
 	if updateOffsetResponse.GetSuccess() {
 		r.lastCommitOffset = messageOffset
 		r.lastCommitTime = utils.CurrentTimeMills()
-		log.Infof("Worker: %s commit offset: %d for partition: %d",
+		r.log.Infof("Worker: %s commit offset: %d for partition: %d",
 			r.workerId, r.lastCommitOffset, r.topicAndPartition.GetPartitionId())
 	} else {
-		log.Errorf("Worker: %s commit offset: %d for partition: %d failed",
+		r.log.Errorf("Worker: %s commit offset: %d for partition: %d failed",
 			r.workerId, r.lastCommitOffset, r.topicAndPartition.GetPartitionId())
 	}
 	return nil
@@ -206,7 +205,7 @@ func (r *TalosMessageReader) CleanReader() {
 	// wait task quit gracefully: stop reading, commit offset, clean and shutdown
 	if r.finishedOffset > r.lastCommitOffset {
 		if err := r.CommitCheckPoint(); err != nil {
-			log.Errorf("Topic: %s, partition: %d commit offset error: %s",
+			r.log.Errorf("Topic: %s, partition: %d commit offset error: %s",
 				r.topicAndPartition.GetTopicTalosResourceName(),
 				r.topicAndPartition.GetPartitionId(), err.Error())
 		}
@@ -217,7 +216,7 @@ func (r *TalosMessageReader) CheckAndCommit(isContinuous bool) {
 	if r.ShouldCommit(isContinuous) {
 		err := r.innerCheckpoint()
 		if err != nil {
-			log.Errorf("commit offset error: %s, we skip to it.", err.Error())
+			r.log.Errorf("commit offset error: %s, we skip to it.", err.Error())
 		}
 	}
 }

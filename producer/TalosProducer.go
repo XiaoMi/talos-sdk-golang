@@ -20,13 +20,10 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var mutex sync.Mutex
-
-//var log = utils.Instance
 
 type Producer interface {
 	AddUserMessage(msgList []*message.Message) error
@@ -63,10 +60,10 @@ type TalosProducer struct {
 	scheduleInfoCache          *client.ScheduleInfoCache
 	partitionSenderMap         map[int32]*PartitionSender
 	BufferFullChan             chan utils.LockState
-	NotifyChan                 chan utils.LockState
 	checkPartTaskSign          chan utils.StopSign
 	WaitGroup                  *sync.WaitGroup
 	producerLock               sync.Mutex
+	log                        *logrus.Logger
 }
 
 func NewTalosProducerByProperties(props *utils.Properties,
@@ -85,8 +82,27 @@ func NewTalosProducerByProperties(props *utils.Properties,
 	}
 
 	producerConfig := NewTalosProducerConfigByProperties(props)
-	return NewTalosProducer(producerConfig, credential, topicName,
-		topicAbnormalCallback, userMessageCallback)
+	return NewDefaultTalosProducer(producerConfig, credential, topicName,
+		NewSimplePartitioner(), topicAbnormalCallback, userMessageCallback, utils.InitLogger())
+}
+
+func NewTalosProducerWithLogger(filename string, topicAbnormalCallback client.TopicAbnormalCallback,
+	userMessageCallback UserMessageCallback, logger *logrus.Logger) (*TalosProducer, error) {
+	props := utils.LoadProperties(filename)
+	topicName := props.Get("galaxy.talos.topic.name")
+	secretKeyId := props.Get("galaxy.talos.access.key")
+	secretKey := props.Get("galaxy.talos.access.secret")
+	userType := auth.UserType_DEV_XIAOMI
+	// credential
+	credential := &auth.Credential{
+		TypeA1:      &userType,
+		SecretKeyId: &secretKeyId,
+		SecretKey:   &secretKey,
+	}
+
+	producerConfig := NewTalosProducerConfigByProperties(props)
+	return NewDefaultTalosProducer(producerConfig, credential, topicName,
+		NewSimplePartitioner(), topicAbnormalCallback, userMessageCallback, logger)
 }
 
 func NewTalosProducerByFilename(filename string,
@@ -106,21 +122,14 @@ func NewTalosProducerByFilename(filename string,
 	}
 
 	producerConfig := NewTalosProducerConfigByProperties(props)
-	return NewTalosProducer(producerConfig, credential, topicName,
-		topicAbnormalCallback, userMessageCallback)
-}
-
-func NewTalosProducer(producerConfig *TalosProducerConfig, credential *auth.Credential,
-	topicName string, topicAbnormalCallback client.TopicAbnormalCallback,
-	userMessageCallback UserMessageCallback) (*TalosProducer, error) {
 	return NewDefaultTalosProducer(producerConfig, credential, topicName,
-		NewSimplePartitioner(), topicAbnormalCallback, userMessageCallback)
+		NewSimplePartitioner(), topicAbnormalCallback, userMessageCallback, utils.InitLogger())
 }
 
 func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *auth.Credential,
 	topicName string, partitioner Partitioner,
 	topicAbnormalCallback client.TopicAbnormalCallback,
-	userMessageCallback UserMessageCallback) (*TalosProducer, error) {
+	userMessageCallback UserMessageCallback, logger *logrus.Logger) (*TalosProducer, error) {
 
 	var producerState atomic.Value
 	var reqId atomic.Value
@@ -140,9 +149,9 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 	scheduleInfoCache := client.GetScheduleInfoCache(
 		describeInfoResponse.GetTopicTalosResourceName(),
 		producerConfig.TalosClientConfig,
-		clientFactory.NewMessageClientDefault(), clientFactory)
+		clientFactory.NewMessageClientDefault(), clientFactory, logger)
 
-	talosProducer := &TalosProducer{
+	p := &TalosProducer{
 		requestId:                  reqId,
 		producerState:              producerState,
 		partitioner:                partitioner,
@@ -164,22 +173,22 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 		scheduleInfoCache:          scheduleInfoCache,
 		partitionSenderMap:         make(map[int32]*PartitionSender),
 		BufferFullChan:             make(chan utils.LockState, 1),
-		NotifyChan:                 make(chan utils.LockState),
 		checkPartTaskSign:          make(chan utils.StopSign, 1),
 		WaitGroup:                  new(sync.WaitGroup),
+		log:                        logger,
 	}
 
-	talosProducer.checkAndGetTopicInfo()
+	p.checkAndGetTopicInfo()
 
-	talosProducer.initPartitionSender()
+	p.initPartitionSender()
 
-	talosProducer.WaitGroup.Add(1)
-	go talosProducer.initCheckPartitionTask()
-	log.Infof("Init a producer for topic: %s, partitions: %d ",
+	p.WaitGroup.Add(1)
+	go p.initCheckPartitionTask()
+	p.log.Infof("Init a producer for topic: %s, partitions: %d ",
 		describeInfoResponse.GetTopicTalosResourceName(),
-		talosProducer.partitionNumber)
+		p.partitionNumber)
 
-	return talosProducer, nil
+	return p, nil
 }
 
 func (p *TalosProducer) AddUserMessageWithTimeout(msgList []*message.Message, timeoutMillis int64) error {
@@ -195,16 +204,15 @@ func (p *TalosProducer) AddUserMessageWithTimeout(msgList []*message.Message, ti
 	// check total buffered message number
 	startWaitTime := utils.CurrentTimeMills()
 	for p.bufferedCount.IsFull() {
-		log.Infof("too many buffered messages, globalLock is active."+
+		p.log.Infof("too many buffered messages, globalLock is active."+
 			" message number: %d, message bytes: %d",
 			p.bufferedCount.GetBufferedMsgNumber(),
 			p.bufferedCount.GetBufferedMsgBytes())
 		p.producerLock.Unlock()
-		p.BufferFullChan <- utils.NOTIFY
 
 		// judging wait exit by 'timeout' or 'notify'
 		select {
-		case <-p.NotifyChan:
+		case p.BufferFullChan <- utils.NOTIFY:
 			// if receive notify, just break wait and judge if should addMessage
 		case <-time.After(time.Duration(timeoutMillis) * time.Millisecond):
 			if utils.CurrentTimeMills()-startWaitTime >= timeoutMillis {
@@ -235,13 +243,13 @@ func (p *TalosProducer) AddUserMessage(msgList []*message.Message) error {
 
 	// check total buffered message number
 	for p.bufferedCount.IsFull() {
-		log.Infof("too many buffered messages, globalLock is active."+
+		p.log.Infof("too many buffered messages, globalLock is active."+
 			" message number: %d, message bytes: %d",
 			p.bufferedCount.GetBufferedMsgNumber(),
 			p.bufferedCount.GetBufferedMsgBytes())
 		p.producerLock.Unlock()
 		p.BufferFullChan <- utils.NOTIFY
-		<-p.NotifyChan
+		// if receive notify, just break wait and judge if should addMessage
 		p.producerLock.Lock()
 	}
 
@@ -324,7 +332,6 @@ func (p *TalosProducer) Shutdown() {
 	p.stopAndwait()
 
 	close(p.BufferFullChan)
-	close(p.NotifyChan)
 	close(p.checkPartTaskSign)
 	p.WaitGroup.Wait()
 }
@@ -374,7 +381,7 @@ func (p *TalosProducer) checkAndGetTopicInfo() error {
 	p.topicTalosResourceName = resourceNameFromServer
 	p.curPartitionId = rand.Int31n(p.partitionNumber)
 
-	log.Infof("The client: %s check and get topic info success", p.clientId)
+	p.log.Infof("The client: %s check and get topic info success", p.clientId)
 	return nil
 }
 
@@ -395,7 +402,7 @@ func (p *TalosProducer) adjustPartitionSender(newPartitionNumber int32) {
 	for partitionId := p.partitionNumber; partitionId < newPartitionNumber; partitionId++ {
 		p.createPartitionSender(partitionId)
 	}
-	log.Infof("Adjust partitionSender and partitionNumber from: %d to %d.",
+	p.log.Infof("Adjust partitionSender and partitionNumber from: %d to %d.",
 		p.partitionNumber, newPartitionNumber)
 }
 
@@ -432,7 +439,7 @@ func (p *TalosProducer) CheckPartitionTask() {
 	response, err := p.talosAdmin.GetDescribeInfo(
 		&topic.GetDescribeInfoRequest{TopicName: p.topicName})
 	if err != nil {
-		log.Errorf("Exception in CheckPartitionTask: %s", err.Error())
+		p.log.Errorf("Exception in CheckPartitionTask: %s", err.Error())
 		if utils.IsTopicNotExist(err) {
 			p.disableProducer(err)
 		}
@@ -444,7 +451,7 @@ func (p *TalosProducer) CheckPartitionTask() {
 		err := fmt.Errorf("The topic: %s not exist. It might have been deleted. "+
 			"The putMessage goroutine will be cancel. ", p.topicTalosResourceName.
 			GetTopicTalosResourceName())
-		log.Errorf(err.Error())
+		p.log.Errorf(err.Error())
 		p.disableProducer(err)
 		return
 	}
@@ -456,7 +463,7 @@ func (p *TalosProducer) CheckPartitionTask() {
 		// update partitionNumber
 		p.setPartitionNumber(topicPartitionNum)
 	}
-	log.Infof("CheckPartitionTask done")
+	p.log.Infof("CheckPartitionTask done")
 }
 
 func (p *TalosProducer) getPartitionId(partitionKey string) int32 {
@@ -497,7 +504,7 @@ func (p *TalosProducer) DescribeTopicInfo() (*topic.TopicTalosResourceName, int3
 	request := &topic.GetDescribeInfoRequest{TopicName: p.topicName}
 	response, err := p.talosAdmin.GetDescribeInfo(request)
 	if err != nil {
-		log.Error(err)
+		p.log.Error(err)
 		return nil, -1, err
 	}
 	return response.GetTopicTalosResourceName(), response.GetPartitionNumber(), nil

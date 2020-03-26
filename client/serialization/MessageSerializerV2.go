@@ -13,8 +13,6 @@ import (
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -88,7 +86,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	timestampBuffer := make([]byte, CREATE_TIMESTAMP_BYTES_V2)
 	n, err := buf.Read(timestampBuffer)
 	if n != CREATE_TIMESTAMP_BYTES_V2 || err != nil {
-		log.Errorf("read create timestamp error: %s", err.Error())
 		return nil, err
 	}
 	timestamp := int64(binary.BigEndian.Uint64(timestampBuffer))
@@ -97,7 +94,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	messageTypeBuffer := make([]byte, MESSAGE_TYPE_BYTES_V2)
 	n, err = buf.Read(messageTypeBuffer)
 	if n != MESSAGE_TYPE_BYTES_V2 || err != nil {
-		log.Errorf("read message type error: %s", err.Error())
 		return nil, err
 	}
 	messageType := message.MessageType(binary.BigEndian.Uint16(messageTypeBuffer))
@@ -106,7 +102,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	sequenceNumLenBuffer := make([]byte, SEQUENCE_NUMBER_LENGTH_BYTES_V2)
 	n, err = buf.Read(sequenceNumLenBuffer)
 	if n != SEQUENCE_NUMBER_LENGTH_BYTES_V2 || err != nil {
-		log.Errorf("read sequence number length error: %s", err.Error())
 		return nil, err
 	}
 	sequenceNumLen := binary.BigEndian.Uint16(sequenceNumLenBuffer)
@@ -115,7 +110,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 		sequenceNumberBuffer := make([]byte, sequenceNumLen)
 		n, err = buf.Read(sequenceNumberBuffer)
 		if n != int(sequenceNumLen) || err != nil {
-			log.Errorf("read sequence number error: %s", err.Error())
 			return nil, err
 		}
 		sequenceNumber = string(sequenceNumberBuffer)
@@ -126,7 +120,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	messageSizeBuffer := make([]byte, MESSAGE_DATA_LENGTH_BYTES_V2)
 	n, err = buf.Read(messageSizeBuffer)
 	if n != MESSAGE_DATA_LENGTH_BYTES_V2 || err != nil {
-		log.Errorf("read message size error: %s", err.Error())
 		return nil, err
 	}
 	messageSize := binary.BigEndian.Uint32(messageSizeBuffer)
@@ -135,7 +128,6 @@ func (s *MessageSerializerV2) Deserialize(header []byte, buf *bytes.Buffer) (*me
 	var messageDataBuffer = make([]byte, messageSize)
 	n, err = buf.Read(messageDataBuffer)
 	if n != int(messageSize) || err != nil {
-		log.Errorf("read message data error: %s", err.Error())
 		return nil, err
 	}
 

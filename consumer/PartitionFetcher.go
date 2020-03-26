@@ -15,8 +15,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 /**
@@ -81,6 +80,7 @@ type PartitionFetcher struct {
 	messageReader          *TalosMessageReader
 	wg                     *sync.WaitGroup
 	fetcherLock            sync.Mutex
+	log                    *logrus.Logger
 }
 
 func NewPartitionFetcher(consumerGroup string, topicName string,
@@ -88,7 +88,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 	talosConsumerConfig *TalosConsumerConfig, workerId string,
 	consumerClient consumer.ConsumerService, cache *client.ScheduleInfoCache,
 	messageClient message.MessageService, messageProcessor MessageProcessor,
-	messageReader *TalosMessageReader, outerCheckpoint Long) *PartitionFetcher {
+	messageReader *TalosMessageReader, outerCheckpoint Long, logger *logrus.Logger) *PartitionFetcher {
 
 	topicAndpartition := &topic.TopicAndPartition{
 		TopicName:              topicName,
@@ -97,7 +97,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 	}
 
 	simpleConsumer, err := NewSimpleConsumerForHighLvl(talosConsumerConfig, topicAndpartition,
-		messageClient, cache)
+		messageClient, cache, logger)
 	if err != nil {
 		return nil
 	}
@@ -110,7 +110,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 		SetConsumerClient(consumerClient).
 		SetOuterCheckpoint(outerCheckpoint)
 
-	log.Infof("The PartitionFetcher for topic: %s partition: %d init.",
+	logger.Infof("The PartitionFetcher for topic: %s partition: %d init.",
 		topicTalosResourceName.GetTopicTalosResourceName(), partitionId)
 
 	return &PartitionFetcher{
@@ -124,6 +124,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 		simpleConsumer:         simpleConsumer,
 		messageReader:          messageReader,
 		wg:                     new(sync.WaitGroup),
+		log:                    logger,
 	}
 }
 
@@ -138,14 +139,14 @@ func (f *PartitionFetcher) fetcherStateMachine() {
 	// query start offset to read, if failed, clean and return;
 	err := f.messageReader.InitStartOffset()
 	if err != nil {
-		log.Errorf("Worker: %s query partition offset error: %s "+
+		f.log.Errorf("Worker: %s query partition offset error: %s "+
 			"we will skip this partition", f.workerId, err.Error())
 		f.clean()
 		return
 	}
 
 	// reading data
-	log.Infof("The workerId: %s is serving partition: %d from offset: %d",
+	f.log.Infof("The workerId: %s is serving partition: %d from offset: %d",
 		f.workerId, f.partitionId, atomic.LoadInt64(f.messageReader.StartOffset()))
 	for f.GetCurState() == LOCKED {
 		f.messageReader.FetchData()
@@ -154,7 +155,7 @@ func (f *PartitionFetcher) fetcherStateMachine() {
 	// wait task quit gracefully: stop reading, commit offset, clean and shutdown
 	f.messageReader.CleanReader()
 	f.clean()
-	log.Infof("The MessageProcessTask for topic: %v partition: %d is finished ",
+	f.log.Infof("The MessageProcessTask for topic: %v partition: %d is finished ",
 		f.topicTalosResourceName, f.partitionId)
 }
 
@@ -188,33 +189,33 @@ func (f *PartitionFetcher) GetCurState() TaskState {
 func (f *PartitionFetcher) updateState(targetState TaskState) bool {
 	f.fetcherLock.Lock()
 	defer f.fetcherLock.Unlock()
-	log.Infof("PartitionFetcher for Partition: %d update status from: %s to %s",
+	f.log.Infof("PartitionFetcher for Partition: %d update status from: %s to %s",
 		f.partitionId, f.curState.String(), targetState.String())
 
 	switch targetState {
 	case INIT:
-		log.Errorf("targetState can never be INIT, updateState error for: %d",
+		f.log.Errorf("targetState can never be INIT, updateState error for: %d",
 			f.partitionId)
 	case LOCKED:
 		if f.curState == INIT || f.curState == UNLOCKED {
 			f.curState = LOCKED
 			return true
 		}
-		log.Errorf("targetState is LOCKED, but curState is: %s for partition: %d",
+		f.log.Errorf("targetState is LOCKED, but curState is: %s for partition: %d",
 			f.curState.String(), f.partitionId)
 	case UNLOCKING:
 		if f.curState == LOCKED {
 			f.curState = UNLOCKING
 			return true
 		}
-		log.Errorf("targetState is UNLOCKING, but curState is: %s for partition: %d",
+		f.log.Errorf("targetState is UNLOCKING, but curState is: %s for partition: %d",
 			f.curState.String(), f.partitionId)
 	case UNLOCKED:
 		if f.curState == UNLOCKING || f.curState == LOCKED {
 			f.curState = UNLOCKED
 			return true
 		}
-		log.Errorf("targetState is UNLOCKED, but curState is: %s for partition: %d",
+		f.log.Errorf("targetState is UNLOCKED, but curState is: %s for partition: %d",
 			f.curState.String(), f.partitionId)
 	case SHUTDOWNED:
 		f.curState = SHUTDOWNED
@@ -227,14 +228,14 @@ func (f *PartitionFetcher) Lock() {
 	if f.updateState(LOCKED) {
 		f.wg.Add(1)
 		go f.fetcherStateMachine()
-		log.Infof("Worker: %s invoke partition: %d to 'LOCKED', try to serve it.",
+		f.log.Infof("Worker: %s invoke partition: %d to 'LOCKED', try to serve it.",
 			f.workerId, f.partitionId)
 	}
 }
 
 func (f *PartitionFetcher) Unlock() {
 	if f.updateState(UNLOCKING) {
-		log.Infof("Worker: %s has set partition: %d  to 'UNLOCKING', "+
+		f.log.Infof("Worker: %s has set partition: %d  to 'UNLOCKING', "+
 			"it is revoking gracefully.", f.workerId, f.partitionId)
 	}
 }
@@ -242,7 +243,7 @@ func (f *PartitionFetcher) Unlock() {
 func (f *PartitionFetcher) Shutdown() {
 	// set UNLOCKING to stop read and wait fetcher gracefully quit
 	f.updateState(UNLOCKING)
-	log.Infof("Worker: %s try to shutdown partition: %d",
+	f.log.Infof("Worker: %s try to shutdown partition: %d",
 		f.workerId, f.partitionId)
 	f.wg.Wait()
 	f.updateState(SHUTDOWNED)
@@ -264,18 +265,18 @@ func (f *PartitionFetcher) releasePartition() {
 		WorkerId:               f.workerId}
 	unlockRequest := &consumer.UnlockPartitionRequest{ConsumeUnit: consumeUnit}
 	if err := f.consumerClient.UnlockPartition(unlockRequest); err != nil {
-		log.Warnf("Worker: %s release partition error: %s",
+		f.log.Warnf("Worker: %s release partition error: %s",
 			f.workerId, err.Error())
 		return
 	}
-	log.Infof("Worker: %s success to release partition: %d",
+	f.log.Infof("Worker: %s success to release partition: %d",
 		f.workerId, f.partitionId)
 }
 
 func (f *PartitionFetcher) stealPartition() bool {
 	state := f.GetCurState()
 	if state != LOCKED {
-		log.Errorf("Worker: %s try to stealPartitionLock: %d but got state: %s",
+		f.log.Errorf("Worker: %s try to stealPartitionLock: %d but got state: %s",
 			f.workerId, f.partitionId, state.String())
 		return false
 	}
@@ -292,7 +293,7 @@ func (f *PartitionFetcher) stealPartition() bool {
 	lockRequest := &consumer.LockPartitionRequest{ConsumeUnit: consumeUnit}
 	lockResponse, err := f.consumerClient.LockPartition(lockRequest)
 	if err != nil {
-		log.Errorf("Worker: %s steal partition error: %s", f.workerId, err.Error())
+		f.log.Errorf("Worker: %s steal partition error: %s", f.workerId, err.Error())
 		return false
 	}
 
@@ -301,14 +302,14 @@ func (f *PartitionFetcher) stealPartition() bool {
 	if len(successPartitionList) > 0 {
 		err = utils.CheckArgument(successPartitionList[0] == f.partitionId)
 		if err != nil {
-			log.Errorf("lock partition failed: %s", err.Error())
+			f.log.Errorf("lock partition failed: %s", err.Error())
 			return false
 		}
-		log.Infof("Worker: %s success to lock partitions: %d",
+		f.log.Infof("Worker: %s success to lock partitions: %d",
 			f.workerId, f.partitionId)
 		return true
 	}
-	log.Errorf("Worker: %s failed to lock partitions: %d",
+	f.log.Errorf("Worker: %s failed to lock partitions: %d",
 		f.workerId, f.partitionId)
 	return false
 }
