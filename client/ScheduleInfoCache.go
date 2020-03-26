@@ -27,13 +27,13 @@ type ScheduleInfoCacheInterface interface {
 
 var (
 	cacheLock            sync.Mutex
-	ScheduleInfoCacheMap = make(map[*topic.TopicTalosResourceName]*ScheduleInfoCache)
+	ScheduleInfoCacheMap = make(map[string]*ScheduleInfoCache)
 )
 
 type ScheduleInfoCache struct {
 	topicTalosResourceName *topic.TopicTalosResourceName
 	talosClientFactory     TalosClientFactoryInterface
-	scheduleInfoMap        map[*topic.TopicAndPartition]string
+	scheduleInfoMap        map[string]map[int32]string
 	messageClient          message.MessageService
 	messageClientMap       map[string]message.MessageService
 	isAutoLocation         bool
@@ -50,7 +50,7 @@ func NewNonAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalo
 		isAutoLocation:         false,
 		messageClient:          messageClient,
 		messageClientMap:       make(map[string]message.MessageService),
-		scheduleInfoMap:        make(map[*topic.TopicAndPartition]string),
+		scheduleInfoMap:        make(map[string]map[int32]string),
 		log:                    logger,
 	}
 	c.log.Warnf("SimpleProducer or SimpleConsumer was built using improperly" +
@@ -68,7 +68,7 @@ func NewAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalosRe
 		messageClient:          messageClient,
 		messageClientMap:       make(map[string]message.MessageService),
 		talosClientFactory:     talosClientFactory,
-		scheduleInfoMap:        make(map[*topic.TopicAndPartition]string),
+		scheduleInfoMap:        make(map[string]map[int32]string),
 		log:                    logger,
 	}
 	c.log.Infof("Auto location is %v for request of %s ",
@@ -90,17 +90,17 @@ func GetScheduleInfoCache(topicTalosResourceName *topic.TopicTalosResourceName,
 	talosClientFactory TalosClientFactoryInterface, logger *logrus.Logger) *ScheduleInfoCache {
 	cacheLock.Lock()
 	defer cacheLock.Unlock()
-	if _, ok := ScheduleInfoCacheMap[topicTalosResourceName]; !ok {
+	if _, ok := ScheduleInfoCacheMap[topicTalosResourceName.GetTopicTalosResourceName()]; !ok {
 		if talosClientFactory == nil {
 			// this case should not exist normally, only when interface of simpleAPI improper used
-			ScheduleInfoCacheMap[topicTalosResourceName] = NewNonAutoLocationScheduleInfoCache(
+			ScheduleInfoCacheMap[topicTalosResourceName.GetTopicTalosResourceName()] = NewNonAutoLocationScheduleInfoCache(
 				topicTalosResourceName, talosClientConfig, messageClient, logger)
 		} else {
-			ScheduleInfoCacheMap[topicTalosResourceName] = NewAutoLocationScheduleInfoCache(
+			ScheduleInfoCacheMap[topicTalosResourceName.GetTopicTalosResourceName()] = NewAutoLocationScheduleInfoCache(
 				topicTalosResourceName, talosClientConfig, messageClient, talosClientFactory, logger)
 		}
 	}
-	return ScheduleInfoCacheMap[topicTalosResourceName]
+	return ScheduleInfoCacheMap[topicTalosResourceName.GetTopicTalosResourceName()]
 }
 
 func (c *ScheduleInfoCache) IsAutoLocation() bool {
@@ -126,7 +126,7 @@ func (c *ScheduleInfoCache) GetOrCreateMessageClient(topicAndPartition *topic.
 		return c.messageClient
 	}
 
-	host, ok := c.scheduleInfoMap[topicAndPartition]
+	host, ok := c.scheduleInfoMap[topicAndPartition.TopicName][topicAndPartition.PartitionId]
 	if !ok {
 		c.UpdateScheduleInfoCache()
 		return c.messageClient
@@ -134,7 +134,7 @@ func (c *ScheduleInfoCache) GetOrCreateMessageClient(topicAndPartition *topic.
 
 	messageClient, ok := c.messageClientMap[host]
 	if !ok {
-		messageClient = c.talosClientFactory.NewMessageClient("http://" + host)
+		messageClient = c.talosClientFactory.NewMessageClient("http://" + host + utils.TALOS_MESSAGE_SERVICE_PATH)
 		c.messageClientMap[host] = messageClient
 	}
 	return messageClient
@@ -168,7 +168,14 @@ func (c *ScheduleInfoCache) GetScheduleInfo(resourceName *topic.TopicTalosResour
 			return err
 		}
 		c.infoLock.Lock()
-		c.scheduleInfoMap = response.GetScheduleInfo()
+		scheduleInfoMap := make(map[string]map[int32]string)
+		for k, v := range response.GetScheduleInfo() {
+			if _, ok := scheduleInfoMap[k.TopicName]; !ok {
+				scheduleInfoMap[k.TopicName] = make(map[int32]string)
+			}
+			scheduleInfoMap[k.TopicName][k.PartitionId] = v
+		}
+		c.scheduleInfoMap = scheduleInfoMap
 		c.infoLock.Unlock()
 		c.log.Debugf("get ScheduleInfoMap success: %v", c.scheduleInfoMap)
 	}
