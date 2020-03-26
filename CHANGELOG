@@ -1,3 +1,13 @@
+# v0.2.11
+  * support input logger
+  * fix auto location bug
+
+# v0.2.10
+  * modify err type transfer and fix producer demo panic
+  * fix thrift conflict
+  * update binlog deserializer
+  * update addMessage timeout interface & fix uncommit bug
+
 # v0.2.7
   * fix producerDemo bug & error transfer panic
 
