@@ -16,7 +16,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	"github.com/eapache/go-xerial-snappy"
+	xSnappy "github.com/eapache/go-xerial-snappy"
 )
 
 func Compress(messageList []*message.Message,
@@ -54,7 +54,7 @@ func DoCompress(messageList []*message.Message,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = append(messageBlockData, messageSerializedBuffer.Bytes()...)
 	case message.MessageCompressionType_SNAPPY:
-		compressedMessage := snappy.EncodeStream(nil, messageSerializedBuffer.Bytes())
+		compressedMessage := xSnappy.EncodeStream(nil, messageSerializedBuffer.Bytes())
 		messageBlockData = append(messageBlockData, compressedMessage...)
 	case message.MessageCompressionType_GZIP:
 		gzipBuf := bytes.NewBuffer(make([]byte, 0))
@@ -107,7 +107,7 @@ func DoDecompress(messageBlock *message.MessageBlock,
 	case message.MessageCompressionType_NONE:
 		messageBlockData = bytes.NewBuffer(messageBlock.GetMessageBlock())
 	case message.MessageCompressionType_SNAPPY:
-		messageByteSlice, err := snappy.DecodeInto(nil, messageBlock.GetMessageBlock())
+		messageByteSlice, err := xSnappy.DecodeInto(nil, messageBlock.GetMessageBlock())
 		if err != nil {
 			return nil, err
 		}

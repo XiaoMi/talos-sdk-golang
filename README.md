@@ -12,7 +12,7 @@ You can install the entire SDK to GoPath by go get:
 
 Or add the module to your go.mod:
 
-`go mod edit -require=github.com/XiaoMi/talos-sdk-golang@v0.2.5`
+`go mod edit -require=github.com/XiaoMi/talos-sdk-golang@v0.2.12`
 
 # Tutorial
 
