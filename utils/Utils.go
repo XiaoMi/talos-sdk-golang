@@ -242,9 +242,13 @@ func UpdateMessage(msg *message.Message, messageType message.MessageType) {
 	}
 }
 
-func CheckMessagesValidity(msgList []*message.Message) error {
+func CheckMessagesValidity(msgList []*message.Message, logger *logrus.Logger) error {
 	totalSize := int64(0)
 	for _, msg := range msgList {
+		if len(msg.GetMessage()) > 10485760 {
+			logger.Warnf("message size greater than 10M: " + string(msg.GetMessage()))
+		}
+
 		if err := CheckMessageValidity(msg); err != nil {
 			return err
 		}
