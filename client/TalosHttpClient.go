@@ -236,7 +236,6 @@ func (p *TalosHttpClient) Flush() error {
 		log.Errorf("Exec http request: %v failed: %s", req, err.Error())
 		return thrift.NewTTransportExceptionFromError(err)
 	}
-	defer response.Body.Close()
 
 	p.response = response
 	if response.StatusCode != http.StatusOK && response.Body != nil {

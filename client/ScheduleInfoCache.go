@@ -39,6 +39,7 @@ type ScheduleInfoCache struct {
 	isAutoLocation         bool
 	talosClientConfig      *TalosClientConfig
 	infoLock               sync.RWMutex
+	clientMapLock          sync.RWMutex
 	log                    *logrus.Logger
 }
 
@@ -132,10 +133,15 @@ func (c *ScheduleInfoCache) GetOrCreateMessageClient(topicAndPartition *topic.
 		return c.messageClient
 	}
 
+	c.clientMapLock.Lock()
 	messageClient, ok := c.messageClientMap[host]
+	c.clientMapLock.Unlock()
+
 	if !ok {
 		messageClient = c.talosClientFactory.NewMessageClient("http://" + host + utils.TALOS_MESSAGE_SERVICE_PATH)
+		c.clientMapLock.Lock()
 		c.messageClientMap[host] = messageClient
+		c.clientMapLock.Unlock()
 	}
 	return messageClient
 }
