@@ -53,8 +53,8 @@ func (e *TalosTransportError) String() string {
 	if e == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("Transport error, ErrorCode: %s, HttpStatusCode: %s, ErrorMessage: %s",
-		e.ErrorCode, e.HttpStatusCode, e.ErrorMessage)
+	return fmt.Sprintf("Talos error, ErrorCode: %s, ErrorMessage: %s",
+		e.ErrorCode, e.ErrorMessage)
 }
 
 func (e *TalosTransportError) Error() string {

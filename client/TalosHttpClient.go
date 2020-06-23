@@ -27,6 +27,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
@@ -232,9 +233,11 @@ func (p *TalosHttpClient) Flush() error {
 	log.Debugf("Send http request: %v", req.URL)
 	response, err := p.httpClient.Do(req)
 	if err != nil {
-		log.Errorf("Failed to exec http request: %v", req)
+		log.Errorf("Exec http request: %v failed: %s", req, err.Error())
 		return thrift.NewTTransportExceptionFromError(err)
 	}
+	defer response.Body.Close()
+
 	p.response = response
 	if response.StatusCode != http.StatusOK && response.Body != nil {
 		var serverTime int64
@@ -244,10 +247,15 @@ func (p *TalosHttpClient) Flush() error {
 		} else {
 			serverTime = time.Now().Unix()
 		}
-		log.Errorf("HTTP status: %s, failed to exec http request: %v",
-			response.Status, req)
-		return NewTalosTransportError(common.HttpStatusCode(int64(response.StatusCode)),
-			response.Status, serverTime)
+
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Errorf("Parse response body failed: %s", err.Error())
+		}
+		log.Debugf("Http request: %v failed: %s", req, string(body))
+
+		return NewTalosTransportError(common.HttpStatusCode(response.StatusCode),
+			string(body), serverTime)
 	}
 	return nil
 }
