@@ -39,7 +39,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 	"github.com/gofrs/uuid"
-	log "github.com/sirupsen/logrus"
 )
 
 const RequestIdLength = 8
@@ -177,7 +176,6 @@ func (p *TalosHttpClient) Read(buf []byte) (int, error) {
 	}
 	n, err := p.response.Body.Read(buf)
 	if n > 0 && (err == nil || err == io.EOF) {
-		log.Debugf("read: %s", string(buf))
 		return n, nil
 	}
 	return n, thrift.NewTTransportExceptionFromError(err)
@@ -220,7 +218,6 @@ func (p *TalosHttpClient) Flush() error {
 	canonicalizeResource := p.canonicalizeResource(uri)
 
 	for k, v := range *p.createHeaders() {
-		log.Debugf("%s: %s", k, v)
 		p.header.Add(k, v)
 	}
 
@@ -230,10 +227,8 @@ func (p *TalosHttpClient) Flush() error {
 		return thrift.NewTTransportExceptionFromError(err)
 	}
 	req.Header.Add(auth.HK_AUTHORIZATION, authString)
-	log.Debugf("Send http request: %v", req.URL)
 	response, err := p.httpClient.Do(req)
 	if err != nil {
-		log.Errorf("Exec http request: %v failed: %s", req, err.Error())
 		return thrift.NewTTransportExceptionFromError(err)
 	}
 
@@ -249,9 +244,8 @@ func (p *TalosHttpClient) Flush() error {
 
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			log.Errorf("Parse response body failed: %s", err.Error())
+			return err
 		}
-		log.Debugf("Http request: %v failed: %s", req, string(body))
 
 		return NewTalosTransportError(common.HttpStatusCode(response.StatusCode),
 			string(body), serverTime)
