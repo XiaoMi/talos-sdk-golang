@@ -231,7 +231,7 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 		c.topicAndPartition).GetMessage(getMessageRequest)
 	if err != nil {
 		if c.scheduleInfoCache != nil && c.scheduleInfoCache.IsAutoLocation() {
-			c.log.Warnf("can't connect to the host directly, refresh "+
+			c.log.Debugf("can't connect to the host directly, refresh "+
 				"scheduleInfo and retry using url. The exception is: %s."+
 				" Ignore this if not frequently.", err.Error())
 			c.scheduleInfoCache.UpdateScheduleInfoCache()
@@ -239,7 +239,6 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 			getMessageRequest.TimeoutTimestamp = &timestamp
 			getMessageResponse, err = c.messageClient.GetMessage(getMessageRequest)
 			if err != nil {
-				c.log.Errorf("getMessage error: %s", err.Error())
 				return nil, err
 			}
 		} else {

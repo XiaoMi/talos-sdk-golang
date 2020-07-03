@@ -133,10 +133,8 @@ func (r *MessageReader) processFetchException(err error) {
 			"sleep a while for waiting it work.",
 			r.topicAndPartition.GetPartitionId(), err.Error())
 		time.Sleep(time.Duration(r.consumerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
-	}
-
-	// process message offset out of range, reset start offset
-	if utils.IsOffsetOutOfRange(err) {
+	} else if utils.IsOffsetOutOfRange(err) {
+		// process message offset out of range, reset start offset
 		if r.consumerConfig.resetLatestOffsetWhenOutOfRange {
 			r.log.Warnf("Got PartitionOutOfRange error, offset by current latest offset.")
 			atomic.StoreInt64(r.startOffset, int64(message.MessageOffset_LATEST_OFFSET))
@@ -147,7 +145,9 @@ func (r *MessageReader) processFetchException(err error) {
 			r.lastCommitOffset, r.finishedOffset = -1, -1
 			r.lastCommitTime = utils.CurrentTimeMills()
 		}
+	} else {
+		r.log.Errorf("Reading message from topic: %v of partition: %d failed: %s",
+			r.topicAndPartition.GetTopicTalosResourceName(),
+			r.topicAndPartition.GetPartitionId(), err)
 	}
-
-	r.log.Warnf("process unexcepted fetchException: %s", err.Error())
 }

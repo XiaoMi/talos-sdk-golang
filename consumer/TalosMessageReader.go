@@ -10,7 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 	"github.com/sirupsen/logrus"
@@ -84,15 +83,9 @@ func (r *TalosMessageReader) FetchData() {
 	messageList, err := r.simpleConsumer.FetchMessage(
 		atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
 	if err != nil {
-		if t, ok := err.(*common.GalaxyTalosException); ok {
-			r.log.Errorf("Reading message from topic: %v of partition: %d failed: %s",
-				r.topicAndPartition.GetTopicTalosResourceName(),
-				r.topicAndPartition.GetPartitionId(), t.GetDetails())
-			r.processFetchException(t)
-			r.lastFetchTime = utils.CurrentTimeMills()
-			return
-		}
-		r.log.Errorf("Unknow Exception when fetchMessage: %s", err.Error())
+		r.processFetchException(err)
+		r.lastFetchTime = utils.CurrentTimeMills()
+		return
 	}
 
 	r.lastFetchTime = utils.CurrentTimeMills()

@@ -219,17 +219,11 @@ func IsTopicNotExist(err error) bool {
 }
 
 func IsPartitionNotServing(err error) bool {
-	if talosError, ok := err.(*common.GalaxyTalosException); ok {
-		return talosError.GetErrorCode() == common.ErrorCode_PARTITION_NOT_SERVING
-	}
-	return false
+	return strings.Contains(err.Error(), "partition not serving error")
 }
 
 func IsOffsetOutOfRange(err error) bool {
-	if talosError, ok := err.(*common.GalaxyTalosException); ok {
-		return talosError.GetErrorCode() == common.ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE
-	}
-	return false
+	return strings.Contains(err.Error(), "Message out range")
 }
 
 func UpdateMessage(msg *message.Message, messageType message.MessageType) {
