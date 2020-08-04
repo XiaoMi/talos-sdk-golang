@@ -74,10 +74,10 @@ func (demo TalosAdminDemo) createTopic() *topic.CreateTopicResponse {
 
 	response, err := demo.talosAdmin.CreateTopic(request)
 	if err != nil {
-		log.Error("createTopic failed: %s", topicName)
+		log.Errorf("createTopic failed: %s", topicName)
 		return nil
 	}
-	log.Info("createTopic sucess: %s", topicName)
+	log.Infof("createTopic success: %s", topicName)
 	return response
 }
 
@@ -85,13 +85,13 @@ func (demo TalosAdminDemo) createTopic() *topic.CreateTopicResponse {
 func (demo TalosAdminDemo) getTopicTalosResourceName() (
 	*topic.TopicTalosResourceName, error) {
 	topic, err := demo.talosAdmin.DescribeTopic(&topic.
-		DescribeTopicRequest{TopicName: topicName})
+	DescribeTopicRequest{TopicName: topicName})
 	if err != nil {
 		log.Error("getTopicTalosResourceName failed: %s", topicName)
 		return nil, err
 	}
 	resourceName := topic.GetTopicInfo().GetTopicTalosResourceName()
-	log.Info("Topic resource is: %s", resourceName.String())
+	log.Infof("Topic resource is: %s", resourceName.String())
 	return resourceName, err
 }
 
@@ -99,10 +99,10 @@ func (demo TalosAdminDemo) deleteTopic(resourceName *topic.TopicTalosResourceNam
 	request := &topic.DeleteTopicRequest{TopicTalosResourceName: resourceName}
 	err := demo.talosAdmin.DeleteTopic(request)
 	if err != nil {
-		log.Error("Topic failed to delete: %s", resourceName)
+		log.Errorf("Topic failed to delete: %s", resourceName.String())
 		return err
 	}
-	log.Info("Topic success to delete: %s", resourceName)
+	log.Infof("Topic success to delete: %s", resourceName.String())
 	return err
 }
 
@@ -110,22 +110,22 @@ func (demo TalosAdminDemo) getTopicOffset(resourceName *topic.TopicTalosResource
 	request := &message.GetTopicOffsetRequest{TopicTalosResourceName: resourceName}
 	offsetInfoList, err := demo.talosAdmin.GetTopicOffset(request)
 	if err != nil {
-		log.Error("Topic failed to getTopicOffset: %s", resourceName)
+		log.Errorf("Topic failed to getTopicOffset: %s", resourceName.String())
 		return err
 	}
-	log.Info("Topic success to getTopicOffset: %s", offsetInfoList)
+	log.Infof("Topic success to getTopicOffset: %#v", offsetInfoList)
 	return err
 }
 
 func (demo TalosAdminDemo) listTopics() ([]*topic.TopicInfo, error) {
 	topicInfoList, err := demo.talosAdmin.ListTopics()
 	if err != nil {
-		log.Error("Topic failed to listTopics: %s")
+		log.Errorf("Topic failed to listTopics: %#v", topicInfoList)
 		return nil, err
 	}
-	log.Info("Topic success to listTopics: %s", topicInfoList)
+	log.Infof("Topic success to listTopics: %#v", topicInfoList)
 	for _, topic := range topicInfoList {
-		log.Info("Topic info: %s", topic)
+		log.Infof("Topic info: %#v", topic)
 	}
 	return topicInfoList, err
 }
@@ -133,12 +133,12 @@ func (demo TalosAdminDemo) listTopics() ([]*topic.TopicInfo, error) {
 func (demo TalosAdminDemo) listTopicsInfo() ([]*topic.Topic, error) {
 	topicInfoList, err := demo.talosAdmin.ListTopicsInfo()
 	if err != nil {
-		log.Error("Topic failed to listTopics: %s")
+		log.Errorf("Topic failed to listTopics: %#v", topicInfoList)
 		return nil, err
 	}
-	log.Info("Topic success to listTopics: %s", topicInfoList)
+	log.Infof("Topic success to listTopics: %#v", topicInfoList)
 	for _, topicInfo := range topicInfoList {
-		log.Info("Topic info: %s", topicInfo)
+		log.Infof("Topic info: %#v", topicInfo)
 	}
 	return topicInfoList, err
 }
