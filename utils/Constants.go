@@ -17,6 +17,7 @@ const (
 	TALOS_MESSAGE_SERVICE_PATH                           = "/v1/api/message"
 	TALOS_QUOTA_SERVICE_PATH                             = "/v1/api/quota"
 	TALOS_CONSUMER_SERVICE_PATH                          = "/v1/api/consumer"
+	TALOS_METRIC_SERVICE_PATH                            = "/v1/api/metric"
 	TALOS_IDENTIFIER_DELIMITER                           = "#"
 	TALOS_NAME_REGEX                                     = "^(?!_)(?!-)(?!.*?_$)[a-zA-Z0-9_-]+$"
 	TALOS_NAME_BODY_REGEX                                = "^[a-zA-Z0-9_-]+$"

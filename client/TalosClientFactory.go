@@ -21,6 +21,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
+	"github.com/XiaoMi/talos-sdk-golang/thrift/metric"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/thrift"
 )
 
@@ -30,10 +31,12 @@ type TalosClientFactoryInterface interface {
 	NewMessageClient(url string) message.MessageService
 	NewConsumerClient(url string) consumer.ConsumerService
 	NewQuotaClient(url string) quota.QuotaService
+	NewMetricClient(url string) metric.MetricService
 	NewTopicClientDefault() topic.TopicService
 	NewMessageClientDefault() message.MessageService
 	NewConsumerClientDefault() consumer.ConsumerService
 	NewQuotaClientDefault() quota.QuotaService
+	NewMetricClientDefault() metric.MetricService
 }
 
 type TalosClientFactory struct {
@@ -112,6 +115,18 @@ func (cf *TalosClientFactory) NewConsumerClient(url string) consumer.ConsumerSer
 	transportFactory := NewTalosHttpClientTransportFactory(url,
 		cf.credential, cf.httpClient, cf.agent)
 	return &ConsumerClientProxy{factory: transportFactory, clockOffset: 0}
+}
+
+func (cf *TalosClientFactory) NewMetricClientDefault() metric.MetricService {
+	cf.checkCredential()
+	return cf.NewMetricClient(cf.talosClientConfig.ServiceEndpoint() +
+		utils.TALOS_METRIC_SERVICE_PATH)
+}
+
+func (cf *TalosClientFactory) NewMetricClient(url string) metric.MetricService {
+	transportFactory := NewTalosHttpClientTransportFactory(url,
+		cf.credential, cf.httpClient, cf.agent)
+	return &MetricClientProxy{factory: transportFactory, clockOffset: 0}
 }
 
 func (cf *TalosClientFactory) SetCredential(credential *auth.Credential) *TalosClientFactory {
@@ -637,4 +652,89 @@ func (cf *TalosClientFactory) checkCredential() error {
 		return fmt.Errorf("Credential is not set! ")
 	}
 	return nil
+}
+
+/**
+ * metric client proxy
+ */
+type MetricClientProxy struct {
+	factory     *TalosHttpClientTransportFactory
+	clockOffset int64
+}
+
+func (p *MetricClientProxy) GetServiceVersion() (r *common.Version, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getServerVersion")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetServiceVersion()
+}
+
+func (p *MetricClientProxy) ValidClientVersion(clientVersion *common.Version) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=validClientVersion")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ValidClientVersion(clientVersion)
+}
+
+func (p *MetricClientProxy) ListTopicsByOrgId(orgId string) (
+	r *topic.ListTopicsInfoResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listTopicsByOrgId")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListTopicsByOrgId(orgId)
+}
+
+func (p *MetricClientProxy) ListTopics() (r *topic.ListTopicsInfoResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listTopics")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListTopics()
+}
+
+func (p *MetricClientProxy) QueryConsumerGroup(request *metric.QueryConsumerGroupRequest) (
+	r *metric.QueryConsumerGroupResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=queryConsumerGroup")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.QueryConsumerGroup(request)
+}
+
+func (p *MetricClientProxy) GetTopicConsumeUnit(request *metric.GetTopicConsumeUnitRequest) (
+	r *metric.GetTopicConsumeUnitResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getTopicConsumeUnit")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetTopicConsumeUnit(request)
+}
+
+func (p *MetricClientProxy) QueryTopicConsumeUnit(request *metric.QueryTopicConsumeUnitRequest) (
+	r *metric.QueryTopicConsumeUnitResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=queryTopicConsumeUnit")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.QueryTopicConsumeUnit(request)
+}
+
+func (p *MetricClientProxy) GetDataPreview(request *metric.GetDataPreviewRequest) (
+	r *metric.GetDataPreviewResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getDataPreview")
+	defer transport.Close()
+	client := metric.NewMetricServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetDataPreview(request)
 }

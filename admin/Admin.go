@@ -20,6 +20,7 @@ type Admin interface {
 	DeleteTopic(request *topic.DeleteTopicRequest) error
 	ChangeTopicAttribute(request *topic.ChangeTopicAttributeRequest) error
 	ListTopics() ([]*topic.TopicInfo, error)
+	ListTopicsByOwnerId(ownerId string) ([]*topic.TopicInfo, error)
 	ListTopicsInfo() ([]*topic.Topic, error)
 	GetTopicOffset(request *message.GetTopicOffsetRequest) ([]*message.OffsetInfo, error)
 	GetPartitionOffset(request *message.GetPartitionOffsetRequest) (*message.OffsetInfo, error)

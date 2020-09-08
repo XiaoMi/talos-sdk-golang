@@ -74,7 +74,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 		partitionMessageQueue: partitionMessageQueue,
 		simpleProducer:        simpleProducer,
 		MessageWriterStopSign: make(chan utils.StopSign, 1),
-		log: talosProducer.log,
+		log:                   talosProducer.log,
 	}
 
 	partitionSender.talosProducer.WaitGroup.Add(1)

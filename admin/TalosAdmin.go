@@ -13,6 +13,7 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/metric"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/quota"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
@@ -23,6 +24,7 @@ type TalosAdmin struct {
 	messageClient  message.MessageService
 	quotaClient    quota.QuotaService
 	consumerClient consumer.ConsumerService
+	metricClient   metric.MetricService
 	credential     *auth.Credential
 }
 
@@ -32,6 +34,7 @@ func NewTalosAdmin(clientFactory *client.TalosClientFactory) *TalosAdmin {
 		messageClient:  clientFactory.NewMessageClientDefault(),
 		quotaClient:    clientFactory.NewQuotaClientDefault(),
 		consumerClient: clientFactory.NewConsumerClientDefault(),
+		metricClient:   clientFactory.NewMetricClientDefault(),
 		credential:     clientFactory.GetCredential(),
 	}
 }
@@ -82,6 +85,11 @@ func (a *TalosAdmin) ListTopics() ([]*topic.TopicInfo, error) {
 func (a *TalosAdmin) ListTopicsInfo() ([]*topic.Topic, error) {
 	listTopicsInfoResponse, err := a.topicClient.ListTopicsInfo()
 	return listTopicsInfoResponse.GetTopicList(), err
+}
+
+func (a *TalosAdmin) ListTopicsByOrgId(orgId string) ([]*topic.Topic, error) {
+	listTopicsResponse, err := a.metricClient.ListTopicsByOrgId(orgId)
+	return listTopicsResponse.GetTopicList(), err
 }
 
 func (a *TalosAdmin) GetTopicOffset(request *message.GetTopicOffsetRequest) (
