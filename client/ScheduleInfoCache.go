@@ -80,7 +80,7 @@ func NewAutoLocationScheduleInfoCache(topicTalosResourceName *topic.TopicTalosRe
 	err := c.GetScheduleInfo(topicTalosResourceName)
 	if err != nil {
 		c.log.Errorf("Exception in GetScheduleInfoTask: %s", err.Error())
-		return nil
+		return c
 	}
 
 	return c
