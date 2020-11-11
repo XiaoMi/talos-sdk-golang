@@ -105,6 +105,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 	messageReader.SetWorkerId(workerId).
 		SetConsumerGroup(consumerGroup).
 		SetTopicAndPartition(topicAndpartition).
+		InitConsumerMetrics().
 		SetSimpleConsumer(simpleConsumer).
 		SetMessageProcessor(messageProcessor).
 		SetConsumerClient(consumerClient).

@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"regexp"
 	"strings"
@@ -376,4 +377,52 @@ func NewTDeserializer() *thrift.TDeserializer {
 		Transport: transport,
 		Protocol:  procotol,
 	}
+}
+
+func GetClientIP() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "127.0.0.1"
+	}
+	for _, iface := range ifaces {
+		// interface down
+		if iface.Flags & net.FlagUp == 0 {
+			continue
+		}
+		// loopback interface
+		if iface.Flags & net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "127.0.0.1"
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			// not an ipv4 address
+			if ip == nil {
+				continue
+			}
+			return ip.String()
+		}
+	}
+	return "127.0.0.1"
+}
+
+func GetClusterFromEndPoint(endPoint string) string {
+	cluster := strings.ReplaceAll(endPoint, "http://", "")
+	cluster = strings.ReplaceAll(cluster, "https://", "")
+	cluster = strings.ReplaceAll(cluster, ".api.xiaomi.net", "")
+	cluster = strings.ReplaceAll(cluster, ".api.xiaomi.com", "")
+	return cluster
 }

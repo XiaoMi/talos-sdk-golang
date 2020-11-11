@@ -32,6 +32,27 @@ const (
 	TALOS_CLOUD_TEAM_PREFIX                              = "CI"
 	TALOS_CLOUD_AK_PREFIX                                = "AK"
 	TALOS_GALAXY_AK_PREFIX                               = "EAK"
+	/**
+	 * Constants for consumer metrics
+	 */
+	FETCH_MESSAGE_TIMES                                  = "fetchMessage.60sRate"
+	FETCH_MESSAGE_FAILED_TIMES                           = "fetchMessageFailed.60sRate"
+	FETCH_MESSAGE_TIME                                   = "fetchMessageTime.gauge"
+	MAX_FETCH_MESSAGE_TIME                               = "fetchMessageTime.max"
+	MIN_FETCH_MESSAGE_TIME                               = "fetchMessageTime.min"
+	FETCH_MESSAGE_INTERVAL                               = "fetchMessageInterval.gauge"
+	PROCESS_MESSAGE_TIME                                 = "processMessageTime.gauge"
+	MAX_PROCESS_MESSAGE_TIME                             = "processMessageTime.max"
+	MIN_PROCESS_MESSAGE_TIME                             = "processMessageTime.min"
+	SCHEMA_INCOMPATIBLE_MESSAGE_COUNT                    = "schemaIncompatibleMessageNumber"
+	/**
+	* Constants for producer metrics
+	*/
+	PUT_MESSAGE_TIMES                                    = "putMessage.60sRate"
+	PUT_MESSAGE_FAILED_TIMES                             = "putMessageFailed.60sRate"
+	PUT_MESSAGE_TIME                                     = "putMessageTime.gauge"
+	MAX_PUT_MESSAGE_TIME                                 = "putMessageTime.max"
+	MIN_PUT_MESSAGE_TIME                                 = "putMessageTime.min"
 )
 
 type StopSign int

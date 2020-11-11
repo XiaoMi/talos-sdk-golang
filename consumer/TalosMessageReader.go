@@ -80,15 +80,18 @@ func (r *TalosMessageReader) FetchData() {
 	// fetch data and process them
 	r.log.Debugf("Reading message from offset: %d of partition: %d ",
 		atomic.LoadInt64(r.startOffset), r.topicAndPartition.GetPartitionId())
+	startFetchTime := utils.CurrentTimeMills()
 	messageList, err := r.simpleConsumer.FetchMessage(
 		atomic.LoadInt64(r.startOffset), r.consumerConfig.GetMaxFetchRecords())
 	if err != nil {
+		r.consumerMetrics.MarkFetchOrProcessFailedTimes()
 		r.processFetchException(err)
 		r.lastFetchTime = utils.CurrentTimeMills()
 		return
 	}
 
 	r.lastFetchTime = utils.CurrentTimeMills()
+	r.consumerMetrics.MarkFetchDuration(r.lastFetchTime - startFetchTime)
 	//return and check should commit when no message get
 	if messageList == nil || len(messageList) == 0 {
 		r.CheckAndCommit(false)
@@ -100,7 +103,9 @@ func (r *TalosMessageReader) FetchData() {
 	 * have been processed by user's MessageProcessor;
 	 */
 	r.finishedOffset = messageList[len(messageList)-1].GetMessageOffset()
+	startProcessTime := utils.CurrentTimeMills()
 	r.messageProcessor.Process(messageList, r)
+	r.consumerMetrics.MarkProcessDuration(utils.CurrentTimeMills() - startProcessTime)
 	atomic.StoreInt64(r.startOffset, r.finishedOffset+1)
 	r.CheckAndCommit(true)
 }

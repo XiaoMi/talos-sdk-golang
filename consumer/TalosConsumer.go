@@ -64,6 +64,7 @@ type TalosConsumer struct {
 	consumerClient          consumer.ConsumerService
 	topicAbnormalCallback   client.TopicAbnormalCallback
 	readWriteLock           sync.RWMutex
+	falconWriter            *utils.FalconWriter
 	// init by getting from rpc call as follows
 	topicName              string
 	partitionNumber        int
@@ -73,6 +74,7 @@ type TalosConsumer struct {
 	checkPartTaskChan      chan utils.StopSign
 	checkWorkerTaskChan    chan utils.StopSign
 	renewTaskChan          chan utils.StopSign
+	monitorTaskChan        chan utils.StopSign
 	WaitGroup              *sync.WaitGroup
 	log                    *logrus.Logger
 }
@@ -189,6 +191,8 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 		topicTalosResourceName, consumerConfig.TalosClientConfig,
 		talosClientFactory.NewMessageClientDefault(), talosClientFactory, logger)
 
+	falconWriter := utils.NewFalconWriter(consumerConfig.TalosClientConfig.FalconUrl(), logger)
+
 	c := &TalosConsumer{
 		workerId:                workerId,
 		consumerGroup:           consumerGroupName,
@@ -204,9 +208,11 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 		topicAbnormalCallback:   abnormalCallback,
 		partitionCheckpoint:     partitionCheckpoint,
 		scheduleInfoCache:       scheduleInfoCache,
+		falconWriter:            falconWriter,
 		checkPartTaskChan:       make(chan utils.StopSign),
 		checkWorkerTaskChan:     make(chan utils.StopSign),
 		renewTaskChan:           make(chan utils.StopSign),
+		monitorTaskChan:         make(chan utils.StopSign),
 		WaitGroup:               new(sync.WaitGroup),
 		log:                     logger,
 	}
@@ -233,12 +239,13 @@ func NewDefaultTalosConsumer(consumerGroupName string, consumerConfig *TalosCons
 	// do balance and init simple consumer
 	c.makeBalance()
 
-	// start CheckPartitionTask/CheckWorkerInfoTask/RenewTask
-	c.WaitGroup.Add(3)
+	// start CheckPartitionTask/CheckWorkerInfoTask/RenewTask/MonitorTask
+	c.WaitGroup.Add(4)
 
 	go c.initCheckPartitionTask()
 	go c.initCheckWorkerInfoTask()
 	go c.initRenewTask()
+	go c.initConsumerMonitorTask()
 
 	return c, nil
 }
@@ -545,9 +552,11 @@ func (c *TalosConsumer) ShutDown() {
 	c.checkPartTaskChan <- utils.Shutdown
 	c.shutDownAllFetcher()
 	c.renewTaskChan <- utils.Shutdown
+	c.monitorTaskChan <- utils.Shutdown
 	close(c.checkWorkerTaskChan)
 	close(c.checkPartTaskChan)
 	close(c.renewTaskChan)
+	close(c.monitorTaskChan)
 	c.WaitGroup.Wait()
 	c.log.Infof("Worker: %s is shutdown.", c.workerId)
 }
@@ -628,6 +637,26 @@ func (c *TalosConsumer) initRenewTask() {
 		case <-ticker.C:
 			c.ReNewTask()
 		case <-c.renewTaskChan:
+			return
+		}
+	}
+}
+
+func (c *TalosConsumer) initConsumerMonitorTask() {
+	defer c.WaitGroup.Done()
+	if !c.talosConsumerConfig.TalosClientConfig.ClientMonitorSwitch() {
+		return
+	}
+	// push to falcon every 60 seconds delay by default
+	duration := time.Duration(c.talosConsumerConfig.TalosClientConfig.
+		ReportMetricInterval()) * time.Second
+	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			c.ConsumerMonitorTask()
+		case <-c.monitorTaskChan:
 			return
 		}
 	}
@@ -768,4 +797,12 @@ func (c *TalosConsumer) ReNewTask() {
 			c.workerId, failedRenewList)
 		c.releasePartitionLock(failedRenewList)
 	}
+}
+
+func (c *TalosConsumer) ConsumerMonitorTask() {
+	metrics := make([]*utils.FalconMetric, 0)
+	for _, p := range c.partitionFetcherMap {
+		metrics = append(metrics, p.messageReader.NewFalconMetrics()...)
+	}
+	c.falconWriter.PushToFalcon(metrics)
 }

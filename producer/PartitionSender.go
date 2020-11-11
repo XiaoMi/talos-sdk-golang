@@ -8,6 +8,7 @@ package producer
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"sync/atomic"
@@ -17,6 +18,60 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 	"github.com/sirupsen/logrus"
 )
+
+type ProducerMetrics struct {
+	putMsgDuration     int64
+	maxPutMsgDuration  int64
+	minPutMsgDuration  int64
+	putMsgTimes        int
+	putMsgFailedTimes  int
+	producerMetricsMap map[string]float64
+}
+
+func NewProducerMetrics() *ProducerMetrics {
+	return &ProducerMetrics{
+		putMsgDuration:     0,
+		maxPutMsgDuration:  0,
+		minPutMsgDuration:  0,
+		putMsgTimes:        0,
+		putMsgFailedTimes:  0,
+		producerMetricsMap: make(map[string]float64),
+	}
+}
+
+func (m *ProducerMetrics) MarkPutMsgDuration(putMsgDuration int64) {
+	if putMsgDuration > m.maxPutMsgDuration {
+		m.maxPutMsgDuration = putMsgDuration
+	}
+
+	if m.minPutMsgDuration == 0 || putMsgDuration < m.minPutMsgDuration {
+		m.minPutMsgDuration = putMsgDuration
+	}
+
+	m.putMsgDuration = putMsgDuration
+	m.putMsgTimes += 1
+}
+
+func (m *ProducerMetrics) MarkPutMsgFailedTimes() {
+	m.putMsgTimes += 1
+	m.putMsgFailedTimes += 1
+}
+
+func (m *ProducerMetrics) updateMetricsMap() {
+	m.producerMetricsMap[utils.PUT_MESSAGE_TIME]         = float64(m.putMsgDuration)
+	m.producerMetricsMap[utils.MAX_PUT_MESSAGE_TIME]     = float64(m.maxPutMsgDuration)
+	m.producerMetricsMap[utils.MIN_PUT_MESSAGE_TIME]     = float64(m.minPutMsgDuration)
+	m.producerMetricsMap[utils.PUT_MESSAGE_TIMES]        = float64(m.putMsgTimes) / 60.0
+	m.producerMetricsMap[utils.PUT_MESSAGE_FAILED_TIMES] = float64(m.putMsgFailedTimes) / 60.0
+}
+
+func (m *ProducerMetrics) initMetrics() {
+    m.putMsgDuration    = 0
+	m.maxPutMsgDuration = 0
+	m.minPutMsgDuration = 0
+	m.putMsgTimes       = 0
+	m.putMsgFailedTimes = 0
+}
 
 type Sender interface {
 	AddMessage(userMessageList []*UserMessage)
@@ -38,6 +93,7 @@ type PartitionSender struct {
 	userMessageResult     *UserMessageResult
 	simpleProducer        *SimpleProducer
 	MessageWriterStopSign chan utils.StopSign
+	producerMetrics       *ProducerMetrics
 	log                   *logrus.Logger
 }
 
@@ -74,6 +130,7 @@ func NewPartitionSender(partitionId int32, topicName string,
 		partitionMessageQueue: partitionMessageQueue,
 		simpleProducer:        simpleProducer,
 		MessageWriterStopSign: make(chan utils.StopSign, 1),
+		producerMetrics:       NewProducerMetrics(),
 		log:                   talosProducer.log,
 	}
 
@@ -139,7 +196,9 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 			s.topicAndPartition.GetTopicTalosResourceName())
 	}
 
+	startPutMsgTime := utils.CurrentTimeMills()
 	if err := s.simpleProducer.doPut(messageList); err != nil {
+		s.producerMetrics.MarkPutMsgFailedTimes()
 		s.log.Errorf("Failed to put %d messages for partition: %d",
 			len(messageList), s.partitionId)
 		for _, msg := range messageList {
@@ -157,6 +216,7 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 		}
 		return err
 	}
+	s.producerMetrics.MarkPutMsgDuration(utils.CurrentTimeMills() - startPutMsgTime)
 	// putMessage success callback
 	userMessageResult.SetSuccessful(true)
 	go s.MessageCallbackTask(userMessageResult)
@@ -168,6 +228,26 @@ func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
 	s.partitionMessageQueue.AddMessage(userMessageList)
 	s.log.Infof("add %d messages to partition: %d",
 		len(userMessageList), s.partitionId)
+}
+
+func (s *PartitionSender) NewFalconMetrics() []*utils.FalconMetric {
+	var metrics []*utils.FalconMetric
+
+	tags := utils.NewTags()
+	tags.SetTag("clusterName", s.talosProducerConfig.ClusterName())
+	tags.SetTag("topicName", s.topicAndPartition.GetTopicName())
+	tags.SetTag("partitionId", strconv.Itoa(int(s.topicAndPartition.GetPartitionId())))
+	tags.SetTag("ip", s.talosProducerConfig.ClientIp())
+	tags.SetTag("type", s.talosProducerConfig.AlertType())
+	s.producerMetrics.updateMetricsMap()
+	for name, value := range s.producerMetrics.producerMetricsMap {
+		metric := utils.NewFalconMetric(s.talosProducerConfig.ProducerMetricFalconEndpoint() +
+			s.topicAndPartition.GetTopicName(), name,
+			s.talosProducerConfig.MetricFalconStep(), value, tags)
+		metrics = append(metrics, metric)
+	}
+	s.producerMetrics.initMetrics()
+	return metrics
 }
 
 func (s *PartitionSender) Shutdown() {

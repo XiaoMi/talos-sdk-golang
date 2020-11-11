@@ -13,18 +13,27 @@ import (
 )
 
 type TalosClientConfig struct {
-	maxRetry                    int64
-	clientTimeout               int64
-	clientConnTimeout           int64
-	adminOperationTimeout       int64
-	serviceEndpoint             string
-	maxTotalConnections         int64
-	maxTotalConnectionsPerRoute int64
-	isRetry                     bool
-	isAutoLocation              bool
-	scheduleInfoMaxRetry        int64
-	scheduleInfoInterval        int64
-	properties                  *utils.Properties
+	maxRetry                     int64
+	clientTimeout                int64
+	clientConnTimeout            int64
+	adminOperationTimeout        int64
+	serviceEndpoint              string
+	maxTotalConnections          int64
+	maxTotalConnectionsPerRoute  int64
+	isRetry                      bool
+	isAutoLocation               bool
+	scheduleInfoMaxRetry         int64
+	scheduleInfoInterval         int64
+	clusterName                  string
+	falconUrl                    string
+	reportMetricInterval         int64
+	consumerMetricFalconEndpoint string
+	producerMetricFalconEndpoint string
+	metricFalconStep             int64
+	alertType                    string
+	clientIp                     string
+	clientMonitorSwitch          bool
+	properties                   *utils.Properties
 }
 
 func NewTalosClientConfigByDefault() *TalosClientConfig {
@@ -70,27 +79,93 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		GALAXY_TALOS_CLIENT_SCHEDULE_INFO_MAX_RETRY,
 		strconv.Itoa(GALAXY_TALOS_CLIENT_SCHEDULE_INFO_MAX_RETRY_DEFAULT)), 10, 64)
 	scheduleInfoInterval, _ := strconv.ParseInt(prop.GetProperty(
-		TALOS_CLIENT_SCHEDULE_INFO_INTERVAL,
+		GALAXY_TALOS_CLIENT_SCHEDULE_INFO_INTERVAL,
 		strconv.Itoa(GALAXY_TALOS_CLIENT_SCHEDULE_INFO_INTERVAL_DEFAULT)), 10, 64)
+	clusterName := utils.GetClusterFromEndPoint(serviceEndpoint)
+	clientIp := utils.GetClientIP()
+	falconUrl := prop.GetProperty(
+		GALAXY_TALOS_METRIC_FALCON_URL, GALAXY_TALOS_METRIC_FALCON_URL_DEFAULT)
+	reportMetricInterval, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_REPORT_METRIC_INTERVAL,
+		strconv.Itoa(GALAXY_TALOS_REPORT_METRIC_INTERVAL_DEFAULT)), 10, 64)
+	consumerMetricFalconEndpoint := prop.GetProperty(
+		GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT,
+		GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT_DEFAULT)
+	producerMetricFalconEndpoint := prop.GetProperty(
+		GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT,
+		GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT_DEFAULT)
+	metricFalconStep, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_CLIENT_FALCON_STEP,
+		strconv.Itoa(GALAXY_TALOS_CLIENT_FALCON_STEP_DEFAULT)), 10, 64)
+	alertType := prop.GetProperty(
+		GALAXY_TALOS_CLIENT_ALERT_TYPE, GALAXY_TALOS_CLIENT_ALERT_TYPE_DEFAULT)
+	clientMonitorSwitch, _ := strconv.ParseBool(prop.GetProperty(
+		GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH,
+		strconv.FormatBool(GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT)))
 
-	return &TalosClientConfig{
-		maxRetry:                    maxRetry,
-		clientTimeout:               clientTimeout,
-		clientConnTimeout:           clientConnTimeout,
-		adminOperationTimeout:       adminOperationTimeout,
-		serviceEndpoint:             serviceEndpoint,
-		maxTotalConnections:         maxTotalConnections,
-		maxTotalConnectionsPerRoute: maxTotalConnectionsPerRoute,
-		isRetry:                     isRetry,
-		isAutoLocation:              isAutoLocation,
-		scheduleInfoMaxRetry:        scheduleInfoMaxRetry,
-		scheduleInfoInterval:        scheduleInfoInterval,
-		properties:                  prop,
+	return &TalosClientConfig {
+		maxRetry:                     maxRetry,
+		clientTimeout:                clientTimeout,
+		clientConnTimeout:            clientConnTimeout,
+		adminOperationTimeout:        adminOperationTimeout,
+		serviceEndpoint:              serviceEndpoint,
+		maxTotalConnections:          maxTotalConnections,
+		maxTotalConnectionsPerRoute:  maxTotalConnectionsPerRoute,
+		isRetry:                      isRetry,
+		isAutoLocation:               isAutoLocation,
+		scheduleInfoMaxRetry:         scheduleInfoMaxRetry,
+		scheduleInfoInterval:         scheduleInfoInterval,
+		clusterName:                  clusterName,
+		falconUrl:                    falconUrl,
+		reportMetricInterval:         reportMetricInterval,
+		consumerMetricFalconEndpoint: consumerMetricFalconEndpoint,
+		producerMetricFalconEndpoint: producerMetricFalconEndpoint,
+		metricFalconStep:             metricFalconStep,
+		alertType:                    alertType,
+		clientIp:                     clientIp,
+		clientMonitorSwitch:          clientMonitorSwitch,
+		properties:                   prop,
 	}
 }
 
 func (c *TalosClientConfig) Properties() *utils.Properties {
 	return c.properties
+}
+
+func (c *TalosClientConfig) FalconUrl() string {
+	return c.falconUrl
+}
+
+func (c *TalosClientConfig) ClusterName() string {
+	return c.clusterName
+}
+
+func (c *TalosClientConfig) ReportMetricInterval() int64 {
+	return c.reportMetricInterval
+}
+
+func (c *TalosClientConfig) ConsumerMetricFalconEndpoint() string {
+	return c.consumerMetricFalconEndpoint
+}
+
+func (c *TalosClientConfig) ProducerMetricFalconEndpoint() string {
+	return c.producerMetricFalconEndpoint
+}
+
+func (c *TalosClientConfig) MetricFalconStep() int64 {
+	return c.metricFalconStep
+}
+
+func (c *TalosClientConfig) AlertType() string {
+	return c.alertType
+}
+
+func (c *TalosClientConfig) ClientIp() string {
+	return c.clientIp
+}
+
+func (c *TalosClientConfig) ClientMonitorSwitch() bool {
+	return c.clientMonitorSwitch
 }
 
 func (c *TalosClientConfig) MaxRetry() int64 {

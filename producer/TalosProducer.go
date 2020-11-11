@@ -53,6 +53,7 @@ type TalosProducer struct {
 	clientId                   string
 	talosClientFactory         client.TalosClientFactoryInterface
 	talosAdmin                 admin.Admin
+	falconWriter               *utils.FalconWriter
 	topicName                  string
 	partitionNumber            int32
 	curPartitionId             int32
@@ -61,6 +62,7 @@ type TalosProducer struct {
 	partitionSenderMap         map[int32]*PartitionSender
 	BufferFullChan             chan utils.LockState
 	checkPartTaskSign          chan utils.StopSign
+	monitorTaskSign            chan utils.StopSign
 	WaitGroup                  *sync.WaitGroup
 	producerLock               sync.Mutex
 	log                        *logrus.Logger
@@ -151,6 +153,8 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 		producerConfig.TalosClientConfig,
 		clientFactory.NewMessageClientDefault(), clientFactory, logger)
 
+	falconWriter := utils.NewFalconWriter(producerConfig.TalosClientConfig.FalconUrl(), logger)
+
 	p := &TalosProducer{
 		requestId:                  reqId,
 		producerState:              producerState,
@@ -167,6 +171,7 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 		bufferedCount:              NewBufferedMessageCount(bufMsgNum, bufMsgBytes),
 		clientId:                   utils.GenerateClientId(),
 		talosClientFactory:         clientFactory,
+		falconWriter:               falconWriter,
 		talosAdmin:                 talosAdmin,
 		topicName:                  topicName,
 		topicTalosResourceName:     describeInfoResponse.GetTopicTalosResourceName(),
@@ -174,6 +179,7 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 		partitionSenderMap:         make(map[int32]*PartitionSender),
 		BufferFullChan:             make(chan utils.LockState, 1),
 		checkPartTaskSign:          make(chan utils.StopSign, 1),
+		monitorTaskSign:            make(chan utils.StopSign, 1),
 		WaitGroup:                  new(sync.WaitGroup),
 		log:                        logger,
 	}
@@ -182,8 +188,9 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 
 	p.initPartitionSender()
 
-	p.WaitGroup.Add(1)
+	p.WaitGroup.Add(2)
 	go p.initCheckPartitionTask()
+	go p.initProducerMonitorTask()
 	p.log.Infof("Init a producer for topic: %s, partitions: %d ",
 		describeInfoResponse.GetTopicTalosResourceName(),
 		p.partitionNumber)
@@ -333,6 +340,7 @@ func (p *TalosProducer) Shutdown() {
 
 	close(p.BufferFullChan)
 	close(p.checkPartTaskSign)
+	close(p.monitorTaskSign)
 	p.WaitGroup.Wait()
 }
 
@@ -342,6 +350,7 @@ func (p *TalosProducer) stopAndwait() {
 	}
 
 	p.checkPartTaskSign <- utils.Shutdown
+	p.monitorTaskSign <- utils.Shutdown
 	p.scheduleInfoCache.Shutdown(p.topicTalosResourceName)
 }
 
@@ -430,6 +439,26 @@ func (p *TalosProducer) initCheckPartitionTask() {
 	}
 }
 
+func (c *TalosProducer) initProducerMonitorTask() {
+	defer c.WaitGroup.Done()
+	if !c.producerConfig.TalosClientConfig.ClientMonitorSwitch() {
+		return
+	}
+	// push to falcon every 60 seconds delay by default
+	duration := time.Duration(c.producerConfig.TalosClientConfig.
+		ReportMetricInterval()) * time.Second
+	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			c.ProducerMonitorTask()
+		case <-c.monitorTaskSign:
+			return
+		}
+	}
+}
+
 /**
  * Check Partition Task
  *
@@ -508,4 +537,12 @@ func (p *TalosProducer) DescribeTopicInfo() (*topic.TopicTalosResourceName, int3
 		return nil, -1, err
 	}
 	return response.GetTopicTalosResourceName(), response.GetPartitionNumber(), nil
+}
+
+func (c *TalosProducer) ProducerMonitorTask() {
+	metrics := make([]*utils.FalconMetric, 0)
+	for _, p := range c.partitionSenderMap {
+		metrics = append(metrics, p.NewFalconMetrics()...)
+	}
+	c.falconWriter.PushToFalcon(metrics)
 }

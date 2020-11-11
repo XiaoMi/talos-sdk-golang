@@ -164,7 +164,7 @@ func (c *ScheduleInfoCache) GetScheduleInfoTask() (err error) {
 }
 
 func (c *ScheduleInfoCache) GetScheduleInfo(resourceName *topic.TopicTalosResourceName) error {
-	// judge isAutoLocation serveral place to make sure request server only when need.
+	// judge isAutoLocation several place to make sure request server only when need.
 	// 1.before send Executor task make sure send Executor task when need;
 	// 2.judge in getScheduleInfo is the Final guarantee good for code extendibility;
 	if c.IsAutoLocation() {

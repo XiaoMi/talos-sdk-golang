@@ -7,6 +7,7 @@
 package consumer
 
 import (
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -20,6 +21,74 @@ import (
 type Long struct {
 	Valid bool
 	Value int64
+}
+
+type ConsumerMetrics struct {
+	fetchDuration      int64
+	maxFetchDuration   int64
+	processDuration    int64
+	maxProcessDuration int64
+	fetchTimes         int
+	fetchInterval      int
+	fetchFailedTimes   int
+	consumerMetricsMap map[string]float64
+}
+
+func NewConsumerMetrics() *ConsumerMetrics {
+	return &ConsumerMetrics{
+		fetchDuration:      0,
+		maxFetchDuration:   0,
+		processDuration:    0,
+		maxProcessDuration: 0,
+		fetchTimes:         0,
+		fetchInterval:      0,
+		fetchFailedTimes:   0,
+		consumerMetricsMap: make(map[string]float64),
+	}
+}
+
+func (m *ConsumerMetrics) MarkFetchDuration(fetchDuration int64) {
+	if fetchDuration > m.maxFetchDuration {
+		m.maxFetchDuration = fetchDuration
+	}
+
+	m.fetchDuration = fetchDuration
+	m.fetchTimes += 1
+}
+
+func (m *ConsumerMetrics) MarkFetchOrProcessFailedTimes() {
+	m.fetchFailedTimes += 1
+	m.fetchTimes += 1
+}
+
+func (m *ConsumerMetrics) MarkProcessDuration(processDuration int64) {
+	if processDuration > m.maxProcessDuration {
+		m.maxProcessDuration = processDuration
+	}
+
+	m.processDuration = processDuration
+}
+
+func (m *ConsumerMetrics) MarkFetchInterval(fetchInterval int) {
+	m.fetchInterval = fetchInterval
+}
+
+func (m *ConsumerMetrics) updateMetricsMap() {
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIME] =         float64(m.fetchDuration)
+	m.consumerMetricsMap[utils.MAX_FETCH_MESSAGE_TIME] =     float64(m.maxFetchDuration)
+	m.consumerMetricsMap[utils.PROCESS_MESSAGE_TIME] =       float64(m.processDuration)
+	m.consumerMetricsMap[utils.MAX_PROCESS_MESSAGE_TIME] =   float64(m.maxProcessDuration)
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIMES] =        float64(m.fetchTimes) / 60.0
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_FAILED_TIMES] = float64(m.fetchFailedTimes) / 60.0
+}
+
+func (m *ConsumerMetrics) initMetrics() {
+	m.fetchDuration      = 0
+	m.maxFetchDuration   = 0
+	m.processDuration    = 0
+	m.maxProcessDuration = 0
+	m.fetchTimes         = 0
+	m.fetchFailedTimes   = 0
 }
 
 type MessageReader struct {
@@ -42,6 +111,7 @@ type MessageReader struct {
 	simpleConsumer    *SimpleConsumer
 	consumerClient    consumer.ConsumerService
 	outerCheckpoint   Long
+	consumerMetrics   *ConsumerMetrics
 	log               *logrus.Logger
 }
 
@@ -104,6 +174,30 @@ func (r *MessageReader) SetOuterCheckpoint(outerCheckpoint Long) *MessageReader 
 
 func (r *MessageReader) StartOffset() *int64 {
 	return r.startOffset
+}
+
+func (r *MessageReader) InitConsumerMetrics() *MessageReader {
+	r.consumerMetrics = NewConsumerMetrics()
+	return r
+}
+
+func (r *MessageReader) NewFalconMetrics() []*utils.FalconMetric {
+	var metrics []*utils.FalconMetric
+	tags := utils.NewTags()
+	tags.SetTag("clusterName", r.consumerConfig.ClusterName())
+	tags.SetTag("topicName", r.topicAndPartition.GetTopicName())
+	tags.SetTag("partitionId", strconv.Itoa(int(r.topicAndPartition.GetPartitionId())))
+	tags.SetTag("ip", r.consumerConfig.ClientIp())
+	tags.SetTag("type", r.consumerConfig.AlertType())
+
+	r.consumerMetrics.updateMetricsMap()
+	for name, value := range r.consumerMetrics.consumerMetricsMap {
+		metric := utils.NewFalconMetric(r.consumerConfig.ConsumerMetricFalconEndpoint() + r.consumerGroup,
+			name, r.consumerConfig.MetricFalconStep(), value, tags)
+		metrics = append(metrics, metric)
+	}
+	r.consumerMetrics.initMetrics()
+	return metrics
 }
 
 func (r *MessageReader) GetCurCheckpoint() int64 {
