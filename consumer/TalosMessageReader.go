@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -29,27 +30,47 @@ func (r *TalosMessageReader) InitStartOffset() error {
 	// get last commit offset or init by outer checkPoint
 	var readingStartOffset int64
 	var err error
-	if r.outerCheckpoint.Valid && r.outerCheckpoint.Value >= 0 {
-		readingStartOffset = r.outerCheckpoint.Value
-		// Long struct build for burning outerCheckpoint after the first reading
-		r.outerCheckpoint.Valid = false
-	} else {
-		readingStartOffset, err = r.queryStartOffset()
-		if err != nil {
-			return err
-		}
-	}
 
 	// when consumer starting up, checking:
 	// 1) whether not exist last commit offset, which means 'readingStartOffset==-1'
 	// 2) whether reset offset
 	// 3) note that: the priority of 'reset-config' is larger than 'outer-checkPoint'
-	if readingStartOffset == -1 || r.consumerConfig.GetResetOffsetWhenStart() {
-		atomic.StoreInt64(r.startOffset, r.consumerConfig.GetResetOffsetValueWhenStart())
+
+	// there are following situations
+	// 1) reset Offset When Start
+	//    1) -1 ————> set startOffset to -1 and reading from start
+	//    2) -2 ————> set startOffset to endOffset and reading from end
+	// 2) not reset Offset When Start
+	//    1) outerCheckPoint is set ————> reading from outerCheckPoint
+	//    2) check point is not exist ————> same with "1) reset Offset When Start"
+	//    3) check point is exist ————> reading from check point
+
+	if r.consumerConfig.GetResetOffsetWhenStart() {
+		readingStartOffset, err = r.resetReadStartOffset(r.consumerConfig.GetResetOffsetValueWhenStart())
+		if err != nil {
+			return err
+		}
+	} else if r.outerCheckpoint.Valid && r.outerCheckpoint.Value >= 0 {
+		readingStartOffset = r.outerCheckpoint.Value
+		// burn after reading the first time
+		r.outerCheckpoint.Valid = false
 	} else {
-		atomic.StoreInt64(r.startOffset, readingStartOffset)
+		var queryStartOffset int64
+		queryStartOffset, err = r.queryStartOffset()
+		if err != nil {
+			return err
+		}
+		if queryStartOffset == -1 {
+			readingStartOffset, err = r.resetReadStartOffset(r.consumerConfig.GetResetOffsetValueWhenStart())
+			if err != nil {
+				return err
+			}
+		} else {
+			readingStartOffset = queryStartOffset
+		}
 	}
 
+	atomic.StoreInt64(r.startOffset, readingStartOffset)
 	// guarantee lastCommitOffset and finishedOffset correct
 	if atomic.LoadInt64(r.startOffset) > 0 {
 		r.lastCommitOffset = atomic.LoadInt64(r.startOffset) - 1
@@ -128,6 +149,24 @@ func (r *TalosMessageReader) queryStartOffset() (int64, error) {
 	} else {
 		return committedOffset + 1, nil
 	}
+}
+
+func (r *TalosMessageReader) resetReadStartOffset(resetOffsetValueWhenStart int64) (int64, error) {
+	// if resetOffsetValueWhenStart is -1 , just set startOffset to -1 and would read from the start
+	// if resetOffsetValueWhenStart is -2 , we should get the endOffset from the server for reading from the end
+	if resetOffsetValueWhenStart == -1 {
+		return -1, nil
+	}
+
+	getPartitionOffsetRequest := &message.GetPartitionOffsetRequest{
+		TopicAndPartition: r.topicAndPartition,
+	}
+
+	getPartitionOffsetResponse, err := r.messageClient.GetPartitionOffset(getPartitionOffsetRequest)
+	if err != nil {
+		return -1, err
+	}
+	return getPartitionOffsetResponse.GetOffsetInfo().GetEndOffset() + 1, nil
 }
 
 func (r *TalosMessageReader) innerCheckpoint() error {
