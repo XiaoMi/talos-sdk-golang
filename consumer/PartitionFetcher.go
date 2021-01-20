@@ -109,6 +109,7 @@ func NewPartitionFetcher(consumerGroup string, topicName string,
 		SetSimpleConsumer(simpleConsumer).
 		SetMessageProcessor(messageProcessor).
 		SetConsumerClient(consumerClient).
+		SetMessageClient(messageClient).
 		SetOuterCheckpoint(outerCheckpoint)
 
 	logger.Infof("The PartitionFetcher for topic: %s partition: %d init.",

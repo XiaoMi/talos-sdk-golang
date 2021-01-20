@@ -110,6 +110,7 @@ type MessageReader struct {
 	consumerConfig    *TalosConsumerConfig
 	simpleConsumer    *SimpleConsumer
 	consumerClient    consumer.ConsumerService
+	messageClient     message.MessageService
 	outerCheckpoint   Long
 	consumerMetrics   *ConsumerMetrics
 	log               *logrus.Logger
@@ -164,6 +165,11 @@ func (r *MessageReader) SetMessageProcessor(messageProcessor MessageProcessor) *
 
 func (r *MessageReader) SetConsumerClient(consumerClient consumer.ConsumerService) *MessageReader {
 	r.consumerClient = consumerClient
+	return r
+}
+
+func (r *MessageReader) SetMessageClient(messageClient message.MessageService) *MessageReader {
+	r.messageClient = messageClient
 	return r
 }
 
