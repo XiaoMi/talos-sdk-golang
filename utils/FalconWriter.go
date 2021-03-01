@@ -57,7 +57,9 @@ func (f *FalconWriter) PushToFalcon(ms []*FalconMetric) error {
 		return err
 	}
 	bodyReader := bytes.NewBuffer(mb)
-	_, err = http.Post(f.falconUrl, "application/json", bodyReader)
+	resp, err := http.Post(f.falconUrl, "application/json", bodyReader)
+	defer resp.Body.Close()
+
 	if err != nil {
 		f.log.Errorf("Post data to falcon failed: %s", err.Error())
 		return err
