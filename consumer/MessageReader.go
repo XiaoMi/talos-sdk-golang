@@ -28,9 +28,9 @@ type ConsumerMetrics struct {
 	maxFetchDuration   int64
 	processDuration    int64
 	maxProcessDuration int64
-	fetchTimes         int
-	fetchInterval      int
-	fetchFailedTimes   int
+	fetchTimes         int32
+	fetchInterval      int32
+	fetchFailedTimes   int32
 	consumerMetricsMap map[string]float64
 }
 
@@ -48,47 +48,48 @@ func NewConsumerMetrics() *ConsumerMetrics {
 }
 
 func (m *ConsumerMetrics) MarkFetchDuration(fetchDuration int64) {
-	if fetchDuration > m.maxFetchDuration {
-		m.maxFetchDuration = fetchDuration
+	if fetchDuration > atomic.LoadInt64(&m.maxFetchDuration) {
+		atomic.StoreInt64(&m.maxFetchDuration, fetchDuration)
 	}
 
-	m.fetchDuration = fetchDuration
-	m.fetchTimes += 1
+	atomic.StoreInt64(&m.fetchDuration, fetchDuration)
+	atomic.AddInt32(&m.fetchTimes, 1)
 }
 
 func (m *ConsumerMetrics) MarkFetchOrProcessFailedTimes() {
-	m.fetchFailedTimes += 1
-	m.fetchTimes += 1
+	atomic.AddInt32(&m.fetchFailedTimes, 1)
+	atomic.AddInt32(&m.fetchTimes, 1)
 }
 
 func (m *ConsumerMetrics) MarkProcessDuration(processDuration int64) {
-	if processDuration > m.maxProcessDuration {
-		m.maxProcessDuration = processDuration
+	if processDuration > atomic.LoadInt64(&m.maxProcessDuration) {
+		atomic.StoreInt64(&m.maxProcessDuration, processDuration)
 	}
 
-	m.processDuration = processDuration
+	atomic.StoreInt64(&m.processDuration, processDuration)
 }
 
-func (m *ConsumerMetrics) MarkFetchInterval(fetchInterval int) {
-	m.fetchInterval = fetchInterval
+func (m *ConsumerMetrics) MarkFetchInterval(fetchInterval int32) {
+	atomic.StoreInt32(&m.fetchInterval, fetchInterval)
 }
 
 func (m *ConsumerMetrics) updateMetricsMap() {
-	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIME] =         float64(m.fetchDuration)
-	m.consumerMetricsMap[utils.MAX_FETCH_MESSAGE_TIME] =     float64(m.maxFetchDuration)
-	m.consumerMetricsMap[utils.PROCESS_MESSAGE_TIME] =       float64(m.processDuration)
-	m.consumerMetricsMap[utils.MAX_PROCESS_MESSAGE_TIME] =   float64(m.maxProcessDuration)
-	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIMES] =        float64(m.fetchTimes) / 60.0
-	m.consumerMetricsMap[utils.FETCH_MESSAGE_FAILED_TIMES] = float64(m.fetchFailedTimes) / 60.0
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIME] =         float64(atomic.LoadInt64(&m.fetchDuration))
+	m.consumerMetricsMap[utils.MAX_FETCH_MESSAGE_TIME] =     float64(atomic.LoadInt64(&m.maxFetchDuration))
+	m.consumerMetricsMap[utils.PROCESS_MESSAGE_TIME] =       float64(atomic.LoadInt64(&m.processDuration))
+	m.consumerMetricsMap[utils.MAX_PROCESS_MESSAGE_TIME] =   float64(atomic.LoadInt64(&m.maxProcessDuration))
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_TIMES] =        float64(atomic.LoadInt32(&m.fetchTimes)) / 60.0
+	m.consumerMetricsMap[utils.FETCH_MESSAGE_FAILED_TIMES] = float64(atomic.LoadInt32(&m.fetchFailedTimes)) / 60.0
 }
 
 func (m *ConsumerMetrics) initMetrics() {
-	m.fetchDuration      = 0
-	m.maxFetchDuration   = 0
-	m.processDuration    = 0
-	m.maxProcessDuration = 0
-	m.fetchTimes         = 0
-	m.fetchFailedTimes   = 0
+	atomic.StoreInt64(&m.fetchDuration, 0)
+	atomic.StoreInt64(&m.maxFetchDuration, 0)
+	atomic.StoreInt64(&m.processDuration, 0)
+	atomic.StoreInt64(&m.maxProcessDuration, 0)
+	atomic.StoreInt32(&m.fetchTimes, 0)
+	atomic.StoreInt32(&m.fetchInterval, 0)
+	atomic.StoreInt32(&m.fetchFailedTimes, 0)
 }
 
 type MessageReader struct {

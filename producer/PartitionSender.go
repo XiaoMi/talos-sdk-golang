@@ -23,8 +23,8 @@ type ProducerMetrics struct {
 	putMsgDuration     int64
 	maxPutMsgDuration  int64
 	minPutMsgDuration  int64
-	putMsgTimes        int
-	putMsgFailedTimes  int
+	putMsgTimes        int32
+	putMsgFailedTimes  int32
 	producerMetricsMap map[string]float64
 }
 
@@ -40,37 +40,37 @@ func NewProducerMetrics() *ProducerMetrics {
 }
 
 func (m *ProducerMetrics) MarkPutMsgDuration(putMsgDuration int64) {
-	if putMsgDuration > m.maxPutMsgDuration {
-		m.maxPutMsgDuration = putMsgDuration
+	if putMsgDuration > atomic.LoadInt64(&m.maxPutMsgDuration) {
+		atomic.StoreInt64(&m.maxPutMsgDuration, putMsgDuration)
 	}
 
-	if m.minPutMsgDuration == 0 || putMsgDuration < m.minPutMsgDuration {
-		m.minPutMsgDuration = putMsgDuration
+	if atomic.LoadInt64(&m.minPutMsgDuration) == 0 || putMsgDuration < atomic.LoadInt64(&m.minPutMsgDuration) {
+		atomic.StoreInt64(&m.minPutMsgDuration, putMsgDuration)
 	}
 
-	m.putMsgDuration = putMsgDuration
-	m.putMsgTimes += 1
+	atomic.StoreInt64(&m.putMsgDuration, putMsgDuration)
+	atomic.AddInt32(&m.putMsgTimes, 1)
 }
 
 func (m *ProducerMetrics) MarkPutMsgFailedTimes() {
-	m.putMsgTimes += 1
-	m.putMsgFailedTimes += 1
+	atomic.AddInt32(&m.putMsgTimes, 1)
+	atomic.AddInt32(&m.putMsgFailedTimes, 1)
 }
 
 func (m *ProducerMetrics) updateMetricsMap() {
-	m.producerMetricsMap[utils.PUT_MESSAGE_TIME]         = float64(m.putMsgDuration)
-	m.producerMetricsMap[utils.MAX_PUT_MESSAGE_TIME]     = float64(m.maxPutMsgDuration)
-	m.producerMetricsMap[utils.MIN_PUT_MESSAGE_TIME]     = float64(m.minPutMsgDuration)
-	m.producerMetricsMap[utils.PUT_MESSAGE_TIMES]        = float64(m.putMsgTimes) / 60.0
-	m.producerMetricsMap[utils.PUT_MESSAGE_FAILED_TIMES] = float64(m.putMsgFailedTimes) / 60.0
+	m.producerMetricsMap[utils.PUT_MESSAGE_TIME]         = float64(atomic.LoadInt64(&m.putMsgDuration))
+	m.producerMetricsMap[utils.MAX_PUT_MESSAGE_TIME]     = float64(atomic.LoadInt64(&m.maxPutMsgDuration))
+	m.producerMetricsMap[utils.MIN_PUT_MESSAGE_TIME]     = float64(atomic.LoadInt64(&m.minPutMsgDuration))
+	m.producerMetricsMap[utils.PUT_MESSAGE_TIMES]        = float64(atomic.LoadInt32(&m.putMsgTimes)) / 60.0
+	m.producerMetricsMap[utils.PUT_MESSAGE_FAILED_TIMES] = float64(atomic.LoadInt32(&m.putMsgFailedTimes)) / 60.0
 }
 
 func (m *ProducerMetrics) initMetrics() {
-    m.putMsgDuration    = 0
-	m.maxPutMsgDuration = 0
-	m.minPutMsgDuration = 0
-	m.putMsgTimes       = 0
-	m.putMsgFailedTimes = 0
+	atomic.StoreInt64(&m.putMsgDuration, 0)
+	atomic.StoreInt64(&m.maxPutMsgDuration, 0)
+	atomic.StoreInt64(&m.minPutMsgDuration, 0)
+	atomic.StoreInt32(&m.putMsgTimes, 0)
+	atomic.StoreInt32(&m.putMsgFailedTimes, 0)
 }
 
 type Sender interface {
