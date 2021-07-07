@@ -23,8 +23,8 @@ import (
 )
 
 type WorkerPair struct {
-	workerId        string
-	hasPartitionNum int
+	workerId        string `json:"worker_id"`
+	hasPartitionNum int    `json:"has_partition_num"`
 }
 
 func NewWorkerPair(workerId string, hasPartitionNum int) WorkerPair {
