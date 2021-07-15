@@ -1,3 +1,7 @@
+# v0.3.0
+  * close resources when send http request to falcon
+  * fix metric data race
+
 # v0.2.11
   * support input logger
   * fix auto location bug
