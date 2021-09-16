@@ -10,10 +10,11 @@ import (
 	"bytes"
 	"encoding/json"
 	_ "fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type FalconMetric struct {
@@ -28,13 +29,13 @@ type FalconMetric struct {
 
 type FalconWriter struct {
 	falconUrl string
-	log *logrus.Logger
+	log       *logrus.Logger
 }
 
 func NewFalconWriter(falconUrl string, log *logrus.Logger) *FalconWriter {
 	return &FalconWriter{
 		falconUrl: falconUrl,
-		log: log,
+		log:       log,
 	}
 }
 
@@ -58,13 +59,11 @@ func (f *FalconWriter) PushToFalcon(ms []*FalconMetric) error {
 	}
 	bodyReader := bytes.NewBuffer(mb)
 	resp, err := http.Post(f.falconUrl, "application/json", bodyReader)
-	defer resp.Body.Close()
-
 	if err != nil {
 		f.log.Errorf("Post data to falcon failed: %s", err.Error())
 		return err
 	}
-
+	defer resp.Body.Close()
 	return nil
 }
 
@@ -85,7 +84,7 @@ func (t *Tags) SetTag(k, v string) {
 func (t *Tags) ToStr() string {
 	var ts []string
 	for k, v := range t.tags {
-		ts = append(ts, k + "=" + v)
+		ts = append(ts, k+"="+v)
 	}
 	return strings.Join(ts, ",")
 }
