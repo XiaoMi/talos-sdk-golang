@@ -226,7 +226,7 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 
 func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
 	s.partitionMessageQueue.AddMessage(userMessageList)
-	s.log.Infof("add %d messages to partition: %d",
+	s.log.Debugf("add %d messages to partition: %d",
 		len(userMessageList), s.partitionId)
 }
 
