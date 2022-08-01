@@ -16,6 +16,14 @@ const (
 	GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_MAXIMUM = 1000 * 60 * 3
 
 	/**
+	 * The consumer check all authorized topics that match given pattern
+	 */
+	GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL         = "galaxy.talos.consumer.check.topic.pattern.interval"
+	GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_DEFAULT = 5 * 60 * 1000
+	GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_MINIMUM = 3 * 60 * 1000
+	GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_MAXIMUM = 10 * 60 * 1000
+
+	/**
 	 * The consumer check alive worker info and their serving partitions interval
 	 */
 	GALAXY_TALOS_CONSUMER_CHECK_WORKER_INFO_INTERVAL         = "galaxy.talos.consumer.check.worker.info.interval"

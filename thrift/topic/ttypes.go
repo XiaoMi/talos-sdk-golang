@@ -61,6 +61,35 @@ func TopicStatusFromString(s string) (TopicStatus, error) {
 
 func TopicStatusPtr(v TopicStatus) *TopicStatus { return &v }
 
+type TopicGroupType int64
+
+const (
+	TopicGroupType_TOPIC_PATTERN TopicGroupType = 0
+	TopicGroupType_TOPIC_SET     TopicGroupType = 1
+)
+
+func (p TopicGroupType) String() string {
+	switch p {
+	case TopicGroupType_TOPIC_PATTERN:
+		return "TopicGroupType_TOPIC_PATTERN"
+	case TopicGroupType_TOPIC_SET:
+		return "TopicGroupType_TOPIC_SET"
+	}
+	return "<UNSET>"
+}
+
+func TopicGroupTypeFromString(s string) (TopicGroupType, error) {
+	switch s {
+	case "TopicGroupType_TOPIC_PATTERN":
+		return TopicGroupType_TOPIC_PATTERN, nil
+	case "TopicGroupType_TOPIC_SET":
+		return TopicGroupType_TOPIC_SET, nil
+	}
+	return TopicGroupType(0), fmt.Errorf("not a valid TopicGroupType string")
+}
+
+func TopicGroupTypePtr(v TopicGroupType) *TopicGroupType { return &v }
+
 type Permission int64
 
 const (
@@ -565,6 +594,7 @@ type TopicAttribute struct {
 	PartitionNumber      *int32            `thrift:"partitionNumber,1" json:"partitionNumber"`
 	MessageRetentionSecs *int32            `thrift:"messageRetentionSecs,2" json:"messageRetentionSecs"`
 	Attributes           map[string]string `thrift:"attributes,3" json:"attributes"`
+	OldPartitionNumber   *int32            `thrift:"oldPartitionNumber,4" json:"oldPartitionNumber"`
 }
 
 func NewTopicAttribute() *TopicAttribute {
@@ -594,6 +624,15 @@ var TopicAttribute_Attributes_DEFAULT map[string]string
 func (p *TopicAttribute) GetAttributes() map[string]string {
 	return p.Attributes
 }
+
+var TopicAttribute_OldPartitionNumber_DEFAULT int32
+
+func (p *TopicAttribute) GetOldPartitionNumber() int32 {
+	if !p.IsSetOldPartitionNumber() {
+		return TopicAttribute_OldPartitionNumber_DEFAULT
+	}
+	return *p.OldPartitionNumber
+}
 func (p *TopicAttribute) IsSetPartitionNumber() bool {
 	return p.PartitionNumber != nil
 }
@@ -604,6 +643,10 @@ func (p *TopicAttribute) IsSetMessageRetentionSecs() bool {
 
 func (p *TopicAttribute) IsSetAttributes() bool {
 	return p.Attributes != nil
+}
+
+func (p *TopicAttribute) IsSetOldPartitionNumber() bool {
+	return p.OldPartitionNumber != nil
 }
 
 func (p *TopicAttribute) Read(iprot thrift.TProtocol) error {
@@ -629,6 +672,10 @@ func (p *TopicAttribute) Read(iprot thrift.TProtocol) error {
 			}
 		case 3:
 			if err := p.ReadField3(iprot); err != nil {
+				return err
+			}
+		case 4:
+			if err := p.ReadField4(iprot); err != nil {
 				return err
 			}
 		default:
@@ -692,6 +739,15 @@ func (p *TopicAttribute) ReadField3(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *TopicAttribute) ReadField4(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI32(); err != nil {
+		return fmt.Errorf("error reading field 4: %s", err)
+	} else {
+		p.OldPartitionNumber = &v
+	}
+	return nil
+}
+
 func (p *TopicAttribute) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("TopicAttribute"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
@@ -703,6 +759,9 @@ func (p *TopicAttribute) Write(oprot thrift.TProtocol) error {
 		return err
 	}
 	if err := p.writeField3(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField4(oprot); err != nil {
 		return err
 	}
 	if err := oprot.WriteFieldStop(); err != nil {
@@ -765,6 +824,21 @@ func (p *TopicAttribute) writeField3(oprot thrift.TProtocol) (err error) {
 		}
 		if err := oprot.WriteFieldEnd(); err != nil {
 			return fmt.Errorf("%T write field end error 3:attributes: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *TopicAttribute) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetOldPartitionNumber() {
+		if err := oprot.WriteFieldBegin("oldPartitionNumber", thrift.I32, 4); err != nil {
+			return fmt.Errorf("%T write field begin error 4:oldPartitionNumber: %s", p, err)
+		}
+		if err := oprot.WriteI32(int32(*p.OldPartitionNumber)); err != nil {
+			return fmt.Errorf("%T.oldPartitionNumber (4) field write error: %s", p, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 4:oldPartitionNumber: %s", p, err)
 		}
 	}
 	return err
@@ -1721,6 +1795,345 @@ func (p *Topic) String() string {
 	return fmt.Sprintf("Topic(%+v)", *p)
 }
 
+type TopicGroup struct {
+	TopicGroupName  string          `thrift:"topicGroupName,1,required" json:"topicGroupName"`
+	OwnerId         string          `thrift:"ownerId,2,required" json:"ownerId"`
+	TypeA1          *TopicGroupType `thrift:"type,3" json:"type"`
+	TopicPattern    *string         `thrift:"topicPattern,4" json:"topicPattern"`
+	TopicSet        []string        `thrift:"topicSet,5" json:"topicSet"`
+	ExclusiveTopics []string        `thrift:"exclusiveTopics,6" json:"exclusiveTopics"`
+}
+
+func NewTopicGroup() *TopicGroup {
+	return &TopicGroup{}
+}
+
+func (p *TopicGroup) GetTopicGroupName() string {
+	return p.TopicGroupName
+}
+
+func (p *TopicGroup) GetOwnerId() string {
+	return p.OwnerId
+}
+
+var TopicGroup_TypeA1_DEFAULT TopicGroupType
+
+func (p *TopicGroup) GetTypeA1() TopicGroupType {
+	if !p.IsSetTypeA1() {
+		return TopicGroup_TypeA1_DEFAULT
+	}
+	return *p.TypeA1
+}
+
+var TopicGroup_TopicPattern_DEFAULT string
+
+func (p *TopicGroup) GetTopicPattern() string {
+	if !p.IsSetTopicPattern() {
+		return TopicGroup_TopicPattern_DEFAULT
+	}
+	return *p.TopicPattern
+}
+
+var TopicGroup_TopicSet_DEFAULT []string
+
+func (p *TopicGroup) GetTopicSet() []string {
+	return p.TopicSet
+}
+
+var TopicGroup_ExclusiveTopics_DEFAULT []string
+
+func (p *TopicGroup) GetExclusiveTopics() []string {
+	return p.ExclusiveTopics
+}
+func (p *TopicGroup) IsSetTypeA1() bool {
+	return p.TypeA1 != nil
+}
+
+func (p *TopicGroup) IsSetTopicPattern() bool {
+	return p.TopicPattern != nil
+}
+
+func (p *TopicGroup) IsSetTopicSet() bool {
+	return p.TopicSet != nil
+}
+
+func (p *TopicGroup) IsSetExclusiveTopics() bool {
+	return p.ExclusiveTopics != nil
+}
+
+func (p *TopicGroup) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
+				return err
+			}
+		case 3:
+			if err := p.ReadField3(iprot); err != nil {
+				return err
+			}
+		case 4:
+			if err := p.ReadField4(iprot); err != nil {
+				return err
+			}
+		case 5:
+			if err := p.ReadField5(iprot); err != nil {
+				return err
+			}
+		case 6:
+			if err := p.ReadField6(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.TopicGroupName = v
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 2: %s", err)
+	} else {
+		p.OwnerId = v
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI32(); err != nil {
+		return fmt.Errorf("error reading field 3: %s", err)
+	} else {
+		temp := TopicGroupType(v)
+		p.TypeA1 = &temp
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField4(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 4: %s", err)
+	} else {
+		p.TopicPattern = &v
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField5(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return fmt.Errorf("error reading list begin: %s", err)
+	}
+	tSlice := make([]string, 0, size)
+	p.TopicSet = tSlice
+	for i := 0; i < size; i++ {
+		var _elem5 string
+		if v, err := iprot.ReadString(); err != nil {
+			return fmt.Errorf("error reading field 0: %s", err)
+		} else {
+			_elem5 = v
+		}
+		p.TopicSet = append(p.TopicSet, _elem5)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return fmt.Errorf("error reading list end: %s", err)
+	}
+	return nil
+}
+
+func (p *TopicGroup) ReadField6(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return fmt.Errorf("error reading list begin: %s", err)
+	}
+	tSlice := make([]string, 0, size)
+	p.ExclusiveTopics = tSlice
+	for i := 0; i < size; i++ {
+		var _elem6 string
+		if v, err := iprot.ReadString(); err != nil {
+			return fmt.Errorf("error reading field 0: %s", err)
+		} else {
+			_elem6 = v
+		}
+		p.ExclusiveTopics = append(p.ExclusiveTopics, _elem6)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return fmt.Errorf("error reading list end: %s", err)
+	}
+	return nil
+}
+
+func (p *TopicGroup) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicGroup"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField3(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField4(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField5(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField6(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *TopicGroup) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroupName", thrift.STRING, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroupName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroupName)); err != nil {
+		return fmt.Errorf("%T.topicGroupName (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroupName: %s", p, err)
+	}
+	return err
+}
+
+func (p *TopicGroup) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("ownerId", thrift.STRING, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:ownerId: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.OwnerId)); err != nil {
+		return fmt.Errorf("%T.ownerId (2) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:ownerId: %s", p, err)
+	}
+	return err
+}
+
+func (p *TopicGroup) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTypeA1() {
+		if err := oprot.WriteFieldBegin("type", thrift.I32, 3); err != nil {
+			return fmt.Errorf("%T write field begin error 3:type: %s", p, err)
+		}
+		if err := oprot.WriteI32(int32(*p.TypeA1)); err != nil {
+			return fmt.Errorf("%T.type (3) field write error: %s", p, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 3:type: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *TopicGroup) writeField4(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTopicPattern() {
+		if err := oprot.WriteFieldBegin("topicPattern", thrift.STRING, 4); err != nil {
+			return fmt.Errorf("%T write field begin error 4:topicPattern: %s", p, err)
+		}
+		if err := oprot.WriteString(string(*p.TopicPattern)); err != nil {
+			return fmt.Errorf("%T.topicPattern (4) field write error: %s", p, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 4:topicPattern: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *TopicGroup) writeField5(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTopicSet() {
+		if err := oprot.WriteFieldBegin("topicSet", thrift.LIST, 5); err != nil {
+			return fmt.Errorf("%T write field begin error 5:topicSet: %s", p, err)
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.TopicSet)); err != nil {
+			return fmt.Errorf("error writing list begin: %s", err)
+		}
+		for _, v := range p.TopicSet {
+			if err := oprot.WriteString(string(v)); err != nil {
+				return fmt.Errorf("%T. (0) field write error: %s", p, err)
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return fmt.Errorf("error writing list end: %s", err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 5:topicSet: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *TopicGroup) writeField6(oprot thrift.TProtocol) (err error) {
+	if p.IsSetExclusiveTopics() {
+		if err := oprot.WriteFieldBegin("exclusiveTopics", thrift.LIST, 6); err != nil {
+			return fmt.Errorf("%T write field begin error 6:exclusiveTopics: %s", p, err)
+		}
+		if err := oprot.WriteListBegin(thrift.STRING, len(p.ExclusiveTopics)); err != nil {
+			return fmt.Errorf("error writing list begin: %s", err)
+		}
+		for _, v := range p.ExclusiveTopics {
+			if err := oprot.WriteString(string(v)); err != nil {
+				return fmt.Errorf("%T. (0) field write error: %s", p, err)
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
+			return fmt.Errorf("error writing list end: %s", err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 6:exclusiveTopics: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *TopicGroup) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("TopicGroup(%+v)", *p)
+}
+
 type CreateTopicRequest struct {
 	TopicName      string                                `thrift:"topicName,1,required" json:"topicName"`
 	TopicAttribute *TopicAttribute                       `thrift:"topicAttribute,2,required" json:"topicAttribute"`
@@ -1848,18 +2261,18 @@ func (p *CreateTopicRequest) ReadField4(iprot thrift.TProtocol) error {
 	tMap := make(map[*authorization.Grantee]Permission, size)
 	p.AclMap = tMap
 	for i := 0; i < size; i++ {
-		_key5 := &authorization.Grantee{}
-		if err := _key5.Read(iprot); err != nil {
-			return fmt.Errorf("%T error reading struct: %s", _key5, err)
+		_key7 := &authorization.Grantee{}
+		if err := _key7.Read(iprot); err != nil {
+			return fmt.Errorf("%T error reading struct: %s", _key7, err)
 		}
-		var _val6 Permission
+		var _val8 Permission
 		if v, err := iprot.ReadI32(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
 			temp := Permission(v)
-			_val6 = temp
+			_val8 = temp
 		}
-		p.AclMap[_key5] = _val6
+		p.AclMap[_key7] = _val8
 	}
 	if err := iprot.ReadMapEnd(); err != nil {
 		return fmt.Errorf("error reading map end: %s", err)
@@ -1964,6 +2377,162 @@ func (p *CreateTopicRequest) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("CreateTopicRequest(%+v)", *p)
+}
+
+type CreateReplicationTopicRequest struct {
+	TopicName         string `thrift:"topicName,1,required" json:"topicName"`
+	SourceClusterList string `thrift:"sourceClusterList,2,required" json:"sourceClusterList"`
+	SourceTopicName   string `thrift:"sourceTopicName,3,required" json:"sourceTopicName"`
+}
+
+func NewCreateReplicationTopicRequest() *CreateReplicationTopicRequest {
+	return &CreateReplicationTopicRequest{}
+}
+
+func (p *CreateReplicationTopicRequest) GetTopicName() string {
+	return p.TopicName
+}
+
+func (p *CreateReplicationTopicRequest) GetSourceClusterList() string {
+	return p.SourceClusterList
+}
+
+func (p *CreateReplicationTopicRequest) GetSourceTopicName() string {
+	return p.SourceTopicName
+}
+func (p *CreateReplicationTopicRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
+				return err
+			}
+		case 3:
+			if err := p.ReadField3(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *CreateReplicationTopicRequest) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.TopicName = v
+	}
+	return nil
+}
+
+func (p *CreateReplicationTopicRequest) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 2: %s", err)
+	} else {
+		p.SourceClusterList = v
+	}
+	return nil
+}
+
+func (p *CreateReplicationTopicRequest) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 3: %s", err)
+	} else {
+		p.SourceTopicName = v
+	}
+	return nil
+}
+
+func (p *CreateReplicationTopicRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("CreateReplicationTopicRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField3(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *CreateReplicationTopicRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicName", thrift.STRING, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicName)); err != nil {
+		return fmt.Errorf("%T.topicName (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicName: %s", p, err)
+	}
+	return err
+}
+
+func (p *CreateReplicationTopicRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("sourceClusterList", thrift.STRING, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:sourceClusterList: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.SourceClusterList)); err != nil {
+		return fmt.Errorf("%T.sourceClusterList (2) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:sourceClusterList: %s", p, err)
+	}
+	return err
+}
+
+func (p *CreateReplicationTopicRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("sourceTopicName", thrift.STRING, 3); err != nil {
+		return fmt.Errorf("%T write field begin error 3:sourceTopicName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.SourceTopicName)); err != nil {
+		return fmt.Errorf("%T.sourceTopicName (3) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 3:sourceTopicName: %s", p, err)
+	}
+	return err
+}
+
+func (p *CreateReplicationTopicRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreateReplicationTopicRequest(%+v)", *p)
 }
 
 type CreateTopicResponse struct {
@@ -2472,6 +3041,94 @@ func (p *GetDescribeInfoRequest) String() string {
 	return fmt.Sprintf("GetDescribeInfoRequest(%+v)", *p)
 }
 
+type GetTopicAttributeRequest struct {
+	TopicName string `thrift:"topicName,1,required" json:"topicName"`
+}
+
+func NewGetTopicAttributeRequest() *GetTopicAttributeRequest {
+	return &GetTopicAttributeRequest{}
+}
+
+func (p *GetTopicAttributeRequest) GetTopicName() string {
+	return p.TopicName
+}
+func (p *GetTopicAttributeRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeRequest) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.TopicName = v
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetTopicAttributeRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicName", thrift.STRING, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicName)); err != nil {
+		return fmt.Errorf("%T.topicName (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicName: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetTopicAttributeRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetTopicAttributeRequest(%+v)", *p)
+}
+
 type AddSubResourceNameRequest struct {
 	TopicTalosResourceName *TopicTalosResourceName `thrift:"topicTalosResourceName,1,required" json:"topicTalosResourceName"`
 	OrgId                  string                  `thrift:"orgId,2,required" json:"orgId"`
@@ -2636,6 +3293,686 @@ func (p *AddSubResourceNameRequest) String() string {
 	return fmt.Sprintf("AddSubResourceNameRequest(%+v)", *p)
 }
 
+type CreateTopicGroupRequest struct {
+	TopicGroup *TopicGroup `thrift:"topicGroup,1,required" json:"topicGroup"`
+}
+
+func NewCreateTopicGroupRequest() *CreateTopicGroupRequest {
+	return &CreateTopicGroupRequest{}
+}
+
+var CreateTopicGroupRequest_TopicGroup_DEFAULT *TopicGroup
+
+func (p *CreateTopicGroupRequest) GetTopicGroup() *TopicGroup {
+	if !p.IsSetTopicGroup() {
+		return CreateTopicGroupRequest_TopicGroup_DEFAULT
+	}
+	return p.TopicGroup
+}
+func (p *CreateTopicGroupRequest) IsSetTopicGroup() bool {
+	return p.TopicGroup != nil
+}
+
+func (p *CreateTopicGroupRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupRequest) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicGroup = &TopicGroup{}
+	if err := p.TopicGroup.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicGroup, err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("CreateTopicGroupRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroup: %s", p, err)
+	}
+	if err := p.TopicGroup.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicGroup, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *CreateTopicGroupRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreateTopicGroupRequest(%+v)", *p)
+}
+
+type CreateTopicGroupResponse struct {
+	TopicGroup *TopicGroup `thrift:"topicGroup,1,required" json:"topicGroup"`
+}
+
+func NewCreateTopicGroupResponse() *CreateTopicGroupResponse {
+	return &CreateTopicGroupResponse{}
+}
+
+var CreateTopicGroupResponse_TopicGroup_DEFAULT *TopicGroup
+
+func (p *CreateTopicGroupResponse) GetTopicGroup() *TopicGroup {
+	if !p.IsSetTopicGroup() {
+		return CreateTopicGroupResponse_TopicGroup_DEFAULT
+	}
+	return p.TopicGroup
+}
+func (p *CreateTopicGroupResponse) IsSetTopicGroup() bool {
+	return p.TopicGroup != nil
+}
+
+func (p *CreateTopicGroupResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupResponse) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicGroup = &TopicGroup{}
+	if err := p.TopicGroup.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicGroup, err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("CreateTopicGroupResponse"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *CreateTopicGroupResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroup: %s", p, err)
+	}
+	if err := p.TopicGroup.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicGroup, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *CreateTopicGroupResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreateTopicGroupResponse(%+v)", *p)
+}
+
+type DescribeTopicGroupRequest struct {
+	TopicGroupName string `thrift:"topicGroupName,1,required" json:"topicGroupName"`
+}
+
+func NewDescribeTopicGroupRequest() *DescribeTopicGroupRequest {
+	return &DescribeTopicGroupRequest{}
+}
+
+func (p *DescribeTopicGroupRequest) GetTopicGroupName() string {
+	return p.TopicGroupName
+}
+func (p *DescribeTopicGroupRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupRequest) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.TopicGroupName = v
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("DescribeTopicGroupRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroupName", thrift.STRING, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroupName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroupName)); err != nil {
+		return fmt.Errorf("%T.topicGroupName (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroupName: %s", p, err)
+	}
+	return err
+}
+
+func (p *DescribeTopicGroupRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DescribeTopicGroupRequest(%+v)", *p)
+}
+
+type DescribeTopicGroupResponse struct {
+	TopicGroup *TopicGroup `thrift:"topicGroup,1,required" json:"topicGroup"`
+}
+
+func NewDescribeTopicGroupResponse() *DescribeTopicGroupResponse {
+	return &DescribeTopicGroupResponse{}
+}
+
+var DescribeTopicGroupResponse_TopicGroup_DEFAULT *TopicGroup
+
+func (p *DescribeTopicGroupResponse) GetTopicGroup() *TopicGroup {
+	if !p.IsSetTopicGroup() {
+		return DescribeTopicGroupResponse_TopicGroup_DEFAULT
+	}
+	return p.TopicGroup
+}
+func (p *DescribeTopicGroupResponse) IsSetTopicGroup() bool {
+	return p.TopicGroup != nil
+}
+
+func (p *DescribeTopicGroupResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupResponse) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicGroup = &TopicGroup{}
+	if err := p.TopicGroup.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicGroup, err)
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("DescribeTopicGroupResponse"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DescribeTopicGroupResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroup: %s", p, err)
+	}
+	if err := p.TopicGroup.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicGroup, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *DescribeTopicGroupResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DescribeTopicGroupResponse(%+v)", *p)
+}
+
+type DeleteTopicGroupRequest struct {
+	TopicGroupName string `thrift:"topicGroupName,1,required" json:"topicGroupName"`
+}
+
+func NewDeleteTopicGroupRequest() *DeleteTopicGroupRequest {
+	return &DeleteTopicGroupRequest{}
+}
+
+func (p *DeleteTopicGroupRequest) GetTopicGroupName() string {
+	return p.TopicGroupName
+}
+func (p *DeleteTopicGroupRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicGroupRequest) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.TopicGroupName = v
+	}
+	return nil
+}
+
+func (p *DeleteTopicGroupRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("DeleteTopicGroupRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicGroupRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroupName", thrift.STRING, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroupName: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroupName)); err != nil {
+		return fmt.Errorf("%T.topicGroupName (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroupName: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteTopicGroupRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteTopicGroupRequest(%+v)", *p)
+}
+
+type ListTopicGroupRequest struct {
+	OrgList []string `thrift:"orgList,1,required" json:"orgList"`
+}
+
+func NewListTopicGroupRequest() *ListTopicGroupRequest {
+	return &ListTopicGroupRequest{}
+}
+
+func (p *ListTopicGroupRequest) GetOrgList() []string {
+	return p.OrgList
+}
+func (p *ListTopicGroupRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupRequest) ReadField1(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return fmt.Errorf("error reading list begin: %s", err)
+	}
+	tSlice := make([]string, 0, size)
+	p.OrgList = tSlice
+	for i := 0; i < size; i++ {
+		var _elem9 string
+		if v, err := iprot.ReadString(); err != nil {
+			return fmt.Errorf("error reading field 0: %s", err)
+		} else {
+			_elem9 = v
+		}
+		p.OrgList = append(p.OrgList, _elem9)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return fmt.Errorf("error reading list end: %s", err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("ListTopicGroupRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("orgList", thrift.LIST, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:orgList: %s", p, err)
+	}
+	if err := oprot.WriteListBegin(thrift.STRING, len(p.OrgList)); err != nil {
+		return fmt.Errorf("error writing list begin: %s", err)
+	}
+	for _, v := range p.OrgList {
+		if err := oprot.WriteString(string(v)); err != nil {
+			return fmt.Errorf("%T. (0) field write error: %s", p, err)
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
+		return fmt.Errorf("error writing list end: %s", err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:orgList: %s", p, err)
+	}
+	return err
+}
+
+func (p *ListTopicGroupRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListTopicGroupRequest(%+v)", *p)
+}
+
+type ListTopicGroupResponse struct {
+	TopicGroupList []*TopicGroup `thrift:"topicGroupList,1,required" json:"topicGroupList"`
+}
+
+func NewListTopicGroupResponse() *ListTopicGroupResponse {
+	return &ListTopicGroupResponse{}
+}
+
+func (p *ListTopicGroupResponse) GetTopicGroupList() []*TopicGroup {
+	return p.TopicGroupList
+}
+func (p *ListTopicGroupResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupResponse) ReadField1(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return fmt.Errorf("error reading list begin: %s", err)
+	}
+	tSlice := make([]*TopicGroup, 0, size)
+	p.TopicGroupList = tSlice
+	for i := 0; i < size; i++ {
+		_elem10 := &TopicGroup{}
+		if err := _elem10.Read(iprot); err != nil {
+			return fmt.Errorf("%T error reading struct: %s", _elem10, err)
+		}
+		p.TopicGroupList = append(p.TopicGroupList, _elem10)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return fmt.Errorf("error reading list end: %s", err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("ListTopicGroupResponse"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ListTopicGroupResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroupList", thrift.LIST, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicGroupList: %s", p, err)
+	}
+	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.TopicGroupList)); err != nil {
+		return fmt.Errorf("error writing list begin: %s", err)
+	}
+	for _, v := range p.TopicGroupList {
+		if err := v.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", v, err)
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
+		return fmt.Errorf("error writing list end: %s", err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicGroupList: %s", p, err)
+	}
+	return err
+}
+
+func (p *ListTopicGroupResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListTopicGroupResponse(%+v)", *p)
+}
+
 type DescribeTopicResponse struct {
 	TopicInfo      *TopicInfo       `thrift:"topicInfo,1,required" json:"topicInfo"`
 	TopicAttribute *TopicAttribute  `thrift:"topicAttribute,2,required" json:"topicAttribute"`
@@ -2791,19 +4128,19 @@ func (p *DescribeTopicResponse) ReadField5(iprot thrift.TProtocol) error {
 	tMap := make(map[string]int32, size)
 	p.AclMap = tMap
 	for i := 0; i < size; i++ {
-		var _key7 string
+		var _key11 string
 		if v, err := iprot.ReadString(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
-			_key7 = v
+			_key11 = v
 		}
-		var _val8 int32
+		var _val12 int32
 		if v, err := iprot.ReadI32(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
-			_val8 = v
+			_val12 = v
 		}
-		p.AclMap[_key7] = _val8
+		p.AclMap[_key11] = _val12
 	}
 	if err := iprot.ReadMapEnd(); err != nil {
 		return fmt.Errorf("error reading map end: %s", err)
@@ -3052,6 +4389,144 @@ func (p *GetDescribeInfoResponse) String() string {
 	return fmt.Sprintf("GetDescribeInfoResponse(%+v)", *p)
 }
 
+type GetTopicAttributeResponse struct {
+	TopicTalosResourceName *TopicTalosResourceName `thrift:"topicTalosResourceName,1,required" json:"topicTalosResourceName"`
+	TopicAttribute         *TopicAttribute         `thrift:"topicAttribute,2,required" json:"topicAttribute"`
+}
+
+func NewGetTopicAttributeResponse() *GetTopicAttributeResponse {
+	return &GetTopicAttributeResponse{}
+}
+
+var GetTopicAttributeResponse_TopicTalosResourceName_DEFAULT *TopicTalosResourceName
+
+func (p *GetTopicAttributeResponse) GetTopicTalosResourceName() *TopicTalosResourceName {
+	if !p.IsSetTopicTalosResourceName() {
+		return GetTopicAttributeResponse_TopicTalosResourceName_DEFAULT
+	}
+	return p.TopicTalosResourceName
+}
+
+var GetTopicAttributeResponse_TopicAttribute_DEFAULT *TopicAttribute
+
+func (p *GetTopicAttributeResponse) GetTopicAttribute() *TopicAttribute {
+	if !p.IsSetTopicAttribute() {
+		return GetTopicAttributeResponse_TopicAttribute_DEFAULT
+	}
+	return p.TopicAttribute
+}
+func (p *GetTopicAttributeResponse) IsSetTopicTalosResourceName() bool {
+	return p.TopicTalosResourceName != nil
+}
+
+func (p *GetTopicAttributeResponse) IsSetTopicAttribute() bool {
+	return p.TopicAttribute != nil
+}
+
+func (p *GetTopicAttributeResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeResponse) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicTalosResourceName = &TopicTalosResourceName{}
+	if err := p.TopicTalosResourceName.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicTalosResourceName, err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeResponse) ReadField2(iprot thrift.TProtocol) error {
+	p.TopicAttribute = &TopicAttribute{}
+	if err := p.TopicAttribute.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicAttribute, err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetTopicAttributeResponse"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetTopicAttributeResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicTalosResourceName", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicTalosResourceName: %s", p, err)
+	}
+	if err := p.TopicTalosResourceName.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicTalosResourceName, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicTalosResourceName: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetTopicAttributeResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicAttribute", thrift.STRUCT, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:topicAttribute: %s", p, err)
+	}
+	if err := p.TopicAttribute.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicAttribute, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:topicAttribute: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetTopicAttributeResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetTopicAttributeResponse(%+v)", *p)
+}
+
 type ListTopicsResponse struct {
 	TopicInfos []*TopicInfo `thrift:"topicInfos,1,required" json:"topicInfos"`
 }
@@ -3103,11 +4578,11 @@ func (p *ListTopicsResponse) ReadField1(iprot thrift.TProtocol) error {
 	tSlice := make([]*TopicInfo, 0, size)
 	p.TopicInfos = tSlice
 	for i := 0; i < size; i++ {
-		_elem9 := &TopicInfo{}
-		if err := _elem9.Read(iprot); err != nil {
-			return fmt.Errorf("%T error reading struct: %s", _elem9, err)
+		_elem13 := &TopicInfo{}
+		if err := _elem13.Read(iprot); err != nil {
+			return fmt.Errorf("%T error reading struct: %s", _elem13, err)
 		}
-		p.TopicInfos = append(p.TopicInfos, _elem9)
+		p.TopicInfos = append(p.TopicInfos, _elem13)
 	}
 	if err := iprot.ReadListEnd(); err != nil {
 		return fmt.Errorf("error reading list end: %s", err)
@@ -3210,11 +4685,11 @@ func (p *ListTopicsInfoResponse) ReadField1(iprot thrift.TProtocol) error {
 	tSlice := make([]*Topic, 0, size)
 	p.TopicList = tSlice
 	for i := 0; i < size; i++ {
-		_elem10 := &Topic{}
-		if err := _elem10.Read(iprot); err != nil {
-			return fmt.Errorf("%T error reading struct: %s", _elem10, err)
+		_elem14 := &Topic{}
+		if err := _elem14.Read(iprot); err != nil {
+			return fmt.Errorf("%T error reading struct: %s", _elem14, err)
 		}
-		p.TopicList = append(p.TopicList, _elem10)
+		p.TopicList = append(p.TopicList, _elem14)
 	}
 	if err := iprot.ReadListEnd(); err != nil {
 		return fmt.Errorf("error reading list end: %s", err)
@@ -4150,19 +5625,19 @@ func (p *ListPermissionResponse) ReadField1(iprot thrift.TProtocol) error {
 	tMap := make(map[string]int32, size)
 	p.Permissions = tMap
 	for i := 0; i < size; i++ {
-		var _key11 string
+		var _key15 string
 		if v, err := iprot.ReadString(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
-			_key11 = v
+			_key15 = v
 		}
-		var _val12 int32
+		var _val16 int32
 		if v, err := iprot.ReadI32(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
-			_val12 = v
+			_val16 = v
 		}
-		p.Permissions[_key11] = _val12
+		p.Permissions[_key15] = _val16
 	}
 	if err := iprot.ReadMapEnd(); err != nil {
 		return fmt.Errorf("error reading map end: %s", err)

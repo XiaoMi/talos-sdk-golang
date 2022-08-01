@@ -191,8 +191,8 @@ func (f *PartitionFetcher) GetCurState() TaskState {
 func (f *PartitionFetcher) updateState(targetState TaskState) bool {
 	f.fetcherLock.Lock()
 	defer f.fetcherLock.Unlock()
-	f.log.Infof("PartitionFetcher for Partition: %d update status from: %s to %s",
-		f.partitionId, f.curState.String(), targetState.String())
+	f.log.Infof("PartitionFetcher for Topic: %s Partition: %d update status from: %s to %s",
+		f.topicAndPartition.TopicName, f.partitionId, f.curState.String(), targetState.String())
 
 	switch targetState {
 	case INIT:
@@ -230,8 +230,8 @@ func (f *PartitionFetcher) Lock() {
 	if f.updateState(LOCKED) {
 		f.wg.Add(1)
 		go f.fetcherStateMachine()
-		f.log.Infof("Worker: %s invoke partition: %d to 'LOCKED', try to serve it.",
-			f.workerId, f.partitionId)
+		f.log.Infof("Worker: %s invoke topic: %s partition: %d to 'LOCKED', try to serve it.",
+			f.workerId, f.topicAndPartition.TopicName, f.partitionId)
 	}
 }
 
@@ -307,12 +307,12 @@ func (f *PartitionFetcher) stealPartition() bool {
 			f.log.Errorf("lock partition failed: %s", err.Error())
 			return false
 		}
-		f.log.Infof("Worker: %s success to lock partitions: %d",
-			f.workerId, f.partitionId)
+		f.log.Infof("Worker: %s success to lock topic: %s partitions: %d",
+			f.workerId, f.topicAndPartition.TopicName, f.partitionId)
 		return true
 	}
-	f.log.Errorf("Worker: %s failed to lock partitions: %d",
-		f.workerId, f.partitionId)
+	f.log.Errorf("Worker: %s failed to lock topic: %s partition: %d",
+		f.workerId, f.topicAndPartition.TopicName, f.partitionId)
 	return false
 }
 

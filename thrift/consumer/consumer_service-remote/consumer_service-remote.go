@@ -23,13 +23,18 @@ func Usage() {
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
 	fmt.Fprintln(os.Stderr, "  LockPartitionResponse lockPartition(LockPartitionRequest request)")
 	fmt.Fprintln(os.Stderr, "  LockWorkerResponse lockWorker(LockWorkerRequest request)")
+	fmt.Fprintln(os.Stderr, "  MultiTopicsLockWorkerResponse lockWorkerForMultiTopics(MultiTopicsLockWorkerRequest request)")
+	fmt.Fprintln(os.Stderr, "  CheckRegisterResponse checkRegister(CheckRegisterRequest request)")
 	fmt.Fprintln(os.Stderr, "  void unlockPartition(UnlockPartitionRequest request)")
 	fmt.Fprintln(os.Stderr, "  RenewResponse renew(RenewRequest request)")
+	fmt.Fprintln(os.Stderr, "  MultiTopicsRenewResponse renewForMultiTopics(MultiTopicsRenewRequest request)")
 	fmt.Fprintln(os.Stderr, "  UpdateOffsetResponse updateOffset(UpdateOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryOffsetResponse queryOffset(QueryOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryWorkerResponse queryWorker(QueryWorkerRequest request)")
+	fmt.Fprintln(os.Stderr, "  MultiTopicsQueryWorkerResponse queryWorkerForMultiTopics(MultiTopicsQueryWorkerRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryOrgOffsetResponse queryOrgOffset(QueryOrgOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  GetWorkerIdResponse getWorkerId(GetWorkerIdRequest request)")
+	fmt.Fprintln(os.Stderr, "  void deleteConsumerGroup(DeleteConsumerGroupRequest request)")
 	fmt.Fprintln(os.Stderr, "  Version getServiceVersion()")
 	fmt.Fprintln(os.Stderr, "  void validClientVersion(Version clientVersion)")
 	fmt.Fprintln(os.Stderr)
@@ -131,19 +136,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "LockPartition requires 1 args")
 			flag.Usage()
 		}
-		arg28 := flag.Arg(1)
-		mbTrans29 := thrift.NewTMemoryBufferLen(len(arg28))
-		defer mbTrans29.Close()
-		_, err30 := mbTrans29.WriteString(arg28)
-		if err30 != nil {
+		arg47 := flag.Arg(1)
+		mbTrans48 := thrift.NewTMemoryBufferLen(len(arg47))
+		defer mbTrans48.Close()
+		_, err49 := mbTrans48.WriteString(arg47)
+		if err49 != nil {
 			Usage()
 			return
 		}
-		factory31 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt32 := factory31.GetProtocol(mbTrans29)
+		factory50 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt51 := factory50.GetProtocol(mbTrans48)
 		argvalue0 := consumer.NewLockPartitionRequest()
-		err33 := argvalue0.Read(jsProt32)
-		if err33 != nil {
+		err52 := argvalue0.Read(jsProt51)
+		if err52 != nil {
 			Usage()
 			return
 		}
@@ -156,19 +161,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "LockWorker requires 1 args")
 			flag.Usage()
 		}
-		arg34 := flag.Arg(1)
-		mbTrans35 := thrift.NewTMemoryBufferLen(len(arg34))
-		defer mbTrans35.Close()
-		_, err36 := mbTrans35.WriteString(arg34)
-		if err36 != nil {
+		arg53 := flag.Arg(1)
+		mbTrans54 := thrift.NewTMemoryBufferLen(len(arg53))
+		defer mbTrans54.Close()
+		_, err55 := mbTrans54.WriteString(arg53)
+		if err55 != nil {
 			Usage()
 			return
 		}
-		factory37 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt38 := factory37.GetProtocol(mbTrans35)
+		factory56 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt57 := factory56.GetProtocol(mbTrans54)
 		argvalue0 := consumer.NewLockWorkerRequest()
-		err39 := argvalue0.Read(jsProt38)
-		if err39 != nil {
+		err58 := argvalue0.Read(jsProt57)
+		if err58 != nil {
 			Usage()
 			return
 		}
@@ -176,24 +181,74 @@ func main() {
 		fmt.Print(client.LockWorker(value0))
 		fmt.Print("\n")
 		break
+	case "lockWorkerForMultiTopics":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "LockWorkerForMultiTopics requires 1 args")
+			flag.Usage()
+		}
+		arg59 := flag.Arg(1)
+		mbTrans60 := thrift.NewTMemoryBufferLen(len(arg59))
+		defer mbTrans60.Close()
+		_, err61 := mbTrans60.WriteString(arg59)
+		if err61 != nil {
+			Usage()
+			return
+		}
+		factory62 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt63 := factory62.GetProtocol(mbTrans60)
+		argvalue0 := consumer.NewMultiTopicsLockWorkerRequest()
+		err64 := argvalue0.Read(jsProt63)
+		if err64 != nil {
+			Usage()
+			return
+		}
+		value0 := argvalue0
+		fmt.Print(client.LockWorkerForMultiTopics(value0))
+		fmt.Print("\n")
+		break
+	case "checkRegister":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "CheckRegister requires 1 args")
+			flag.Usage()
+		}
+		arg65 := flag.Arg(1)
+		mbTrans66 := thrift.NewTMemoryBufferLen(len(arg65))
+		defer mbTrans66.Close()
+		_, err67 := mbTrans66.WriteString(arg65)
+		if err67 != nil {
+			Usage()
+			return
+		}
+		factory68 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt69 := factory68.GetProtocol(mbTrans66)
+		argvalue0 := consumer.NewCheckRegisterRequest()
+		err70 := argvalue0.Read(jsProt69)
+		if err70 != nil {
+			Usage()
+			return
+		}
+		value0 := argvalue0
+		fmt.Print(client.CheckRegister(value0))
+		fmt.Print("\n")
+		break
 	case "unlockPartition":
 		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "UnlockPartition requires 1 args")
 			flag.Usage()
 		}
-		arg40 := flag.Arg(1)
-		mbTrans41 := thrift.NewTMemoryBufferLen(len(arg40))
-		defer mbTrans41.Close()
-		_, err42 := mbTrans41.WriteString(arg40)
-		if err42 != nil {
+		arg71 := flag.Arg(1)
+		mbTrans72 := thrift.NewTMemoryBufferLen(len(arg71))
+		defer mbTrans72.Close()
+		_, err73 := mbTrans72.WriteString(arg71)
+		if err73 != nil {
 			Usage()
 			return
 		}
-		factory43 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt44 := factory43.GetProtocol(mbTrans41)
+		factory74 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt75 := factory74.GetProtocol(mbTrans72)
 		argvalue0 := consumer.NewUnlockPartitionRequest()
-		err45 := argvalue0.Read(jsProt44)
-		if err45 != nil {
+		err76 := argvalue0.Read(jsProt75)
+		if err76 != nil {
 			Usage()
 			return
 		}
@@ -206,19 +261,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Renew requires 1 args")
 			flag.Usage()
 		}
-		arg46 := flag.Arg(1)
-		mbTrans47 := thrift.NewTMemoryBufferLen(len(arg46))
-		defer mbTrans47.Close()
-		_, err48 := mbTrans47.WriteString(arg46)
-		if err48 != nil {
+		arg77 := flag.Arg(1)
+		mbTrans78 := thrift.NewTMemoryBufferLen(len(arg77))
+		defer mbTrans78.Close()
+		_, err79 := mbTrans78.WriteString(arg77)
+		if err79 != nil {
 			Usage()
 			return
 		}
-		factory49 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt50 := factory49.GetProtocol(mbTrans47)
+		factory80 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt81 := factory80.GetProtocol(mbTrans78)
 		argvalue0 := consumer.NewRenewRequest()
-		err51 := argvalue0.Read(jsProt50)
-		if err51 != nil {
+		err82 := argvalue0.Read(jsProt81)
+		if err82 != nil {
 			Usage()
 			return
 		}
@@ -226,24 +281,49 @@ func main() {
 		fmt.Print(client.Renew(value0))
 		fmt.Print("\n")
 		break
+	case "renewForMultiTopics":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "RenewForMultiTopics requires 1 args")
+			flag.Usage()
+		}
+		arg83 := flag.Arg(1)
+		mbTrans84 := thrift.NewTMemoryBufferLen(len(arg83))
+		defer mbTrans84.Close()
+		_, err85 := mbTrans84.WriteString(arg83)
+		if err85 != nil {
+			Usage()
+			return
+		}
+		factory86 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt87 := factory86.GetProtocol(mbTrans84)
+		argvalue0 := consumer.NewMultiTopicsRenewRequest()
+		err88 := argvalue0.Read(jsProt87)
+		if err88 != nil {
+			Usage()
+			return
+		}
+		value0 := argvalue0
+		fmt.Print(client.RenewForMultiTopics(value0))
+		fmt.Print("\n")
+		break
 	case "updateOffset":
 		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "UpdateOffset requires 1 args")
 			flag.Usage()
 		}
-		arg52 := flag.Arg(1)
-		mbTrans53 := thrift.NewTMemoryBufferLen(len(arg52))
-		defer mbTrans53.Close()
-		_, err54 := mbTrans53.WriteString(arg52)
-		if err54 != nil {
+		arg89 := flag.Arg(1)
+		mbTrans90 := thrift.NewTMemoryBufferLen(len(arg89))
+		defer mbTrans90.Close()
+		_, err91 := mbTrans90.WriteString(arg89)
+		if err91 != nil {
 			Usage()
 			return
 		}
-		factory55 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt56 := factory55.GetProtocol(mbTrans53)
+		factory92 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt93 := factory92.GetProtocol(mbTrans90)
 		argvalue0 := consumer.NewUpdateOffsetRequest()
-		err57 := argvalue0.Read(jsProt56)
-		if err57 != nil {
+		err94 := argvalue0.Read(jsProt93)
+		if err94 != nil {
 			Usage()
 			return
 		}
@@ -256,19 +336,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "QueryOffset requires 1 args")
 			flag.Usage()
 		}
-		arg58 := flag.Arg(1)
-		mbTrans59 := thrift.NewTMemoryBufferLen(len(arg58))
-		defer mbTrans59.Close()
-		_, err60 := mbTrans59.WriteString(arg58)
-		if err60 != nil {
+		arg95 := flag.Arg(1)
+		mbTrans96 := thrift.NewTMemoryBufferLen(len(arg95))
+		defer mbTrans96.Close()
+		_, err97 := mbTrans96.WriteString(arg95)
+		if err97 != nil {
 			Usage()
 			return
 		}
-		factory61 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt62 := factory61.GetProtocol(mbTrans59)
+		factory98 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt99 := factory98.GetProtocol(mbTrans96)
 		argvalue0 := consumer.NewQueryOffsetRequest()
-		err63 := argvalue0.Read(jsProt62)
-		if err63 != nil {
+		err100 := argvalue0.Read(jsProt99)
+		if err100 != nil {
 			Usage()
 			return
 		}
@@ -281,19 +361,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "QueryWorker requires 1 args")
 			flag.Usage()
 		}
-		arg64 := flag.Arg(1)
-		mbTrans65 := thrift.NewTMemoryBufferLen(len(arg64))
-		defer mbTrans65.Close()
-		_, err66 := mbTrans65.WriteString(arg64)
-		if err66 != nil {
+		arg101 := flag.Arg(1)
+		mbTrans102 := thrift.NewTMemoryBufferLen(len(arg101))
+		defer mbTrans102.Close()
+		_, err103 := mbTrans102.WriteString(arg101)
+		if err103 != nil {
 			Usage()
 			return
 		}
-		factory67 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt68 := factory67.GetProtocol(mbTrans65)
+		factory104 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt105 := factory104.GetProtocol(mbTrans102)
 		argvalue0 := consumer.NewQueryWorkerRequest()
-		err69 := argvalue0.Read(jsProt68)
-		if err69 != nil {
+		err106 := argvalue0.Read(jsProt105)
+		if err106 != nil {
 			Usage()
 			return
 		}
@@ -301,24 +381,49 @@ func main() {
 		fmt.Print(client.QueryWorker(value0))
 		fmt.Print("\n")
 		break
+	case "queryWorkerForMultiTopics":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "QueryWorkerForMultiTopics requires 1 args")
+			flag.Usage()
+		}
+		arg107 := flag.Arg(1)
+		mbTrans108 := thrift.NewTMemoryBufferLen(len(arg107))
+		defer mbTrans108.Close()
+		_, err109 := mbTrans108.WriteString(arg107)
+		if err109 != nil {
+			Usage()
+			return
+		}
+		factory110 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt111 := factory110.GetProtocol(mbTrans108)
+		argvalue0 := consumer.NewMultiTopicsQueryWorkerRequest()
+		err112 := argvalue0.Read(jsProt111)
+		if err112 != nil {
+			Usage()
+			return
+		}
+		value0 := argvalue0
+		fmt.Print(client.QueryWorkerForMultiTopics(value0))
+		fmt.Print("\n")
+		break
 	case "queryOrgOffset":
 		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "QueryOrgOffset requires 1 args")
 			flag.Usage()
 		}
-		arg70 := flag.Arg(1)
-		mbTrans71 := thrift.NewTMemoryBufferLen(len(arg70))
-		defer mbTrans71.Close()
-		_, err72 := mbTrans71.WriteString(arg70)
-		if err72 != nil {
+		arg113 := flag.Arg(1)
+		mbTrans114 := thrift.NewTMemoryBufferLen(len(arg113))
+		defer mbTrans114.Close()
+		_, err115 := mbTrans114.WriteString(arg113)
+		if err115 != nil {
 			Usage()
 			return
 		}
-		factory73 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt74 := factory73.GetProtocol(mbTrans71)
+		factory116 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt117 := factory116.GetProtocol(mbTrans114)
 		argvalue0 := consumer.NewQueryOrgOffsetRequest()
-		err75 := argvalue0.Read(jsProt74)
-		if err75 != nil {
+		err118 := argvalue0.Read(jsProt117)
+		if err118 != nil {
 			Usage()
 			return
 		}
@@ -331,24 +436,49 @@ func main() {
 			fmt.Fprintln(os.Stderr, "GetWorkerId requires 1 args")
 			flag.Usage()
 		}
-		arg76 := flag.Arg(1)
-		mbTrans77 := thrift.NewTMemoryBufferLen(len(arg76))
-		defer mbTrans77.Close()
-		_, err78 := mbTrans77.WriteString(arg76)
-		if err78 != nil {
+		arg119 := flag.Arg(1)
+		mbTrans120 := thrift.NewTMemoryBufferLen(len(arg119))
+		defer mbTrans120.Close()
+		_, err121 := mbTrans120.WriteString(arg119)
+		if err121 != nil {
 			Usage()
 			return
 		}
-		factory79 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt80 := factory79.GetProtocol(mbTrans77)
+		factory122 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt123 := factory122.GetProtocol(mbTrans120)
 		argvalue0 := consumer.NewGetWorkerIdRequest()
-		err81 := argvalue0.Read(jsProt80)
-		if err81 != nil {
+		err124 := argvalue0.Read(jsProt123)
+		if err124 != nil {
 			Usage()
 			return
 		}
 		value0 := argvalue0
 		fmt.Print(client.GetWorkerId(value0))
+		fmt.Print("\n")
+		break
+	case "deleteConsumerGroup":
+		if flag.NArg()-1 != 1 {
+			fmt.Fprintln(os.Stderr, "DeleteConsumerGroup requires 1 args")
+			flag.Usage()
+		}
+		arg125 := flag.Arg(1)
+		mbTrans126 := thrift.NewTMemoryBufferLen(len(arg125))
+		defer mbTrans126.Close()
+		_, err127 := mbTrans126.WriteString(arg125)
+		if err127 != nil {
+			Usage()
+			return
+		}
+		factory128 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt129 := factory128.GetProtocol(mbTrans126)
+		argvalue0 := consumer.NewDeleteConsumerGroupRequest()
+		err130 := argvalue0.Read(jsProt129)
+		if err130 != nil {
+			Usage()
+			return
+		}
+		value0 := argvalue0
+		fmt.Print(client.DeleteConsumerGroup(value0))
 		fmt.Print("\n")
 		break
 	case "getServiceVersion":
@@ -364,19 +494,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "ValidClientVersion requires 1 args")
 			flag.Usage()
 		}
-		arg82 := flag.Arg(1)
-		mbTrans83 := thrift.NewTMemoryBufferLen(len(arg82))
-		defer mbTrans83.Close()
-		_, err84 := mbTrans83.WriteString(arg82)
-		if err84 != nil {
+		arg131 := flag.Arg(1)
+		mbTrans132 := thrift.NewTMemoryBufferLen(len(arg131))
+		defer mbTrans132.Close()
+		_, err133 := mbTrans132.WriteString(arg131)
+		if err133 != nil {
 			Usage()
 			return
 		}
-		factory85 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt86 := factory85.GetProtocol(mbTrans83)
+		factory134 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt135 := factory134.GetProtocol(mbTrans132)
 		argvalue0 := consumer.NewVersion()
-		err87 := argvalue0.Read(jsProt86)
-		if err87 != nil {
+		err136 := argvalue0.Read(jsProt135)
+		if err136 != nil {
 			Usage()
 			return
 		}

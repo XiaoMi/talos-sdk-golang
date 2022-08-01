@@ -15,6 +15,7 @@ import (
 
 type TalosConsumerConfig struct {
 	partitionCheckInterval          int64
+	topicPatternCheckInterval       int64
 	workerInfoCheckInterval         int64
 	renewCheckInterval              int64
 	renewMaxRetry                   int64
@@ -53,6 +54,9 @@ func initConsumerConfig(props *utils.Properties) *TalosConsumerConfig {
 	partitionCheckInterval, _ := strconv.ParseInt(props.GetProperty(
 		GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL,
 		strconv.Itoa(GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_DEFAULT)), 10, 64)
+	topicPatternCheckInterval, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL,
+		strconv.Itoa(GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_DEFAULT)), 10, 64)
 	workerInfoCheckInterval, _ := strconv.ParseInt(props.GetProperty(
 		GALAXY_TALOS_CONSUMER_CHECK_WORKER_INFO_INTERVAL,
 		strconv.Itoa(GALAXY_TALOS_CONSUMER_CHECK_WORKER_INFO_INTERVAL_DEFAULT)), 10, 64)
@@ -98,6 +102,7 @@ func initConsumerConfig(props *utils.Properties) *TalosConsumerConfig {
 
 	return &TalosConsumerConfig{
 		partitionCheckInterval:          partitionCheckInterval,
+		topicPatternCheckInterval:       topicPatternCheckInterval,
 		workerInfoCheckInterval:         workerInfoCheckInterval,
 		renewCheckInterval:              renewCheckInterval,
 		renewMaxRetry:                   renewMaxRetry,
@@ -121,6 +126,14 @@ func (c *TalosConsumerConfig) CheckParameter() error {
 		c.partitionCheckInterval,
 		GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_MINIMUM,
 		GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL_MAXIMUM)
+	if err != nil {
+		return err
+	}
+
+	err = utils.CheckParameterRange(GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL,
+		c.topicPatternCheckInterval,
+		GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_MINIMUM,
+		GALAXY_TALOS_CONSUMER_CHECK_TOPIC_PATTERN_INTERVAL_MAXIMUM)
 	if err != nil {
 		return err
 	}
@@ -191,6 +204,9 @@ func (c *TalosConsumerConfig) CheckParameter() error {
 	return nil
 }
 
+func (c *TalosConsumerConfig) GetTopicPatternCheckInterval() int64 {
+	return c.topicPatternCheckInterval
+}
 func (c *TalosConsumerConfig) GetPartitionCheckInterval() int64 {
 	return c.partitionCheckInterval
 }

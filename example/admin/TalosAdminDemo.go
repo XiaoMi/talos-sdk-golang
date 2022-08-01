@@ -130,19 +130,6 @@ func (demo TalosAdminDemo) listTopics() ([]*topic.TopicInfo, error) {
 	return topicInfoList, err
 }
 
-func (demo TalosAdminDemo) listTopicsByOrgId(orgId string) ([]*topic.Topic, error) {
-	topicInfoList, err := demo.talosAdmin.ListTopicsByOrgId(orgId)
-	if err != nil {
-		log.Errorf("Topic failed to listTopics: %s")
-		return nil, err
-	}
-	log.Infof("Topic success to listTopics: %s", topicInfoList)
-	for _, topic := range topicInfoList {
-		log.Infof("Topic info: %s", topic)
-	}
-	return topicInfoList, err
-}
-
 func (demo TalosAdminDemo) listTopicsInfo() ([]*topic.Topic, error) {
 	topicInfoList, err := demo.talosAdmin.ListTopicsInfo()
 	if err != nil {

@@ -22,7 +22,6 @@ func Usage() {
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
 	fmt.Fprintln(os.Stderr, "  ListTopicsInfoResponse listTopics()")
-	fmt.Fprintln(os.Stderr, "  ListTopicsInfoResponse listTopicsByOrgId(string orgId)")
 	fmt.Fprintln(os.Stderr, "  QueryConsumerGroupResponse queryConsumerGroup(QueryConsumerGroupRequest request)")
 	fmt.Fprintln(os.Stderr, "  GetTopicConsumeUnitResponse getTopicConsumeUnit(GetTopicConsumeUnitRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryTopicConsumeUnitResponse queryTopicConsumeUnit(QueryTopicConsumeUnitRequest request)")
@@ -131,34 +130,24 @@ func main() {
 		fmt.Print(client.ListTopics())
 		fmt.Print("\n")
 		break
-	case "listTopicsByOrgId":
-		if flag.NArg()-1 != 1 {
-			fmt.Fprintln(os.Stderr, "ListTopicsByOrgId requires 1 args")
-			flag.Usage()
-		}
-		argvalue0 := flag.Arg(1)
-		value0 := argvalue0
-		fmt.Print(client.ListTopicsByOrgId(value0))
-		fmt.Print("\n")
-		break
 	case "queryConsumerGroup":
 		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "QueryConsumerGroup requires 1 args")
 			flag.Usage()
 		}
-		arg23 := flag.Arg(1)
-		mbTrans24 := thrift.NewTMemoryBufferLen(len(arg23))
-		defer mbTrans24.Close()
-		_, err25 := mbTrans24.WriteString(arg23)
-		if err25 != nil {
+		arg20 := flag.Arg(1)
+		mbTrans21 := thrift.NewTMemoryBufferLen(len(arg20))
+		defer mbTrans21.Close()
+		_, err22 := mbTrans21.WriteString(arg20)
+		if err22 != nil {
 			Usage()
 			return
 		}
-		factory26 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt27 := factory26.GetProtocol(mbTrans24)
+		factory23 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt24 := factory23.GetProtocol(mbTrans21)
 		argvalue0 := metric.NewQueryConsumerGroupRequest()
-		err28 := argvalue0.Read(jsProt27)
-		if err28 != nil {
+		err25 := argvalue0.Read(jsProt24)
+		if err25 != nil {
 			Usage()
 			return
 		}
@@ -171,19 +160,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "GetTopicConsumeUnit requires 1 args")
 			flag.Usage()
 		}
-		arg29 := flag.Arg(1)
-		mbTrans30 := thrift.NewTMemoryBufferLen(len(arg29))
-		defer mbTrans30.Close()
-		_, err31 := mbTrans30.WriteString(arg29)
-		if err31 != nil {
+		arg26 := flag.Arg(1)
+		mbTrans27 := thrift.NewTMemoryBufferLen(len(arg26))
+		defer mbTrans27.Close()
+		_, err28 := mbTrans27.WriteString(arg26)
+		if err28 != nil {
 			Usage()
 			return
 		}
-		factory32 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt33 := factory32.GetProtocol(mbTrans30)
+		factory29 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt30 := factory29.GetProtocol(mbTrans27)
 		argvalue0 := metric.NewGetTopicConsumeUnitRequest()
-		err34 := argvalue0.Read(jsProt33)
-		if err34 != nil {
+		err31 := argvalue0.Read(jsProt30)
+		if err31 != nil {
 			Usage()
 			return
 		}
@@ -196,19 +185,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "QueryTopicConsumeUnit requires 1 args")
 			flag.Usage()
 		}
-		arg35 := flag.Arg(1)
-		mbTrans36 := thrift.NewTMemoryBufferLen(len(arg35))
-		defer mbTrans36.Close()
-		_, err37 := mbTrans36.WriteString(arg35)
-		if err37 != nil {
+		arg32 := flag.Arg(1)
+		mbTrans33 := thrift.NewTMemoryBufferLen(len(arg32))
+		defer mbTrans33.Close()
+		_, err34 := mbTrans33.WriteString(arg32)
+		if err34 != nil {
 			Usage()
 			return
 		}
-		factory38 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt39 := factory38.GetProtocol(mbTrans36)
+		factory35 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt36 := factory35.GetProtocol(mbTrans33)
 		argvalue0 := metric.NewQueryTopicConsumeUnitRequest()
-		err40 := argvalue0.Read(jsProt39)
-		if err40 != nil {
+		err37 := argvalue0.Read(jsProt36)
+		if err37 != nil {
 			Usage()
 			return
 		}
@@ -221,19 +210,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "GetDataPreview requires 1 args")
 			flag.Usage()
 		}
-		arg41 := flag.Arg(1)
-		mbTrans42 := thrift.NewTMemoryBufferLen(len(arg41))
-		defer mbTrans42.Close()
-		_, err43 := mbTrans42.WriteString(arg41)
-		if err43 != nil {
+		arg38 := flag.Arg(1)
+		mbTrans39 := thrift.NewTMemoryBufferLen(len(arg38))
+		defer mbTrans39.Close()
+		_, err40 := mbTrans39.WriteString(arg38)
+		if err40 != nil {
 			Usage()
 			return
 		}
-		factory44 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt45 := factory44.GetProtocol(mbTrans42)
+		factory41 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt42 := factory41.GetProtocol(mbTrans39)
 		argvalue0 := metric.NewGetDataPreviewRequest()
-		err46 := argvalue0.Read(jsProt45)
-		if err46 != nil {
+		err43 := argvalue0.Read(jsProt42)
+		if err43 != nil {
 			Usage()
 			return
 		}
@@ -254,19 +243,19 @@ func main() {
 			fmt.Fprintln(os.Stderr, "ValidClientVersion requires 1 args")
 			flag.Usage()
 		}
-		arg47 := flag.Arg(1)
-		mbTrans48 := thrift.NewTMemoryBufferLen(len(arg47))
-		defer mbTrans48.Close()
-		_, err49 := mbTrans48.WriteString(arg47)
-		if err49 != nil {
+		arg44 := flag.Arg(1)
+		mbTrans45 := thrift.NewTMemoryBufferLen(len(arg44))
+		defer mbTrans45.Close()
+		_, err46 := mbTrans45.WriteString(arg44)
+		if err46 != nil {
 			Usage()
 			return
 		}
-		factory50 := thrift.NewTSimpleJSONProtocolFactory()
-		jsProt51 := factory50.GetProtocol(mbTrans48)
+		factory47 := thrift.NewTSimpleJSONProtocolFactory()
+		jsProt48 := factory47.GetProtocol(mbTrans45)
 		argvalue0 := metric.NewVersion()
-		err52 := argvalue0.Read(jsProt51)
-		if err52 != nil {
+		err49 := argvalue0.Read(jsProt48)
+		if err49 != nil {
 			Usage()
 			return
 		}

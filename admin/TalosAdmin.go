@@ -28,6 +28,10 @@ type TalosAdmin struct {
 	credential     *auth.Credential
 }
 
+func (a *TalosAdmin) ListTopicsByOrgId(orgId string) ([]*topic.Topic, error) {
+	panic("implement me")
+}
+
 func NewTalosAdmin(clientFactory *client.TalosClientFactory) *TalosAdmin {
 	return &TalosAdmin{
 		topicClient:    clientFactory.NewTopicClientDefault(),
@@ -87,9 +91,9 @@ func (a *TalosAdmin) ListTopicsInfo() ([]*topic.Topic, error) {
 	return listTopicsInfoResponse.GetTopicList(), err
 }
 
-func (a *TalosAdmin) ListTopicsByOrgId(orgId string) ([]*topic.Topic, error) {
-	listTopicsResponse, err := a.metricClient.ListTopicsByOrgId(orgId)
-	return listTopicsResponse.GetTopicList(), err
+func (a *TalosAdmin) LookupTopics(request *message.LookupTopicsRequest) (
+	*message.LookupTopicsResponse, error) {
+	return a.messageClient.LookupTopics(request)
 }
 
 func (a *TalosAdmin) GetTopicOffset(request *message.GetTopicOffsetRequest) (
@@ -102,6 +106,12 @@ func (a *TalosAdmin) GetPartitionOffset(request *message.GetPartitionOffsetReque
 	*message.OffsetInfo, error) {
 	getPartitionOffsetResponse, err := a.messageClient.GetPartitionOffset(request)
 	return getPartitionOffsetResponse.GetOffsetInfo(), err
+}
+
+func (a *TalosAdmin) DescribeTopicGroup(request *topic.DescribeTopicGroupRequest) (
+	*topic.TopicGroup, error) {
+	getPartitionOffsetResponse, err := a.topicClient.DescribeTopicGroup(request)
+	return getPartitionOffsetResponse.GetTopicGroup(), err
 }
 
 func (a *TalosAdmin) GetScheduleInfo(request *message.GetScheduleInfoRequest) (

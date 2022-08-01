@@ -76,8 +76,8 @@ func (r *TalosMessageReader) InitStartOffset() error {
 		r.lastCommitOffset = atomic.LoadInt64(r.startOffset) - 1
 		r.finishedOffset = r.lastCommitOffset
 	}
-	r.log.Infof("Init startOffset: %d lastCommitOffset: %d for partition: %d ",
-		atomic.LoadInt64(r.startOffset), r.lastCommitOffset,
+	r.log.Infof("Init startOffset: %d lastCommitOffset: %d for topic: %s partition: %d ",
+		atomic.LoadInt64(r.startOffset), r.lastCommitOffset, r.topicAndPartition.GetTopicName(),
 		r.topicAndPartition.GetPartitionId())
 	return nil
 }

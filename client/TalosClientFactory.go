@@ -155,6 +155,67 @@ type TopicClientProxy struct {
 	clockOffset int64
 }
 
+func (p *TopicClientProxy) CreateTopicGroup(request *topic.CreateTopicGroupRequest) (
+	r *topic.CreateTopicGroupResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=createTopicGroup")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.CreateTopicGroup(request)
+
+}
+
+func (p *TopicClientProxy) DescribeTopicGroup(request *topic.DescribeTopicGroupRequest) (
+	r *topic.DescribeTopicGroupResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=describeTopicGroup")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.DescribeTopicGroup(request)
+}
+
+func (p *TopicClientProxy) DeleteTopicGroup(
+	request *topic.DeleteTopicGroupRequest) (err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=deleteTopicGroup")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.DeleteTopicGroup(request)
+}
+
+func (p *TopicClientProxy) ListTopicGroup(request *topic.ListTopicGroupRequest) (
+	r *topic.ListTopicGroupResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=listTopicGroup")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.ListTopicGroup(request)
+}
+
+func (p *TopicClientProxy) CreateReplicationTopic(request *topic.CreateReplicationTopicRequest) (
+	r *topic.CreateTopicResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=createReplicationTopic")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.CreateReplicationTopic(request)
+}
+
+func (p *TopicClientProxy) GetTopicAttribute(request *topic.GetTopicAttributeRequest) (
+	r *topic.GetTopicAttributeResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getTopicAttribute")
+	defer transport.Close()
+	client := topic.NewTopicServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetTopicAttribute(request)
+}
+
 func (p *TopicClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
@@ -338,6 +399,56 @@ type MessageClientProxy struct {
 	clockOffset int64
 }
 
+func (p *MessageClientProxy) Prepare(request *message.PrepareRequest) (
+	r *message.PrepareResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=prepare")
+	defer transport.Close()
+	client := message.NewMessageServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.Prepare(request)
+}
+
+func (p *MessageClientProxy) Commit(request *message.CommitRequest) (
+	r *message.CommitResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=commit")
+	defer transport.Close()
+	client := message.NewMessageServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.Commit(request)
+}
+
+func (p *MessageClientProxy) Rollback(request *message.RollbackRequest) (
+	r *message.RollbackResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=rollback")
+	defer transport.Close()
+	client := message.NewMessageServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.Rollback(request)
+}
+
+func (p *MessageClientProxy) GetUnkownStateTransaction(request *message.GetUnkownStateTransactionRequest) (
+	r *message.GetUnkownStateTransactionResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=getUnkownStateTransaction")
+	defer transport.Close()
+	client := message.NewMessageServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.GetUnkownStateTransaction(request)
+}
+
+func (p *MessageClientProxy) LookupTopics(request *message.LookupTopicsRequest) (
+	r *message.LookupTopicsResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=lookupTopics")
+	defer transport.Close()
+	client := message.NewMessageServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.LookupTopics(request)
+}
+
 func (p *MessageClientProxy) GetServiceVersion() (r *common.Version, err error) {
 	transport := p.factory.GetTransportWithClockOffset(nil,
 		p.clockOffset, "type=getServerVersion")
@@ -422,6 +533,41 @@ func (p *MessageClientProxy) GetScheduleInfo(request *message.
 type ConsumerClientProxy struct {
 	factory     *TalosHttpClientTransportFactory
 	clockOffset int64
+}
+
+func (p *ConsumerClientProxy) LockWorkerForMultiTopics(request *consumer.MultiTopicsLockWorkerRequest) (r *consumer.MultiTopicsLockWorkerResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=lockWorkerForMultiTopics")
+	defer transport.Close()
+	client := consumer.NewConsumerServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.LockWorkerForMultiTopics(request)
+}
+
+func (p *ConsumerClientProxy) CheckRegister(request *consumer.CheckRegisterRequest) (r *consumer.CheckRegisterResponse, err error) {
+	panic("implement me")
+}
+
+func (p *ConsumerClientProxy) RenewForMultiTopics(request *consumer.MultiTopicsRenewRequest) (r *consumer.MultiTopicsRenewResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=renewForMultiTopics")
+	defer transport.Close()
+	client := consumer.NewConsumerServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.RenewForMultiTopics(request)
+}
+
+func (p *ConsumerClientProxy) QueryWorkerForMultiTopics(request *consumer.MultiTopicsQueryWorkerRequest) (r *consumer.MultiTopicsQueryWorkerResponse, err error) {
+	transport := p.factory.GetTransportWithClockOffset(nil,
+		p.clockOffset, "type=queryWorkerForMultiTopics")
+	defer transport.Close()
+	client := consumer.NewConsumerServiceClientFactory(transport,
+		thrift.NewTCompactProtocolFactory())
+	return client.QueryWorkerForMultiTopics(request)
+}
+
+func (p *ConsumerClientProxy) DeleteConsumerGroup(request *consumer.DeleteConsumerGroupRequest) (err error) {
+	panic("implement me")
 }
 
 func (p *ConsumerClientProxy) GetServiceVersion() (r *common.Version, err error) {
@@ -678,16 +824,6 @@ func (p *MetricClientProxy) ValidClientVersion(clientVersion *common.Version) (e
 	client := metric.NewMetricServiceClientFactory(transport,
 		thrift.NewTCompactProtocolFactory())
 	return client.ValidClientVersion(clientVersion)
-}
-
-func (p *MetricClientProxy) ListTopicsByOrgId(orgId string) (
-	r *topic.ListTopicsInfoResponse, err error) {
-	transport := p.factory.GetTransportWithClockOffset(nil,
-		p.clockOffset, "type=listTopicsByOrgId")
-	defer transport.Close()
-	client := metric.NewMetricServiceClientFactory(transport,
-		thrift.NewTCompactProtocolFactory())
-	return client.ListTopicsByOrgId(orgId)
 }
 
 func (p *MetricClientProxy) ListTopics() (r *topic.ListTopicsInfoResponse, err error) {

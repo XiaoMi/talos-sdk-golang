@@ -65,47 +65,59 @@ func HttpStatusCodePtr(v HttpStatusCode) *HttpStatusCode { return &v }
 type ErrorCode int64
 
 const (
-	ErrorCode_NO_ERROR                      ErrorCode = 0
-	ErrorCode_UNKNOWN                       ErrorCode = 1
-	ErrorCode_UNEXPECTED_ERROR              ErrorCode = 2
-	ErrorCode_UNEXPECTED_MESSAGE_OFFSET     ErrorCode = 3
-	ErrorCode_TOPIC_EXIST                   ErrorCode = 4
-	ErrorCode_TOPIC_NOT_EXIST               ErrorCode = 5
-	ErrorCode_QUOTA_NOT_EXIST               ErrorCode = 6
-	ErrorCode_LOCK_EXIST                    ErrorCode = 7
-	ErrorCode_LOCK_NOT_EXIST                ErrorCode = 8
-	ErrorCode_LOCK_VALUE_NOT_EXPECTED       ErrorCode = 9
-	ErrorCode_MESSAGE_MISSING               ErrorCode = 10
-	ErrorCode_MESSAGE_INCOMPLETE            ErrorCode = 11
-	ErrorCode_MESSAGE_INDEX_UNDESIRED_ERROR ErrorCode = 12
-	ErrorCode_MESSAGE_INDEX_NOT_EXIST       ErrorCode = 13
-	ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE   ErrorCode = 14
-	ErrorCode_INVALID_NAME_ERROR            ErrorCode = 15
-	ErrorCode_INVALID_TOPIC_PARAMS          ErrorCode = 16
-	ErrorCode_OPERATION_FAILED              ErrorCode = 17
-	ErrorCode_HDFS_OPERATION_FAILED         ErrorCode = 18
-	ErrorCode_HBASE_OPERATION_FAILED        ErrorCode = 19
-	ErrorCode_ZOOKEEPER_OPERATION_FAILED    ErrorCode = 20
-	ErrorCode_PARTITION_NOT_SERVING         ErrorCode = 21
-	ErrorCode_PARTITION_NOT_EXIST           ErrorCode = 22
-	ErrorCode_ZK_NODE_EXIST                 ErrorCode = 23
-	ErrorCode_ZK_NODE_NOT_EXIST             ErrorCode = 24
-	ErrorCode_REST_SERVER_INIT_ERROR        ErrorCode = 25
-	ErrorCode_INTERNAL_SERVER_ERROR         ErrorCode = 26
-	ErrorCode_EXCESSIVE_PENDING_MESSAGE     ErrorCode = 27
-	ErrorCode_PERMISSION_DENIED_ERROR       ErrorCode = 28
-	ErrorCode_HDFS_FILE_NOT_EXIST           ErrorCode = 29
-	ErrorCode_INVALID_AUTH_INFO             ErrorCode = 30
-	ErrorCode_SUB_RESOURCE_NAME_EXIST       ErrorCode = 31
-	ErrorCode_SUB_RESOURCE_NAME_NOT_EXIST   ErrorCode = 32
-	ErrorCode_REQUEST_PROCESS_TIMEOUT       ErrorCode = 33
-	ErrorCode_QUOTA_EXCEEDED                ErrorCode = 34
-	ErrorCode_THROTTLE_REJECT_ERROR         ErrorCode = 35
-	ErrorCode_QUOTA_AUTO_APPROVE_FAILED     ErrorCode = 36
-	ErrorCode_HBASE_OPERATION_BLOCKED       ErrorCode = 37
-	ErrorCode_CLOCK_TOO_SKEWED              ErrorCode = 38
-	ErrorCode_REQUEST_TOO_LARGE             ErrorCode = 39
-	ErrorCode_BAD_REQUEST                   ErrorCode = 40
+	ErrorCode_NO_ERROR                               ErrorCode = 0
+	ErrorCode_UNKNOWN                                ErrorCode = 1
+	ErrorCode_UNEXPECTED_ERROR                       ErrorCode = 2
+	ErrorCode_UNEXPECTED_MESSAGE_OFFSET              ErrorCode = 3
+	ErrorCode_TOPIC_EXIST                            ErrorCode = 4
+	ErrorCode_TOPIC_NOT_EXIST                        ErrorCode = 5
+	ErrorCode_QUOTA_NOT_EXIST                        ErrorCode = 6
+	ErrorCode_LOCK_EXIST                             ErrorCode = 7
+	ErrorCode_LOCK_NOT_EXIST                         ErrorCode = 8
+	ErrorCode_LOCK_VALUE_NOT_EXPECTED                ErrorCode = 9
+	ErrorCode_MESSAGE_MISSING                        ErrorCode = 10
+	ErrorCode_MESSAGE_INCOMPLETE                     ErrorCode = 11
+	ErrorCode_MESSAGE_INDEX_UNDESIRED_ERROR          ErrorCode = 12
+	ErrorCode_MESSAGE_INDEX_NOT_EXIST                ErrorCode = 13
+	ErrorCode_MESSAGE_OFFSET_OUT_OF_RANGE            ErrorCode = 14
+	ErrorCode_INVALID_NAME_ERROR                     ErrorCode = 15
+	ErrorCode_INVALID_TOPIC_PARAMS                   ErrorCode = 16
+	ErrorCode_OPERATION_FAILED                       ErrorCode = 17
+	ErrorCode_HDFS_OPERATION_FAILED                  ErrorCode = 18
+	ErrorCode_HBASE_OPERATION_FAILED                 ErrorCode = 19
+	ErrorCode_ZOOKEEPER_OPERATION_FAILED             ErrorCode = 20
+	ErrorCode_PARTITION_NOT_SERVING                  ErrorCode = 21
+	ErrorCode_PARTITION_NOT_EXIST                    ErrorCode = 22
+	ErrorCode_ZK_NODE_EXIST                          ErrorCode = 23
+	ErrorCode_ZK_NODE_NOT_EXIST                      ErrorCode = 24
+	ErrorCode_REST_SERVER_INIT_ERROR                 ErrorCode = 25
+	ErrorCode_INTERNAL_SERVER_ERROR                  ErrorCode = 26
+	ErrorCode_EXCESSIVE_PENDING_MESSAGE              ErrorCode = 27
+	ErrorCode_PERMISSION_DENIED_ERROR                ErrorCode = 28
+	ErrorCode_HDFS_FILE_NOT_EXIST                    ErrorCode = 29
+	ErrorCode_INVALID_AUTH_INFO                      ErrorCode = 30
+	ErrorCode_SUB_RESOURCE_NAME_EXIST                ErrorCode = 31
+	ErrorCode_SUB_RESOURCE_NAME_NOT_EXIST            ErrorCode = 32
+	ErrorCode_REQUEST_PROCESS_TIMEOUT                ErrorCode = 33
+	ErrorCode_QUOTA_EXCEEDED                         ErrorCode = 34
+	ErrorCode_THROTTLE_REJECT_ERROR                  ErrorCode = 35
+	ErrorCode_QUOTA_AUTO_APPROVE_FAILED              ErrorCode = 36
+	ErrorCode_HBASE_OPERATION_BLOCKED                ErrorCode = 37
+	ErrorCode_CLOCK_TOO_SKEWED                       ErrorCode = 38
+	ErrorCode_REQUEST_TOO_LARGE                      ErrorCode = 39
+	ErrorCode_BAD_REQUEST                            ErrorCode = 40
+	ErrorCode_CONSUMER_NOT_EXIST                     ErrorCode = 41
+	ErrorCode_TRANSACTION_FINISHED                   ErrorCode = 42
+	ErrorCode_TRANSACTION_NOT_EXIST                  ErrorCode = 43
+	ErrorCode_GET_DATA_PREVIEW_ERROR                 ErrorCode = 44
+	ErrorCode_TALOS_SCHEMA_ERROR                     ErrorCode = 45
+	ErrorCode_SOURCE_ClUSTER_LIST_HAS_CIRCLE         ErrorCode = 46
+	ErrorCode_PUT_MESSAGE_FAILED_TO_MIRROR_PARTITION ErrorCode = 47
+	ErrorCode_NOT_TRANSACTION_TOPIC_ERROR            ErrorCode = 48
+	ErrorCode_TRANSACTION_ACK_DUPLICATED             ErrorCode = 49
+	ErrorCode_CHANGE_PARTITION_TOO_FAST              ErrorCode = 50
+	ErrorCode_TOO_MANY_CONSUMER                      ErrorCode = 51
+	ErrorCode_CONSUMER_GROUP_STILL_WORKING           ErrorCode = 52
 )
 
 func (p ErrorCode) String() string {
@@ -192,6 +204,30 @@ func (p ErrorCode) String() string {
 		return "ErrorCode_REQUEST_TOO_LARGE"
 	case ErrorCode_BAD_REQUEST:
 		return "ErrorCode_BAD_REQUEST"
+	case ErrorCode_CONSUMER_NOT_EXIST:
+		return "ErrorCode_CONSUMER_NOT_EXIST"
+	case ErrorCode_TRANSACTION_FINISHED:
+		return "ErrorCode_TRANSACTION_FINISHED"
+	case ErrorCode_TRANSACTION_NOT_EXIST:
+		return "ErrorCode_TRANSACTION_NOT_EXIST"
+	case ErrorCode_GET_DATA_PREVIEW_ERROR:
+		return "ErrorCode_GET_DATA_PREVIEW_ERROR"
+	case ErrorCode_TALOS_SCHEMA_ERROR:
+		return "ErrorCode_TALOS_SCHEMA_ERROR"
+	case ErrorCode_SOURCE_ClUSTER_LIST_HAS_CIRCLE:
+		return "ErrorCode_SOURCE_ClUSTER_LIST_HAS_CIRCLE"
+	case ErrorCode_PUT_MESSAGE_FAILED_TO_MIRROR_PARTITION:
+		return "ErrorCode_PUT_MESSAGE_FAILED_TO_MIRROR_PARTITION"
+	case ErrorCode_NOT_TRANSACTION_TOPIC_ERROR:
+		return "ErrorCode_NOT_TRANSACTION_TOPIC_ERROR"
+	case ErrorCode_TRANSACTION_ACK_DUPLICATED:
+		return "ErrorCode_TRANSACTION_ACK_DUPLICATED"
+	case ErrorCode_CHANGE_PARTITION_TOO_FAST:
+		return "ErrorCode_CHANGE_PARTITION_TOO_FAST"
+	case ErrorCode_TOO_MANY_CONSUMER:
+		return "ErrorCode_TOO_MANY_CONSUMER"
+	case ErrorCode_CONSUMER_GROUP_STILL_WORKING:
+		return "ErrorCode_CONSUMER_GROUP_STILL_WORKING"
 	}
 	return "<UNSET>"
 }
@@ -280,6 +316,30 @@ func ErrorCodeFromString(s string) (ErrorCode, error) {
 		return ErrorCode_REQUEST_TOO_LARGE, nil
 	case "ErrorCode_BAD_REQUEST":
 		return ErrorCode_BAD_REQUEST, nil
+	case "ErrorCode_CONSUMER_NOT_EXIST":
+		return ErrorCode_CONSUMER_NOT_EXIST, nil
+	case "ErrorCode_TRANSACTION_FINISHED":
+		return ErrorCode_TRANSACTION_FINISHED, nil
+	case "ErrorCode_TRANSACTION_NOT_EXIST":
+		return ErrorCode_TRANSACTION_NOT_EXIST, nil
+	case "ErrorCode_GET_DATA_PREVIEW_ERROR":
+		return ErrorCode_GET_DATA_PREVIEW_ERROR, nil
+	case "ErrorCode_TALOS_SCHEMA_ERROR":
+		return ErrorCode_TALOS_SCHEMA_ERROR, nil
+	case "ErrorCode_SOURCE_ClUSTER_LIST_HAS_CIRCLE":
+		return ErrorCode_SOURCE_ClUSTER_LIST_HAS_CIRCLE, nil
+	case "ErrorCode_PUT_MESSAGE_FAILED_TO_MIRROR_PARTITION":
+		return ErrorCode_PUT_MESSAGE_FAILED_TO_MIRROR_PARTITION, nil
+	case "ErrorCode_NOT_TRANSACTION_TOPIC_ERROR":
+		return ErrorCode_NOT_TRANSACTION_TOPIC_ERROR, nil
+	case "ErrorCode_TRANSACTION_ACK_DUPLICATED":
+		return ErrorCode_TRANSACTION_ACK_DUPLICATED, nil
+	case "ErrorCode_CHANGE_PARTITION_TOO_FAST":
+		return ErrorCode_CHANGE_PARTITION_TOO_FAST, nil
+	case "ErrorCode_TOO_MANY_CONSUMER":
+		return ErrorCode_TOO_MANY_CONSUMER, nil
+	case "ErrorCode_CONSUMER_GROUP_STILL_WORKING":
+		return ErrorCode_CONSUMER_GROUP_STILL_WORKING, nil
 	}
 	return ErrorCode(0), fmt.Errorf("not a valid ErrorCode string")
 }
