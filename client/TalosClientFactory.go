@@ -60,6 +60,7 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 					time.Duration(ClientConfig.ClientConnTimeout())*time.Millisecond)
 			},
 		},
+		Timeout: time.Duration(ClientConfig.ClientTimeout()) * time.Millisecond,
 	}
 	return &TalosClientFactory{
 		talosClientConfig: ClientConfig,
