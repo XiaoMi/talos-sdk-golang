@@ -503,7 +503,7 @@ func (c *TalosConsumer) releasePartitionLock(toReleaseList []int32) {
 	for _, partitionId := range toReleaseList {
 		if _, ok := c.partitionFetcherMap[partitionId]; !ok {
 			c.log.Errorf("partitionFetcher map not contains partition: %d", partitionId)
-			return
+			continue
 		}
 		c.partitionFetcherMap[partitionId].Unlock()
 	}
