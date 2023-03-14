@@ -540,6 +540,8 @@ func (p *TalosProducer) DescribeTopicInfo() (*topic.TopicTalosResourceName, int3
 }
 
 func (c *TalosProducer) ProducerMonitorTask() {
+	c.producerLock.Lock()
+	defer c.producerLock.Unlock()
 	metrics := make([]*utils.FalconMetric, 0)
 	for _, p := range c.partitionSenderMap {
 		metrics = append(metrics, p.NewFalconMetrics()...)
