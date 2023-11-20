@@ -16,6 +16,8 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 
+	"github.com/DataDog/zstd"
+	"github.com/bkaradzic/go-lz4"
 	xSnappy "github.com/eapache/go-xerial-snappy"
 )
 
@@ -62,6 +64,19 @@ func DoCompress(messageList []*message.Message,
 		writer.Write(messageSerializedBuffer.Bytes())
 		writer.Close()
 		messageBlockData = append(messageBlockData, gzipBuf.Bytes()...)
+	case message.MessageCompressionType_ZSTD:
+		result, err := zstd.Compress(nil, messageSerializedBuffer.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		messageBlockData = append(messageBlockData, result...)
+	case message.MessageCompressionType_LZ4:
+		compressed := make([]byte, 0)
+		compressed, err := lz4.Encode(nil, messageSerializedBuffer.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		messageBlockData = append(messageBlockData, compressed...)
 	default:
 		err := fmt.Errorf("unsupport compression type")
 		return nil, err
@@ -120,6 +135,19 @@ func DoDecompress(messageBlock *message.MessageBlock,
 			return nil, err
 		}
 		messageBlockData = bytes.NewBuffer(messageByteSlice)
+	case message.MessageCompressionType_ZSTD:
+		result, err := zstd.Decompress(nil, messageBlock.GetMessageBlock())
+		if err != nil {
+			return nil, err
+		}
+		messageBlockData = bytes.NewBuffer(result)
+	case message.MessageCompressionType_LZ4:
+		decompressed := make([]byte, 0)
+		decompressed, err := lz4.Decode(nil, messageBlock.GetMessageBlock())
+		if err != nil {
+			return nil, err
+		}
+		messageBlockData = bytes.NewBuffer(decompressed)
 	}
 
 	for i := int32(0); i < messageNumber; i++ {

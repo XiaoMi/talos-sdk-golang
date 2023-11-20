@@ -6,7 +6,6 @@ package topic
 import (
 	"bytes"
 	"fmt"
-
 	"github.com/XiaoMi/talos-sdk-golang/thrift/authorization"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/quota"

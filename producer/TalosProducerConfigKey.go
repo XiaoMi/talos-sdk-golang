@@ -82,7 +82,7 @@ const (
 	GALAXY_TALOS_PRODUCER_WAIT_PARTITION_WORKING_TIME_DEFAULT = 200
 
 	/**
-	 * The producer compression type, right now suport "NONE", "SNAPPY" and "GZIP";
+	 * The producer compression type, right now suport "NONE", "SNAPPY", "GZIP", "ZSTD" and "LZ4";
 	 * default is "SNAPPY";
 	 */
 	GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE         = "galaxy.talos.producer.compression.type"

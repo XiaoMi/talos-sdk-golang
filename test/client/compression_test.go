@@ -163,3 +163,49 @@ func TestGzip(t *testing.T) {
 	}
 
 }
+
+func TestCompression(t *testing.T) {
+	messageList := setUp()
+	compressionTypeList := []message.MessageCompressionType{
+		message.MessageCompressionType_NONE,
+		message.MessageCompressionType_SNAPPY,
+		message.MessageCompressionType_GZIP,
+		message.MessageCompressionType_ZSTD,
+		message.MessageCompressionType_LZ4,
+	}
+	for _, compressionType := range compressionTypeList {
+		messageBlock, err := compression.Compress(messageList, compressionType)
+		if err != nil {
+			t.Errorf("compression type error")
+		}
+		if int32(len(messageList)) != messageBlock.GetMessageNumber() {
+			t.Errorf("message number error")
+		}
+
+		startOffset := int64(1234)
+		appendTimestamp := int64(1110000)
+		unHandledMessageNumber := int64(117)
+
+		messageBlock.StartMessageOffset = startOffset
+		messageBlock.AppendTimestamp = &appendTimestamp
+		t.Logf("CompressionType: %s, message BlockSize: %v", messageBlock.CompressionType.String(), len(messageBlock.GetMessageBlock()))
+
+		verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber)
+		if len(verifyMessageList) != len(messageList) || err != nil {
+			t.Errorf("decompress error: wrong size or unKnow")
+		}
+		for i := 0; i < len(messageList); i++ {
+			msg := messageList[i]
+			verifyMsg := verifyMessageList[i].GetMessage()
+			if msg.GetPartitionKey() != verifyMsg.GetPartitionKey() ||
+				msg.GetCreateTimestamp() != verifyMsg.GetCreateTimestamp() ||
+				appendTimestamp != verifyMsg.GetAppendTimestamp() ||
+				msg.GetSequenceNumber() != verifyMsg.GetSequenceNumber() ||
+				!reflect.DeepEqual(msg.GetMessage(), verifyMsg.GetMessage()) ||
+				(startOffset+int64(i)) != verifyMessageList[i].GetMessageOffset() ||
+				verifyMessageList[i].GetUnHandledMessageNumber() != (unHandledMessageNumber+int64(len(messageList))-1-int64(i)) {
+				t.Errorf("decompress message not equal to source message")
+			}
+		}
+	}
+}

@@ -9,14 +9,14 @@ package client
 import (
 	"testing"
 
-	"talos-sdk-golang/thrift/message"
-	"talos-sdk-golang/thrift/topic"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
+	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 
-	"talos-sdk-golang/utils"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 
-	"talos-sdk-golang/client"
-	"talos-sdk-golang/testos-sdk-golang/test/mock_client"
-	"talos-sdk-golang/testos-sdk-golang/test/mock_message"
+	"github.com/XiaoMi/talos-sdk-golang/client"
+	"github.com/XiaoMi/talos-sdk-golang/test/mock_client"
+	"github.com/XiaoMi/talos-sdk-golang/test/mock_message"
 
 	"github.com/golang/mock/gomock"
 	log4go "github.com/sirupsen/logrus"
@@ -35,7 +35,8 @@ const (
 )
 
 func TestNewAndGetScheduleInfoCache(t *testing.T) {
-	log4go.Close()
+	//log4go.Close()
+	var logger log4go.Logger
 	properties := utils.NewProperties()
 	properties.SetProperty("galaxy.talos.service.endpoint", "https://talos.api.xiaomi.com")
 	clientConfig := client.NewTalosClientConfigByProperties(properties)
@@ -54,17 +55,17 @@ func TestNewAndGetScheduleInfoCache(t *testing.T) {
 	defer ctrl.Finish()
 	mockMessageClient := mock_message.NewMockMessageService(ctrl)
 	mockMessageClient.EXPECT().GetScheduleInfo(gomock.Any()).Return(getScheduleInfoResponse, nil).Times(1)
-	mockClientFactory := mock_client.NewMockTalosClient(ctrl)
+	mockClientFactory := mock_client.NewMockTalosClientFactoryInterface(ctrl)
 
 	//test new scheduleinfocache
-	scheduleInfoCache0 := client.NewScheduleInfoCache(topicTalosResourceName0,
-		clientConfig, mockMessageClient, mockClientFactory)
+	scheduleInfoCache0 := client.NewAutoLocationScheduleInfoCache(topicTalosResourceName0,
+		clientConfig, mockMessageClient, mockClientFactory, &logger)
 
-	scheduleInfoCache1 := scheduleInfoCache0.GetScheduleInfoCache(topicTalosResourceName0)
+	scheduleInfoCache1 := scheduleInfoCache0.GetScheduleInfo(topicTalosResourceName0)
 	assert.NotNil(t, scheduleInfoCache1)
 	assert.Equal(t, scheduleInfoCache0, scheduleInfoCache1)
 
-	scheduleInfoCache2 := scheduleInfoCache0.GetScheduleInfoCache(topicTalosResourceName1)
+	scheduleInfoCache2 := scheduleInfoCache0.GetScheduleInfo(topicTalosResourceName1)
 	assert.Nil(t, scheduleInfoCache2)
 	assert.NotEqual(t, scheduleInfoCache0, scheduleInfoCache2)
 
@@ -72,7 +73,8 @@ func TestNewAndGetScheduleInfoCache(t *testing.T) {
 
 func TestGetOrCreatMessageClient(t *testing.T) {
 	//log4go.LoadConfiguration("log4go.xml")
-	defer log4go.Close()
+	//defer log4go.Close()
+	var logger log4go.Logger
 	properties := utils.NewProperties()
 	properties.SetProperty("galaxy.talos.service.endpoint", "https://talos.api.xiaomi.com")
 	clientConfig := client.NewTalosClientConfigByProperties(properties)
@@ -111,18 +113,18 @@ func TestGetOrCreatMessageClient(t *testing.T) {
 	mockMessageClient2.EXPECT().GetScheduleInfo(gomock.Any()).Return(getScheduleInfoResponse, nil).Times(2)
 	//mockMessageClient3 := mock_message.NewMockMessageService(ctrl)
 
-	mockClientFactory := mock_client.NewMockTalosClient(ctrl)
+	mockClientFactory := mock_client.NewMockTalosClientFactoryInterface(ctrl)
 	mockClientFactory.EXPECT().NewMessageClient("http://" + host0).Return(mockMessageClient1)
 	//mockClientFactory.EXPECT().NewMessageClient("http://" + host1).Return(mockMessageClient2)
 	//mockClientFactory.EXPECT().NewMessageClient("http://" + host2).Return(mockMessageClient3)
 
-	scheduleInfoCache := client.NewScheduleInfoCache(topicTalosResourceName1,
-		clientConfig, mockMessageClient, mockClientFactory)
+	scheduleInfoCache := client.NewAutoLocationScheduleInfoCache(topicTalosResourceName1,
+		clientConfig, mockMessageClient, mockClientFactory, &logger)
 
 	assert.Equal(t, mockMessageClient, scheduleInfoCache.GetOrCreateMessageClient(topicAndPartition0))
 	assert.Equal(t, mockMessageClient1, scheduleInfoCache.GetOrCreateMessageClient(topicAndPartition1))
 
-	scheduleInfoCache2 := client.NewScheduleInfoCache(topicTalosResourceName1,
-		clientConfig, mockMessageClient2, mockClientFactory)
+	scheduleInfoCache2 := client.NewAutoLocationScheduleInfoCache(topicTalosResourceName1,
+		clientConfig, mockMessageClient2, mockClientFactory, &logger)
 	scheduleInfoCache2.UpdateScheduleInfoCache()
 }

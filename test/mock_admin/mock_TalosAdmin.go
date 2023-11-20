@@ -7,7 +7,7 @@ package mock_admin
 import (
 	reflect "reflect"
 
-	topic "talos-sdk-golang/thrift/topic"
+	topic "github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 
 	gomock "github.com/golang/mock/gomock"
 )

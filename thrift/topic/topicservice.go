@@ -211,16 +211,16 @@ func (p *TopicServiceClient) recvCreateTopic() (value *CreateTopicResponse, err 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error17 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error18 error
-		error18, err = error17.Read(iprot)
+		error18 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error19 error
+		error19, err = error18.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error18
+		err = error19
 		return
 	}
 	if p.SeqId != seqId {
@@ -287,16 +287,16 @@ func (p *TopicServiceClient) recvCreateReplicationTopic() (value *CreateTopicRes
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error19 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error20 error
-		error20, err = error19.Read(iprot)
+		error20 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error21 error
+		error21, err = error20.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error20
+		err = error21
 		return
 	}
 	if p.SeqId != seqId {
@@ -363,16 +363,16 @@ func (p *TopicServiceClient) recvCreateTopicGroup() (value *CreateTopicGroupResp
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error21 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error22 error
-		error22, err = error21.Read(iprot)
+		error22 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error23 error
+		error23, err = error22.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error22
+		err = error23
 		return
 	}
 	if p.SeqId != seqId {
@@ -439,16 +439,16 @@ func (p *TopicServiceClient) recvDescribeTopicGroup() (value *DescribeTopicGroup
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error23 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error24 error
-		error24, err = error23.Read(iprot)
+		error24 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error25 error
+		error25, err = error24.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error24
+		err = error25
 		return
 	}
 	if p.SeqId != seqId {
@@ -515,16 +515,16 @@ func (p *TopicServiceClient) recvDeleteTopicGroup() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error25 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error26 error
-		error26, err = error25.Read(iprot)
+		error26 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error27 error
+		error27, err = error26.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error26
+		err = error27
 		return
 	}
 	if p.SeqId != seqId {
@@ -590,16 +590,16 @@ func (p *TopicServiceClient) recvListTopicGroup() (value *ListTopicGroupResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error27 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error28 error
-		error28, err = error27.Read(iprot)
+		error28 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error29 error
+		error29, err = error28.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error28
+		err = error29
 		return
 	}
 	if p.SeqId != seqId {
@@ -666,16 +666,16 @@ func (p *TopicServiceClient) recvDeleteTopic() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error29 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error30 error
-		error30, err = error29.Read(iprot)
+		error30 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error31 error
+		error31, err = error30.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error30
+		err = error31
 		return
 	}
 	if p.SeqId != seqId {
@@ -741,16 +741,16 @@ func (p *TopicServiceClient) recvChangeTopicAttribute() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error31 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error32 error
-		error32, err = error31.Read(iprot)
+		error32 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error33 error
+		error33, err = error32.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error32
+		err = error33
 		return
 	}
 	if p.SeqId != seqId {
@@ -816,16 +816,16 @@ func (p *TopicServiceClient) recvDescribeTopic() (value *DescribeTopicResponse, 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error33 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error34 error
-		error34, err = error33.Read(iprot)
+		error34 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error35 error
+		error35, err = error34.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error34
+		err = error35
 		return
 	}
 	if p.SeqId != seqId {
@@ -892,16 +892,16 @@ func (p *TopicServiceClient) recvGetDescribeInfo() (value *GetDescribeInfoRespon
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error35 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error36 error
-		error36, err = error35.Read(iprot)
+		error36 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error37 error
+		error37, err = error36.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error36
+		err = error37
 		return
 	}
 	if p.SeqId != seqId {
@@ -968,16 +968,16 @@ func (p *TopicServiceClient) recvGetTopicAttribute() (value *GetTopicAttributeRe
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error37 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error38 error
-		error38, err = error37.Read(iprot)
+		error38 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error39 error
+		error39, err = error38.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error38
+		err = error39
 		return
 	}
 	if p.SeqId != seqId {
@@ -1040,16 +1040,16 @@ func (p *TopicServiceClient) recvListTopicsInfo() (value *ListTopicsInfoResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error39 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error40 error
-		error40, err = error39.Read(iprot)
+		error40 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error41 error
+		error41, err = error40.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error40
+		err = error41
 		return
 	}
 	if p.SeqId != seqId {
@@ -1113,16 +1113,16 @@ func (p *TopicServiceClient) recvListTopics() (value *ListTopicsResponse, err er
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error41 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error42 error
-		error42, err = error41.Read(iprot)
+		error42 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error43 error
+		error43, err = error42.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error42
+		err = error43
 		return
 	}
 	if p.SeqId != seqId {
@@ -1182,16 +1182,16 @@ func (p *TopicServiceClient) recvGetBindTopics() (value *ListTopicsResponse, err
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error43 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error44 error
-		error44, err = error43.Read(iprot)
+		error44 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error45 error
+		error45, err = error44.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error44
+		err = error45
 		return
 	}
 	if p.SeqId != seqId {
@@ -1258,16 +1258,16 @@ func (p *TopicServiceClient) recvSetTopicQuota() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error45 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error46 error
-		error46, err = error45.Read(iprot)
+		error46 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error47 error
+		error47, err = error46.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error46
+		err = error47
 		return
 	}
 	if p.SeqId != seqId {
@@ -1333,16 +1333,16 @@ func (p *TopicServiceClient) recvQueryTopicQuota() (value *QueryTopicQuotaRespon
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error47 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error48 error
-		error48, err = error47.Read(iprot)
+		error48 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error49 error
+		error49, err = error48.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error48
+		err = error49
 		return
 	}
 	if p.SeqId != seqId {
@@ -1409,16 +1409,16 @@ func (p *TopicServiceClient) recvDeleteTopicQuota() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error49 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error50 error
-		error50, err = error49.Read(iprot)
+		error50 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error51 error
+		error51, err = error50.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error50
+		err = error51
 		return
 	}
 	if p.SeqId != seqId {
@@ -1486,16 +1486,16 @@ func (p *TopicServiceClient) recvSetPermission() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error51 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error52 error
-		error52, err = error51.Read(iprot)
+		error52 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error53 error
+		error53, err = error52.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error52
+		err = error53
 		return
 	}
 	if p.SeqId != seqId {
@@ -1563,16 +1563,16 @@ func (p *TopicServiceClient) recvRevokePermission() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error53 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error54 error
-		error54, err = error53.Read(iprot)
+		error54 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error55 error
+		error55, err = error54.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error54
+		err = error55
 		return
 	}
 	if p.SeqId != seqId {
@@ -1638,16 +1638,16 @@ func (p *TopicServiceClient) recvListPermission() (value *ListPermissionResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error55 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error56 error
-		error56, err = error55.Read(iprot)
+		error56 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error57 error
+		error57, err = error56.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error56
+		err = error57
 		return
 	}
 	if p.SeqId != seqId {
@@ -1714,16 +1714,16 @@ func (p *TopicServiceClient) recvGetPermission() (value *GetPermissionResponse, 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error57 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error58 error
-		error58, err = error57.Read(iprot)
+		error58 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error59 error
+		error59, err = error58.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error58
+		err = error59
 		return
 	}
 	if p.SeqId != seqId {
@@ -1790,16 +1790,16 @@ func (p *TopicServiceClient) recvAddSubResourceName() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error59 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error60 error
-		error60, err = error59.Read(iprot)
+		error60 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error61 error
+		error61, err = error60.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error60
+		err = error61
 		return
 	}
 	if p.SeqId != seqId {
@@ -1825,30 +1825,30 @@ type TopicServiceProcessor struct {
 }
 
 func NewTopicServiceProcessor(handler TopicService) *TopicServiceProcessor {
-	self61 := &TopicServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
-	self61.AddToProcessorMap("createTopic", &topicServiceProcessorCreateTopic{handler: handler})
-	self61.AddToProcessorMap("createReplicationTopic", &topicServiceProcessorCreateReplicationTopic{handler: handler})
-	self61.AddToProcessorMap("createTopicGroup", &topicServiceProcessorCreateTopicGroup{handler: handler})
-	self61.AddToProcessorMap("describeTopicGroup", &topicServiceProcessorDescribeTopicGroup{handler: handler})
-	self61.AddToProcessorMap("deleteTopicGroup", &topicServiceProcessorDeleteTopicGroup{handler: handler})
-	self61.AddToProcessorMap("listTopicGroup", &topicServiceProcessorListTopicGroup{handler: handler})
-	self61.AddToProcessorMap("deleteTopic", &topicServiceProcessorDeleteTopic{handler: handler})
-	self61.AddToProcessorMap("changeTopicAttribute", &topicServiceProcessorChangeTopicAttribute{handler: handler})
-	self61.AddToProcessorMap("describeTopic", &topicServiceProcessorDescribeTopic{handler: handler})
-	self61.AddToProcessorMap("getDescribeInfo", &topicServiceProcessorGetDescribeInfo{handler: handler})
-	self61.AddToProcessorMap("getTopicAttribute", &topicServiceProcessorGetTopicAttribute{handler: handler})
-	self61.AddToProcessorMap("listTopicsInfo", &topicServiceProcessorListTopicsInfo{handler: handler})
-	self61.AddToProcessorMap("listTopics", &topicServiceProcessorListTopics{handler: handler})
-	self61.AddToProcessorMap("getBindTopics", &topicServiceProcessorGetBindTopics{handler: handler})
-	self61.AddToProcessorMap("setTopicQuota", &topicServiceProcessorSetTopicQuota{handler: handler})
-	self61.AddToProcessorMap("queryTopicQuota", &topicServiceProcessorQueryTopicQuota{handler: handler})
-	self61.AddToProcessorMap("deleteTopicQuota", &topicServiceProcessorDeleteTopicQuota{handler: handler})
-	self61.AddToProcessorMap("setPermission", &topicServiceProcessorSetPermission{handler: handler})
-	self61.AddToProcessorMap("revokePermission", &topicServiceProcessorRevokePermission{handler: handler})
-	self61.AddToProcessorMap("listPermission", &topicServiceProcessorListPermission{handler: handler})
-	self61.AddToProcessorMap("getPermission", &topicServiceProcessorGetPermission{handler: handler})
-	self61.AddToProcessorMap("addSubResourceName", &topicServiceProcessorAddSubResourceName{handler: handler})
-	return self61
+	self62 := &TopicServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
+	self62.AddToProcessorMap("createTopic", &topicServiceProcessorCreateTopic{handler: handler})
+	self62.AddToProcessorMap("createReplicationTopic", &topicServiceProcessorCreateReplicationTopic{handler: handler})
+	self62.AddToProcessorMap("createTopicGroup", &topicServiceProcessorCreateTopicGroup{handler: handler})
+	self62.AddToProcessorMap("describeTopicGroup", &topicServiceProcessorDescribeTopicGroup{handler: handler})
+	self62.AddToProcessorMap("deleteTopicGroup", &topicServiceProcessorDeleteTopicGroup{handler: handler})
+	self62.AddToProcessorMap("listTopicGroup", &topicServiceProcessorListTopicGroup{handler: handler})
+	self62.AddToProcessorMap("deleteTopic", &topicServiceProcessorDeleteTopic{handler: handler})
+	self62.AddToProcessorMap("changeTopicAttribute", &topicServiceProcessorChangeTopicAttribute{handler: handler})
+	self62.AddToProcessorMap("describeTopic", &topicServiceProcessorDescribeTopic{handler: handler})
+	self62.AddToProcessorMap("getDescribeInfo", &topicServiceProcessorGetDescribeInfo{handler: handler})
+	self62.AddToProcessorMap("getTopicAttribute", &topicServiceProcessorGetTopicAttribute{handler: handler})
+	self62.AddToProcessorMap("listTopicsInfo", &topicServiceProcessorListTopicsInfo{handler: handler})
+	self62.AddToProcessorMap("listTopics", &topicServiceProcessorListTopics{handler: handler})
+	self62.AddToProcessorMap("getBindTopics", &topicServiceProcessorGetBindTopics{handler: handler})
+	self62.AddToProcessorMap("setTopicQuota", &topicServiceProcessorSetTopicQuota{handler: handler})
+	self62.AddToProcessorMap("queryTopicQuota", &topicServiceProcessorQueryTopicQuota{handler: handler})
+	self62.AddToProcessorMap("deleteTopicQuota", &topicServiceProcessorDeleteTopicQuota{handler: handler})
+	self62.AddToProcessorMap("setPermission", &topicServiceProcessorSetPermission{handler: handler})
+	self62.AddToProcessorMap("revokePermission", &topicServiceProcessorRevokePermission{handler: handler})
+	self62.AddToProcessorMap("listPermission", &topicServiceProcessorListPermission{handler: handler})
+	self62.AddToProcessorMap("getPermission", &topicServiceProcessorGetPermission{handler: handler})
+	self62.AddToProcessorMap("addSubResourceName", &topicServiceProcessorAddSubResourceName{handler: handler})
+	return self62
 }
 
 type topicServiceProcessorCreateTopic struct {

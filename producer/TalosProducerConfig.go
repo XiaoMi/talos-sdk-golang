@@ -101,7 +101,7 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 	compressionType := props.GetProperty(
 		GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE,
 		GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE_DEFAULT)
-	if compressionType != "NONE" && compressionType != "SNAPPY" &&
+	if compressionType != "NONE" && compressionType != "SNAPPY" && compressionType != "ZSTD" && compressionType != "LZ4" &&
 		compressionType != "GZIP" {
 		return nil, fmt.Errorf("Unsupported Compression Type: %v ", compressionType)
 	}
@@ -201,12 +201,16 @@ func (p *TalosProducerConfig) GetCompressionType() message.MessageCompressionTyp
 		return message.MessageCompressionType_NONE
 	} else if p.compressionType == "SNAPPY" {
 		return message.MessageCompressionType_SNAPPY
+	} else if p.compressionType == "GZIP" {
+		return message.MessageCompressionType_GZIP
+	} else if p.compressionType == "ZSTD" {
+		return message.MessageCompressionType_ZSTD
 	} else {
-		err := utils.CheckArgument(p.compressionType == "GZIP")
+		err := utils.CheckArgument(p.compressionType == "LZ4")
 		if err != nil {
 			return message.MessageCompressionType(0)
 		}
-		return message.MessageCompressionType_GZIP
+		return message.MessageCompressionType_LZ4
 	}
 }
 

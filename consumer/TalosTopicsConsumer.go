@@ -255,7 +255,7 @@ func NewDefaultTalosMultiTopicsConsumer(consumerGroupName string, consumerConfig
 }
 
 func (c *TalosTopicsConsumer) getTopicAndScheduleInfo() error {
-	response, err := c.talosAdmin.LookupTopics(&message.LookupTopicsRequest{TopicPattern: c.topicPattern})
+	response, err := c.talosAdmin.LookupTopics(&message.LookupTopicsRequest{TopicGroup: c.topicGroup})
 	if err != nil {
 		return err
 	}
@@ -733,7 +733,7 @@ func (c *TalosTopicsConsumer) CheckTopicPatternTask() {
 		}
 	}
 	response, err := c.scheduleInfoCache.GetOrCreateMessageClient(topicAndPartition).LookupTopics(
-		&message.LookupTopicsRequest{TopicPattern: c.topicPattern})
+		&message.LookupTopicsRequest{TopicGroup: c.topicGroup})
 	if err != nil {
 		c.log.Errorf("Exception in CheckTopicsTask: %s", err.Error())
 		return
