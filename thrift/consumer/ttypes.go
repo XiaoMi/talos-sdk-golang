@@ -240,28 +240,33 @@ func (p *ConsumeUnit) String() string {
 	return fmt.Sprintf("ConsumeUnit(%+v)", *p)
 }
 
-type MultiTopicsConsumeUnit struct {
+type TopicsConsumeUnit struct {
 	ConsumerGroup   string             `thrift:"consumerGroup,1,required" json:"consumerGroup"`
 	TopicPartitions map[string][]int32 `thrift:"topicPartitions,2,required" json:"topicPartitions"`
 	WorkerId        string             `thrift:"workerId,3,required" json:"workerId"`
+	TopicGroup      string             `thrift:"topicGroup,4,required" json:"topicGroup"`
 }
 
-func NewMultiTopicsConsumeUnit() *MultiTopicsConsumeUnit {
-	return &MultiTopicsConsumeUnit{}
+func NewTopicsConsumeUnit() *TopicsConsumeUnit {
+	return &TopicsConsumeUnit{}
 }
 
-func (p *MultiTopicsConsumeUnit) GetConsumerGroup() string {
+func (p *TopicsConsumeUnit) GetConsumerGroup() string {
 	return p.ConsumerGroup
 }
 
-func (p *MultiTopicsConsumeUnit) GetTopicPartitions() map[string][]int32 {
+func (p *TopicsConsumeUnit) GetTopicPartitions() map[string][]int32 {
 	return p.TopicPartitions
 }
 
-func (p *MultiTopicsConsumeUnit) GetWorkerId() string {
+func (p *TopicsConsumeUnit) GetWorkerId() string {
 	return p.WorkerId
 }
-func (p *MultiTopicsConsumeUnit) Read(iprot thrift.TProtocol) error {
+
+func (p *TopicsConsumeUnit) GetTopicGroup() string {
+	return p.TopicGroup
+}
+func (p *TopicsConsumeUnit) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -286,6 +291,10 @@ func (p *MultiTopicsConsumeUnit) Read(iprot thrift.TProtocol) error {
 			if err := p.ReadField3(iprot); err != nil {
 				return err
 			}
+		case 4:
+			if err := p.ReadField4(iprot); err != nil {
+				return err
+			}
 		default:
 			if err := iprot.Skip(fieldTypeId); err != nil {
 				return err
@@ -301,7 +310,7 @@ func (p *MultiTopicsConsumeUnit) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsConsumeUnit) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsConsumeUnit) ReadField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadString(); err != nil {
 		return fmt.Errorf("error reading field 1: %s", err)
 	} else {
@@ -310,7 +319,7 @@ func (p *MultiTopicsConsumeUnit) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsConsumeUnit) ReadField2(iprot thrift.TProtocol) error {
+func (p *TopicsConsumeUnit) ReadField2(iprot thrift.TProtocol) error {
 	_, _, size, err := iprot.ReadMapBegin()
 	if err != nil {
 		return fmt.Errorf("error reading map begin: %s", err)
@@ -350,7 +359,7 @@ func (p *MultiTopicsConsumeUnit) ReadField2(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsConsumeUnit) ReadField3(iprot thrift.TProtocol) error {
+func (p *TopicsConsumeUnit) ReadField3(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadString(); err != nil {
 		return fmt.Errorf("error reading field 3: %s", err)
 	} else {
@@ -359,8 +368,17 @@ func (p *MultiTopicsConsumeUnit) ReadField3(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsConsumeUnit) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsConsumeUnit"); err != nil {
+func (p *TopicsConsumeUnit) ReadField4(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 4: %s", err)
+	} else {
+		p.TopicGroup = v
+	}
+	return nil
+}
+
+func (p *TopicsConsumeUnit) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsConsumeUnit"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -372,6 +390,9 @@ func (p *MultiTopicsConsumeUnit) Write(oprot thrift.TProtocol) error {
 	if err := p.writeField3(oprot); err != nil {
 		return err
 	}
+	if err := p.writeField4(oprot); err != nil {
+		return err
+	}
 	if err := oprot.WriteFieldStop(); err != nil {
 		return fmt.Errorf("write field stop error: %s", err)
 	}
@@ -381,7 +402,7 @@ func (p *MultiTopicsConsumeUnit) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsConsumeUnit) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsConsumeUnit) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("consumerGroup", thrift.STRING, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:consumerGroup: %s", p, err)
 	}
@@ -394,7 +415,7 @@ func (p *MultiTopicsConsumeUnit) writeField1(oprot thrift.TProtocol) (err error)
 	return err
 }
 
-func (p *MultiTopicsConsumeUnit) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *TopicsConsumeUnit) writeField2(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("topicPartitions", thrift.MAP, 2); err != nil {
 		return fmt.Errorf("%T write field begin error 2:topicPartitions: %s", p, err)
 	}
@@ -426,7 +447,7 @@ func (p *MultiTopicsConsumeUnit) writeField2(oprot thrift.TProtocol) (err error)
 	return err
 }
 
-func (p *MultiTopicsConsumeUnit) writeField3(oprot thrift.TProtocol) (err error) {
+func (p *TopicsConsumeUnit) writeField3(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("workerId", thrift.STRING, 3); err != nil {
 		return fmt.Errorf("%T write field begin error 3:workerId: %s", p, err)
 	}
@@ -439,11 +460,24 @@ func (p *MultiTopicsConsumeUnit) writeField3(oprot thrift.TProtocol) (err error)
 	return err
 }
 
-func (p *MultiTopicsConsumeUnit) String() string {
+func (p *TopicsConsumeUnit) writeField4(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRING, 4); err != nil {
+		return fmt.Errorf("%T write field begin error 4:topicGroup: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroup)); err != nil {
+		return fmt.Errorf("%T.topicGroup (4) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 4:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *TopicsConsumeUnit) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsConsumeUnit(%+v)", *p)
+	return fmt.Sprintf("TopicsConsumeUnit(%+v)", *p)
 }
 
 type CheckPoint struct {
@@ -1317,28 +1351,33 @@ func (p *LockWorkerResponse) String() string {
 	return fmt.Sprintf("LockWorkerResponse(%+v)", *p)
 }
 
-type MultiTopicsLockWorkerRequest struct {
+type TopicsLockWorkerRequest struct {
 	ConsumerGroup string                          `thrift:"consumerGroup,1,required" json:"consumerGroup"`
 	Topics        []*topic.TopicTalosResourceName `thrift:"topics,2,required" json:"topics"`
 	WorkerId      string                          `thrift:"workerId,3,required" json:"workerId"`
+	TopicGroup    string                          `thrift:"topicGroup,4,required" json:"topicGroup"`
 }
 
-func NewMultiTopicsLockWorkerRequest() *MultiTopicsLockWorkerRequest {
-	return &MultiTopicsLockWorkerRequest{}
+func NewTopicsLockWorkerRequest() *TopicsLockWorkerRequest {
+	return &TopicsLockWorkerRequest{}
 }
 
-func (p *MultiTopicsLockWorkerRequest) GetConsumerGroup() string {
+func (p *TopicsLockWorkerRequest) GetConsumerGroup() string {
 	return p.ConsumerGroup
 }
 
-func (p *MultiTopicsLockWorkerRequest) GetTopics() []*topic.TopicTalosResourceName {
+func (p *TopicsLockWorkerRequest) GetTopics() []*topic.TopicTalosResourceName {
 	return p.Topics
 }
 
-func (p *MultiTopicsLockWorkerRequest) GetWorkerId() string {
+func (p *TopicsLockWorkerRequest) GetWorkerId() string {
 	return p.WorkerId
 }
-func (p *MultiTopicsLockWorkerRequest) Read(iprot thrift.TProtocol) error {
+
+func (p *TopicsLockWorkerRequest) GetTopicGroup() string {
+	return p.TopicGroup
+}
+func (p *TopicsLockWorkerRequest) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -1363,6 +1402,10 @@ func (p *MultiTopicsLockWorkerRequest) Read(iprot thrift.TProtocol) error {
 			if err := p.ReadField3(iprot); err != nil {
 				return err
 			}
+		case 4:
+			if err := p.ReadField4(iprot); err != nil {
+				return err
+			}
 		default:
 			if err := iprot.Skip(fieldTypeId); err != nil {
 				return err
@@ -1378,7 +1421,7 @@ func (p *MultiTopicsLockWorkerRequest) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerRequest) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsLockWorkerRequest) ReadField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadString(); err != nil {
 		return fmt.Errorf("error reading field 1: %s", err)
 	} else {
@@ -1387,7 +1430,7 @@ func (p *MultiTopicsLockWorkerRequest) ReadField1(iprot thrift.TProtocol) error 
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerRequest) ReadField2(iprot thrift.TProtocol) error {
+func (p *TopicsLockWorkerRequest) ReadField2(iprot thrift.TProtocol) error {
 	_, size, err := iprot.ReadListBegin()
 	if err != nil {
 		return fmt.Errorf("error reading list begin: %s", err)
@@ -1407,7 +1450,7 @@ func (p *MultiTopicsLockWorkerRequest) ReadField2(iprot thrift.TProtocol) error 
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerRequest) ReadField3(iprot thrift.TProtocol) error {
+func (p *TopicsLockWorkerRequest) ReadField3(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadString(); err != nil {
 		return fmt.Errorf("error reading field 3: %s", err)
 	} else {
@@ -1416,8 +1459,17 @@ func (p *MultiTopicsLockWorkerRequest) ReadField3(iprot thrift.TProtocol) error 
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerRequest) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsLockWorkerRequest"); err != nil {
+func (p *TopicsLockWorkerRequest) ReadField4(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 4: %s", err)
+	} else {
+		p.TopicGroup = v
+	}
+	return nil
+}
+
+func (p *TopicsLockWorkerRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsLockWorkerRequest"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -1429,6 +1481,9 @@ func (p *MultiTopicsLockWorkerRequest) Write(oprot thrift.TProtocol) error {
 	if err := p.writeField3(oprot); err != nil {
 		return err
 	}
+	if err := p.writeField4(oprot); err != nil {
+		return err
+	}
 	if err := oprot.WriteFieldStop(); err != nil {
 		return fmt.Errorf("write field stop error: %s", err)
 	}
@@ -1438,7 +1493,7 @@ func (p *MultiTopicsLockWorkerRequest) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerRequest) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsLockWorkerRequest) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("consumerGroup", thrift.STRING, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:consumerGroup: %s", p, err)
 	}
@@ -1451,7 +1506,7 @@ func (p *MultiTopicsLockWorkerRequest) writeField1(oprot thrift.TProtocol) (err 
 	return err
 }
 
-func (p *MultiTopicsLockWorkerRequest) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *TopicsLockWorkerRequest) writeField2(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("topics", thrift.LIST, 2); err != nil {
 		return fmt.Errorf("%T write field begin error 2:topics: %s", p, err)
 	}
@@ -1472,7 +1527,7 @@ func (p *MultiTopicsLockWorkerRequest) writeField2(oprot thrift.TProtocol) (err 
 	return err
 }
 
-func (p *MultiTopicsLockWorkerRequest) writeField3(oprot thrift.TProtocol) (err error) {
+func (p *TopicsLockWorkerRequest) writeField3(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("workerId", thrift.STRING, 3); err != nil {
 		return fmt.Errorf("%T write field begin error 3:workerId: %s", p, err)
 	}
@@ -1485,25 +1540,38 @@ func (p *MultiTopicsLockWorkerRequest) writeField3(oprot thrift.TProtocol) (err 
 	return err
 }
 
-func (p *MultiTopicsLockWorkerRequest) String() string {
+func (p *TopicsLockWorkerRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRING, 4); err != nil {
+		return fmt.Errorf("%T write field begin error 4:topicGroup: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroup)); err != nil {
+		return fmt.Errorf("%T.topicGroup (4) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 4:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *TopicsLockWorkerRequest) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsLockWorkerRequest(%+v)", *p)
+	return fmt.Sprintf("TopicsLockWorkerRequest(%+v)", *p)
 }
 
-type MultiTopicsLockWorkerResponse struct {
+type TopicsLockWorkerResponse struct {
 	RegisterSuccess bool `thrift:"registerSuccess,1,required" json:"registerSuccess"`
 }
 
-func NewMultiTopicsLockWorkerResponse() *MultiTopicsLockWorkerResponse {
-	return &MultiTopicsLockWorkerResponse{}
+func NewTopicsLockWorkerResponse() *TopicsLockWorkerResponse {
+	return &TopicsLockWorkerResponse{}
 }
 
-func (p *MultiTopicsLockWorkerResponse) GetRegisterSuccess() bool {
+func (p *TopicsLockWorkerResponse) GetRegisterSuccess() bool {
 	return p.RegisterSuccess
 }
-func (p *MultiTopicsLockWorkerResponse) Read(iprot thrift.TProtocol) error {
+func (p *TopicsLockWorkerResponse) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -1535,7 +1603,7 @@ func (p *MultiTopicsLockWorkerResponse) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerResponse) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsLockWorkerResponse) ReadField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadBool(); err != nil {
 		return fmt.Errorf("error reading field 1: %s", err)
 	} else {
@@ -1544,8 +1612,8 @@ func (p *MultiTopicsLockWorkerResponse) ReadField1(iprot thrift.TProtocol) error
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerResponse) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsLockWorkerResponse"); err != nil {
+func (p *TopicsLockWorkerResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsLockWorkerResponse"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -1560,7 +1628,7 @@ func (p *MultiTopicsLockWorkerResponse) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsLockWorkerResponse) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsLockWorkerResponse) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("registerSuccess", thrift.BOOL, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:registerSuccess: %s", p, err)
 	}
@@ -1573,11 +1641,11 @@ func (p *MultiTopicsLockWorkerResponse) writeField1(oprot thrift.TProtocol) (err
 	return err
 }
 
-func (p *MultiTopicsLockWorkerResponse) String() string {
+func (p *TopicsLockWorkerResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsLockWorkerResponse(%+v)", *p)
+	return fmt.Sprintf("TopicsLockWorkerResponse(%+v)", *p)
 }
 
 type UnlockPartitionRequest struct {
@@ -1915,27 +1983,27 @@ func (p *RenewResponse) String() string {
 	return fmt.Sprintf("RenewResponse(%+v)", *p)
 }
 
-type MultiTopicsRenewRequest struct {
-	ConsumeUnit *MultiTopicsConsumeUnit `thrift:"consumeUnit,1,required" json:"consumeUnit"`
+type TopicsRenewRequest struct {
+	ConsumeUnit *TopicsConsumeUnit `thrift:"consumeUnit,1,required" json:"consumeUnit"`
 }
 
-func NewMultiTopicsRenewRequest() *MultiTopicsRenewRequest {
-	return &MultiTopicsRenewRequest{}
+func NewTopicsRenewRequest() *TopicsRenewRequest {
+	return &TopicsRenewRequest{}
 }
 
-var MultiTopicsRenewRequest_ConsumeUnit_DEFAULT *MultiTopicsConsumeUnit
+var TopicsRenewRequest_ConsumeUnit_DEFAULT *TopicsConsumeUnit
 
-func (p *MultiTopicsRenewRequest) GetConsumeUnit() *MultiTopicsConsumeUnit {
+func (p *TopicsRenewRequest) GetConsumeUnit() *TopicsConsumeUnit {
 	if !p.IsSetConsumeUnit() {
-		return MultiTopicsRenewRequest_ConsumeUnit_DEFAULT
+		return TopicsRenewRequest_ConsumeUnit_DEFAULT
 	}
 	return p.ConsumeUnit
 }
-func (p *MultiTopicsRenewRequest) IsSetConsumeUnit() bool {
+func (p *TopicsRenewRequest) IsSetConsumeUnit() bool {
 	return p.ConsumeUnit != nil
 }
 
-func (p *MultiTopicsRenewRequest) Read(iprot thrift.TProtocol) error {
+func (p *TopicsRenewRequest) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -1967,16 +2035,16 @@ func (p *MultiTopicsRenewRequest) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewRequest) ReadField1(iprot thrift.TProtocol) error {
-	p.ConsumeUnit = &MultiTopicsConsumeUnit{}
+func (p *TopicsRenewRequest) ReadField1(iprot thrift.TProtocol) error {
+	p.ConsumeUnit = &TopicsConsumeUnit{}
 	if err := p.ConsumeUnit.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.ConsumeUnit, err)
 	}
 	return nil
 }
 
-func (p *MultiTopicsRenewRequest) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsRenewRequest"); err != nil {
+func (p *TopicsRenewRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsRenewRequest"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -1991,7 +2059,7 @@ func (p *MultiTopicsRenewRequest) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewRequest) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsRenewRequest) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("consumeUnit", thrift.STRUCT, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:consumeUnit: %s", p, err)
 	}
@@ -2004,30 +2072,30 @@ func (p *MultiTopicsRenewRequest) writeField1(oprot thrift.TProtocol) (err error
 	return err
 }
 
-func (p *MultiTopicsRenewRequest) String() string {
+func (p *TopicsRenewRequest) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsRenewRequest(%+v)", *p)
+	return fmt.Sprintf("TopicsRenewRequest(%+v)", *p)
 }
 
-type MultiTopicsRenewResponse struct {
+type TopicsRenewResponse struct {
 	HeartbeatSuccess    bool                       `thrift:"heartbeatSuccess,1,required" json:"heartbeatSuccess"`
 	FailedPartitionList []*topic.TopicAndPartition `thrift:"failedPartitionList,2,required" json:"failedPartitionList"`
 }
 
-func NewMultiTopicsRenewResponse() *MultiTopicsRenewResponse {
-	return &MultiTopicsRenewResponse{}
+func NewTopicsRenewResponse() *TopicsRenewResponse {
+	return &TopicsRenewResponse{}
 }
 
-func (p *MultiTopicsRenewResponse) GetHeartbeatSuccess() bool {
+func (p *TopicsRenewResponse) GetHeartbeatSuccess() bool {
 	return p.HeartbeatSuccess
 }
 
-func (p *MultiTopicsRenewResponse) GetFailedPartitionList() []*topic.TopicAndPartition {
+func (p *TopicsRenewResponse) GetFailedPartitionList() []*topic.TopicAndPartition {
 	return p.FailedPartitionList
 }
-func (p *MultiTopicsRenewResponse) Read(iprot thrift.TProtocol) error {
+func (p *TopicsRenewResponse) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -2063,7 +2131,7 @@ func (p *MultiTopicsRenewResponse) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewResponse) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsRenewResponse) ReadField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadBool(); err != nil {
 		return fmt.Errorf("error reading field 1: %s", err)
 	} else {
@@ -2072,7 +2140,7 @@ func (p *MultiTopicsRenewResponse) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewResponse) ReadField2(iprot thrift.TProtocol) error {
+func (p *TopicsRenewResponse) ReadField2(iprot thrift.TProtocol) error {
 	_, size, err := iprot.ReadListBegin()
 	if err != nil {
 		return fmt.Errorf("error reading list begin: %s", err)
@@ -2092,8 +2160,8 @@ func (p *MultiTopicsRenewResponse) ReadField2(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewResponse) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsRenewResponse"); err != nil {
+func (p *TopicsRenewResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsRenewResponse"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -2111,7 +2179,7 @@ func (p *MultiTopicsRenewResponse) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsRenewResponse) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsRenewResponse) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("heartbeatSuccess", thrift.BOOL, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:heartbeatSuccess: %s", p, err)
 	}
@@ -2124,7 +2192,7 @@ func (p *MultiTopicsRenewResponse) writeField1(oprot thrift.TProtocol) (err erro
 	return err
 }
 
-func (p *MultiTopicsRenewResponse) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *TopicsRenewResponse) writeField2(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("failedPartitionList", thrift.LIST, 2); err != nil {
 		return fmt.Errorf("%T write field begin error 2:failedPartitionList: %s", p, err)
 	}
@@ -2145,11 +2213,11 @@ func (p *MultiTopicsRenewResponse) writeField2(oprot thrift.TProtocol) (err erro
 	return err
 }
 
-func (p *MultiTopicsRenewResponse) String() string {
+func (p *TopicsRenewResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsRenewResponse(%+v)", *p)
+	return fmt.Sprintf("TopicsRenewResponse(%+v)", *p)
 }
 
 type UpdateOffsetRequest struct {
@@ -2822,23 +2890,28 @@ func (p *QueryWorkerResponse) String() string {
 	return fmt.Sprintf("QueryWorkerResponse(%+v)", *p)
 }
 
-type MultiTopicsQueryWorkerRequest struct {
+type TopicsQueryWorkerRequest struct {
 	ConsumerGroup           string                          `thrift:"consumerGroup,1,required" json:"consumerGroup"`
 	TopicTalosResourceNames []*topic.TopicTalosResourceName `thrift:"topicTalosResourceNames,2,required" json:"topicTalosResourceNames"`
+	TopicGroup              string                          `thrift:"topicGroup,3,required" json:"topicGroup"`
 }
 
-func NewMultiTopicsQueryWorkerRequest() *MultiTopicsQueryWorkerRequest {
-	return &MultiTopicsQueryWorkerRequest{}
+func NewTopicsQueryWorkerRequest() *TopicsQueryWorkerRequest {
+	return &TopicsQueryWorkerRequest{}
 }
 
-func (p *MultiTopicsQueryWorkerRequest) GetConsumerGroup() string {
+func (p *TopicsQueryWorkerRequest) GetConsumerGroup() string {
 	return p.ConsumerGroup
 }
 
-func (p *MultiTopicsQueryWorkerRequest) GetTopicTalosResourceNames() []*topic.TopicTalosResourceName {
+func (p *TopicsQueryWorkerRequest) GetTopicTalosResourceNames() []*topic.TopicTalosResourceName {
 	return p.TopicTalosResourceNames
 }
-func (p *MultiTopicsQueryWorkerRequest) Read(iprot thrift.TProtocol) error {
+
+func (p *TopicsQueryWorkerRequest) GetTopicGroup() string {
+	return p.TopicGroup
+}
+func (p *TopicsQueryWorkerRequest) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -2859,6 +2932,10 @@ func (p *MultiTopicsQueryWorkerRequest) Read(iprot thrift.TProtocol) error {
 			if err := p.ReadField2(iprot); err != nil {
 				return err
 			}
+		case 3:
+			if err := p.ReadField3(iprot); err != nil {
+				return err
+			}
 		default:
 			if err := iprot.Skip(fieldTypeId); err != nil {
 				return err
@@ -2874,7 +2951,7 @@ func (p *MultiTopicsQueryWorkerRequest) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerRequest) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsQueryWorkerRequest) ReadField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadString(); err != nil {
 		return fmt.Errorf("error reading field 1: %s", err)
 	} else {
@@ -2883,7 +2960,7 @@ func (p *MultiTopicsQueryWorkerRequest) ReadField1(iprot thrift.TProtocol) error
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerRequest) ReadField2(iprot thrift.TProtocol) error {
+func (p *TopicsQueryWorkerRequest) ReadField2(iprot thrift.TProtocol) error {
 	_, size, err := iprot.ReadListBegin()
 	if err != nil {
 		return fmt.Errorf("error reading list begin: %s", err)
@@ -2903,14 +2980,26 @@ func (p *MultiTopicsQueryWorkerRequest) ReadField2(iprot thrift.TProtocol) error
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerRequest) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsQueryWorkerRequest"); err != nil {
+func (p *TopicsQueryWorkerRequest) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return fmt.Errorf("error reading field 3: %s", err)
+	} else {
+		p.TopicGroup = v
+	}
+	return nil
+}
+
+func (p *TopicsQueryWorkerRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsQueryWorkerRequest"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
 		return err
 	}
 	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField3(oprot); err != nil {
 		return err
 	}
 	if err := oprot.WriteFieldStop(); err != nil {
@@ -2922,7 +3011,7 @@ func (p *MultiTopicsQueryWorkerRequest) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerRequest) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsQueryWorkerRequest) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("consumerGroup", thrift.STRING, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:consumerGroup: %s", p, err)
 	}
@@ -2935,7 +3024,7 @@ func (p *MultiTopicsQueryWorkerRequest) writeField1(oprot thrift.TProtocol) (err
 	return err
 }
 
-func (p *MultiTopicsQueryWorkerRequest) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *TopicsQueryWorkerRequest) writeField2(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("topicTalosResourceNames", thrift.LIST, 2); err != nil {
 		return fmt.Errorf("%T write field begin error 2:topicTalosResourceNames: %s", p, err)
 	}
@@ -2956,25 +3045,38 @@ func (p *MultiTopicsQueryWorkerRequest) writeField2(oprot thrift.TProtocol) (err
 	return err
 }
 
-func (p *MultiTopicsQueryWorkerRequest) String() string {
+func (p *TopicsQueryWorkerRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRING, 3); err != nil {
+		return fmt.Errorf("%T write field begin error 3:topicGroup: %s", p, err)
+	}
+	if err := oprot.WriteString(string(p.TopicGroup)); err != nil {
+		return fmt.Errorf("%T.topicGroup (3) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 3:topicGroup: %s", p, err)
+	}
+	return err
+}
+
+func (p *TopicsQueryWorkerRequest) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsQueryWorkerRequest(%+v)", *p)
+	return fmt.Sprintf("TopicsQueryWorkerRequest(%+v)", *p)
 }
 
-type MultiTopicsQueryWorkerResponse struct {
+type TopicsQueryWorkerResponse struct {
 	WorkerMap map[string][]*topic.TopicAndPartition `thrift:"workerMap,1,required" json:"workerMap"`
 }
 
-func NewMultiTopicsQueryWorkerResponse() *MultiTopicsQueryWorkerResponse {
-	return &MultiTopicsQueryWorkerResponse{}
+func NewTopicsQueryWorkerResponse() *TopicsQueryWorkerResponse {
+	return &TopicsQueryWorkerResponse{}
 }
 
-func (p *MultiTopicsQueryWorkerResponse) GetWorkerMap() map[string][]*topic.TopicAndPartition {
+func (p *TopicsQueryWorkerResponse) GetWorkerMap() map[string][]*topic.TopicAndPartition {
 	return p.WorkerMap
 }
-func (p *MultiTopicsQueryWorkerResponse) Read(iprot thrift.TProtocol) error {
+func (p *TopicsQueryWorkerResponse) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -3006,7 +3108,7 @@ func (p *MultiTopicsQueryWorkerResponse) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerResponse) ReadField1(iprot thrift.TProtocol) error {
+func (p *TopicsQueryWorkerResponse) ReadField1(iprot thrift.TProtocol) error {
 	_, _, size, err := iprot.ReadMapBegin()
 	if err != nil {
 		return fmt.Errorf("error reading map begin: %s", err)
@@ -3044,8 +3146,8 @@ func (p *MultiTopicsQueryWorkerResponse) ReadField1(iprot thrift.TProtocol) erro
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerResponse) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("MultiTopicsQueryWorkerResponse"); err != nil {
+func (p *TopicsQueryWorkerResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("TopicsQueryWorkerResponse"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -3060,7 +3162,7 @@ func (p *MultiTopicsQueryWorkerResponse) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *MultiTopicsQueryWorkerResponse) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TopicsQueryWorkerResponse) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("workerMap", thrift.MAP, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:workerMap: %s", p, err)
 	}
@@ -3092,11 +3194,11 @@ func (p *MultiTopicsQueryWorkerResponse) writeField1(oprot thrift.TProtocol) (er
 	return err
 }
 
-func (p *MultiTopicsQueryWorkerResponse) String() string {
+func (p *TopicsQueryWorkerResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MultiTopicsQueryWorkerResponse(%+v)", *p)
+	return fmt.Sprintf("TopicsQueryWorkerResponse(%+v)", *p)
 }
 
 type ConsumerGroupAndPartition struct {

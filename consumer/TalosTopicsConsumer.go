@@ -18,7 +18,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/client"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
-	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/topic"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
 	"github.com/sirupsen/logrus"
@@ -76,11 +75,11 @@ type TalosTopicsConsumer struct {
 	log                  *logrus.Logger
 }
 
-func NewTalosMultiTopicsConsumerByProperties(properties *utils.Properties,
+func NewTalosTopicsConsumerByProperties(properties *utils.Properties,
 	messageProcessorFactory MessageProcessorFactory,
 	abnormalCallback client.TopicAbnormalCallback) (*TalosTopicsConsumer, error) {
 
-	topicPattern := properties.Get("galaxy.talos.topic.pattern")
+	topicGroup := properties.Get("galaxy.talos.topic.group")
 	consumerGroupName := properties.Get("galaxy.talos.group.name")
 	clientIdPrefix := properties.Get("galaxy.talos.client.prefix")
 	secretKeyId := properties.Get("galaxy.talos.access.key")
@@ -94,17 +93,17 @@ func NewTalosMultiTopicsConsumerByProperties(properties *utils.Properties,
 	}
 	consumerConfig := NewTalosConsumerConfigByProperties(properties)
 
-	return NewDefaultTalosMultiTopicsConsumer(consumerGroupName, consumerConfig, credential,
-		topicPattern, NewTalosMessageReaderFactory(), messageProcessorFactory,
+	return NewDefaultTalosTopicsConsumer(consumerGroupName, consumerConfig, credential,
+		topicGroup, NewTalosMessageReaderFactory(), messageProcessorFactory,
 		clientIdPrefix, abnormalCallback, make(map[*topic.TopicAndPartition]Long, 0), utils.InitLogger())
 }
 
-func NewTalosMultiTopicsConsumerByFilename(propertyFilename string,
+func NewTalosTopicsConsumerByFilename(propertyFilename string,
 	messageProcessorFactory MessageProcessorFactory,
 	abnormalCallback client.TopicAbnormalCallback) (*TalosTopicsConsumer, error) {
 
 	props := utils.LoadProperties(propertyFilename)
-	topicName := props.Get("galaxy.talos.topic.name")
+	topicGroup := props.Get("galaxy.talos.topic.group")
 	consumerGroupName := props.Get("galaxy.talos.group.name")
 	clientIdPrefix := props.Get("galaxy.talos.client.prefix")
 	secretKeyId := props.Get("galaxy.talos.access.key")
@@ -118,12 +117,12 @@ func NewTalosMultiTopicsConsumerByFilename(propertyFilename string,
 	}
 	consumerConfig := NewTalosConsumerConfigByProperties(props)
 
-	return NewDefaultTalosMultiTopicsConsumer(consumerGroupName, consumerConfig, credential,
-		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
+	return NewDefaultTalosTopicsConsumer(consumerGroupName, consumerConfig, credential,
+		topicGroup, NewTalosMessageReaderFactory(), messageProcessorFactory,
 		clientIdPrefix, abnormalCallback, make(map[*topic.TopicAndPartition]Long, 0), utils.InitLogger())
 }
 
-func NewTalosMultiTopicsConsumerWithLogger(propertyFilename string,
+func NewTalosTopicsConsumerWithLogger(propertyFilename string,
 	messageProcessorFactory MessageProcessorFactory,
 	abnormalCallback client.TopicAbnormalCallback, logger *logrus.Logger) (*TalosTopicsConsumer, error) {
 
@@ -142,21 +141,21 @@ func NewTalosMultiTopicsConsumerWithLogger(propertyFilename string,
 	}
 	consumerConfig := NewTalosConsumerConfigByProperties(props)
 
-	return NewDefaultTalosMultiTopicsConsumer(consumerGroupName, consumerConfig, credential,
+	return NewDefaultTalosTopicsConsumer(consumerGroupName, consumerConfig, credential,
 		topicGroup, NewTalosMessageReaderFactory(), messageProcessorFactory,
 		clientIdPrefix, abnormalCallback, make(map[*topic.TopicAndPartition]Long, 0), logger)
 }
 
-func NewTalosMultiTopicsConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
-	credential *auth.Credential, topicName string,
+func NewTalosTopicsConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
+	credential *auth.Credential, topicGroup string,
 	messageProcessorFactory MessageProcessorFactory, clientIdPrefix string,
 	abnormalCallback client.TopicAbnormalCallback, logger *logrus.Logger) (*TalosTopicsConsumer, error) {
-	return NewDefaultTalosMultiTopicsConsumer(consumerGroupName, consumerConfig, credential,
-		topicName, NewTalosMessageReaderFactory(), messageProcessorFactory,
+	return NewDefaultTalosTopicsConsumer(consumerGroupName, consumerConfig, credential,
+		topicGroup, NewTalosMessageReaderFactory(), messageProcessorFactory,
 		clientIdPrefix, abnormalCallback, make(map[*topic.TopicAndPartition]Long, 0), logger)
 }
 
-func NewDefaultTalosMultiTopicsConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
+func NewDefaultTalosTopicsConsumer(consumerGroupName string, consumerConfig *TalosConsumerConfig,
 	credential *auth.Credential, topicGroupName string,
 	messageReaderFactory *TalosMessageReaderFactory,
 	messageProcessorFactory MessageProcessorFactory, clientIdPrefix string,
@@ -255,17 +254,17 @@ func NewDefaultTalosMultiTopicsConsumer(consumerGroupName string, consumerConfig
 }
 
 func (c *TalosTopicsConsumer) getTopicAndScheduleInfo() error {
-	response, err := c.talosAdmin.LookupTopics(&message.LookupTopicsRequest{TopicGroup: c.topicGroup})
+	response, err := c.talosAdmin.LookupTopics(&topic.LookupTopicsRequest{TopicGroup: c.topicGroup})
 	if err != nil {
 		return err
 	}
 
 	if len(response.Topics) == 0 {
-		return fmt.Errorf("no authorized topics match topic pattern: %s", c.topicPattern)
+		return fmt.Errorf("no authorized topics in topic group: %s", c.topicGroup)
 	}
 
 	c.setTopics(response.Topics)
-	c.log.Infof("The worker: %s check and get topic info done", c.workerId)
+	c.log.Infof("The worker: %s check and get topics info done", c.workerId)
 	return nil
 }
 
@@ -290,18 +289,18 @@ func (c *TalosTopicsConsumer) getTopicAndScheduleInfoByList(topicList []string) 
 }
 
 func (c *TalosTopicsConsumer) registerSelf() error {
-	lockWorkerRequest := &consumer.MultiTopicsLockWorkerRequest{
+	lockWorkerRequest := &consumer.TopicsLockWorkerRequest{
 		ConsumerGroup: c.consumerGroup,
 		Topics:        c.topicList,
 		WorkerId:      c.workerId,
 	}
-	lockWorkerResponse := consumer.NewMultiTopicsLockWorkerResponse()
+	lockWorkerResponse := consumer.NewTopicsLockWorkerResponse()
 
 	var err error
 	tryCount := c.talosConsumerConfig.GetSelfRegisterMaxRetry() + 1
 	for tryCount > 0 {
 		tryCount--
-		lockWorkerResponse, err = c.consumerClient.LockWorkerForMultiTopics(lockWorkerRequest)
+		lockWorkerResponse, err = c.consumerClient.LockWorkerForTopics(lockWorkerRequest)
 		if err != nil {
 			continue
 		}
@@ -317,11 +316,11 @@ func (c *TalosTopicsConsumer) registerSelf() error {
 }
 
 func (c *TalosTopicsConsumer) getWorkerInfo() error {
-	queryWorkerRequest := &consumer.MultiTopicsQueryWorkerRequest{
+	queryWorkerRequest := &consumer.TopicsQueryWorkerRequest{
 		ConsumerGroup:           c.consumerGroup,
 		TopicTalosResourceNames: c.topicList,
 	}
-	queryWorkerResponse, err := c.consumerClient.QueryWorkerForMultiTopics(queryWorkerRequest)
+	queryWorkerResponse, err := c.consumerClient.QueryWorkerForTopics(queryWorkerRequest)
 	if err != nil {
 		return err
 	}
@@ -721,19 +720,8 @@ func (c *TalosTopicsConsumer) initConsumerMonitorTask() {
  * if topics number or partition number of any single topic change, invoke ReBalanceTask
  */
 func (c *TalosTopicsConsumer) CheckTopicPatternTask() {
-	topicAndPartition := new(topic.TopicAndPartition)
-	if len(c.topicList) == 0 {
-		topicAndPartition = nil
-	} else {
-		topicName, _ := utils.GetTopicNameByResourceName(c.topicList[0].TopicTalosResourceName)
-		topicAndPartition = &topic.TopicAndPartition{
-			TopicName:              topicName,
-			TopicTalosResourceName: c.topicList[0],
-			PartitionId:            0,
-		}
-	}
-	response, err := c.scheduleInfoCache.GetOrCreateMessageClient(topicAndPartition).LookupTopics(
-		&message.LookupTopicsRequest{TopicGroup: c.topicGroup})
+	response, err := c.talosAdmin.LookupTopics(
+		&topic.LookupTopicsRequest{TopicGroup: c.topicGroup})
 	if err != nil {
 		c.log.Errorf("Exception in CheckTopicsTask: %s", err.Error())
 		return
@@ -807,20 +795,20 @@ func (c *TalosTopicsConsumer) ReBalanceTask() {
  */
 func (c *TalosTopicsConsumer) ReNewTask() {
 	toRenewPartitionList := c.getRenewPartitionList()
-	consumeUnit := &consumer.MultiTopicsConsumeUnit{
+	consumeUnit := &consumer.TopicsConsumeUnit{
 		ConsumerGroup:   c.consumerGroup,
 		TopicPartitions: toRenewPartitionList,
 		WorkerId:        c.workerId,
 	}
-	renewRequest := &consumer.MultiTopicsRenewRequest{ConsumeUnit: consumeUnit}
-	var renewResponse *consumer.MultiTopicsRenewResponse
+	renewRequest := &consumer.TopicsRenewRequest{ConsumeUnit: consumeUnit}
+	var renewResponse *consumer.TopicsRenewResponse
 	var err error
 
 	// plus 1 to include the first renew operation
 	maxRetry := c.talosConsumerConfig.GetRenewMaxRetry() + 1
 	for maxRetry > 0 {
 		maxRetry--
-		renewResponse, err = c.consumerClient.RenewForMultiTopics(renewRequest)
+		renewResponse, err = c.consumerClient.RenewForTopics(renewRequest)
 		if err != nil {
 			c.log.Errorf("Worker: %s renew error: %s", c.workerId, err.Error())
 			continue

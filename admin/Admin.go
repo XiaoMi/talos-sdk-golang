@@ -22,7 +22,7 @@ type Admin interface {
 	ListTopics() ([]*topic.TopicInfo, error)
 	ListTopicsByOrgId(orgId string) ([]*topic.Topic, error)
 	ListTopicsInfo() ([]*topic.Topic, error)
-	LookupTopics(request *message.LookupTopicsRequest) (*message.LookupTopicsResponse, error)
+	LookupTopics(request *topic.LookupTopicsRequest) (*topic.LookupTopicsResponse, error)
 	GetTopicOffset(request *message.GetTopicOffsetRequest) ([]*message.OffsetInfo, error)
 	GetPartitionOffset(request *message.GetPartitionOffsetRequest) (*message.OffsetInfo, error)
 	GetScheduleInfo(request *message.GetScheduleInfoRequest) (map[*topic.TopicAndPartition]string, error)

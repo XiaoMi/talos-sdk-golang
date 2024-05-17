@@ -40,7 +40,7 @@ type ConsumerService interface {
 	//
 	// Parameters:
 	//  - Request
-	LockWorkerForMultiTopics(request *MultiTopicsLockWorkerRequest) (r *MultiTopicsLockWorkerResponse, err error)
+	LockWorkerForTopics(request *TopicsLockWorkerRequest) (r *TopicsLockWorkerResponse, err error)
 	// check if worker can register
 	//
 	//
@@ -64,7 +64,7 @@ type ConsumerService interface {
 	//
 	// Parameters:
 	//  - Request
-	RenewForMultiTopics(request *MultiTopicsRenewRequest) (r *MultiTopicsRenewResponse, err error)
+	RenewForTopics(request *TopicsRenewRequest) (r *TopicsRenewResponse, err error)
 	// update offset for a consuming consumeUnit task
 	//
 	//
@@ -88,7 +88,7 @@ type ConsumerService interface {
 	//
 	// Parameters:
 	//  - Request
-	QueryWorkerForMultiTopics(request *MultiTopicsQueryWorkerRequest) (r *MultiTopicsQueryWorkerResponse, err error)
+	QueryWorkerForTopics(request *TopicsQueryWorkerRequest) (r *TopicsQueryWorkerResponse, err error)
 	// query consumer group and partition offset
 	//
 	//
@@ -123,9 +123,8 @@ func NewConsumerServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtoco
 
 // lock a consume unit for specified worker
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) LockPartition(request *LockPartitionRequest) (r *LockPartitionResponse, err error) {
 	if err = p.sendLockPartition(request); err != nil {
 		return
@@ -199,9 +198,8 @@ func (p *ConsumerServiceClient) recvLockPartition() (value *LockPartitionRespons
 
 // lock a worker heartbeat
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) LockWorker(request *LockWorkerRequest) (r *LockWorkerResponse, err error) {
 	if err = p.sendLockWorker(request); err != nil {
 		return
@@ -275,27 +273,26 @@ func (p *ConsumerServiceClient) recvLockWorker() (value *LockWorkerResponse, err
 
 // lock a worker heartbeat for multi topics
 //
-//
 // Parameters:
-//  - Request
-func (p *ConsumerServiceClient) LockWorkerForMultiTopics(request *MultiTopicsLockWorkerRequest) (r *MultiTopicsLockWorkerResponse, err error) {
-	if err = p.sendLockWorkerForMultiTopics(request); err != nil {
+//   - Request
+func (p *ConsumerServiceClient) LockWorkerForTopics(request *TopicsLockWorkerRequest) (r *TopicsLockWorkerResponse, err error) {
+	if err = p.sendLockWorkerForTopics(request); err != nil {
 		return
 	}
-	return p.recvLockWorkerForMultiTopics()
+	return p.recvLockWorkerForTopics()
 }
 
-func (p *ConsumerServiceClient) sendLockWorkerForMultiTopics(request *MultiTopicsLockWorkerRequest) (err error) {
+func (p *ConsumerServiceClient) sendLockWorkerForTopics(request *TopicsLockWorkerRequest) (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
 		p.OutputProtocol = oprot
 	}
 	p.SeqId++
-	if err = oprot.WriteMessageBegin("lockWorkerForMultiTopics", thrift.CALL, p.SeqId); err != nil {
+	if err = oprot.WriteMessageBegin("lockWorkerForTopics", thrift.CALL, p.SeqId); err != nil {
 		return
 	}
-	args := LockWorkerForMultiTopicsArgs{
+	args := LockWorkerForTopicsArgs{
 		Request: request,
 	}
 	if err = args.Write(oprot); err != nil {
@@ -307,7 +304,7 @@ func (p *ConsumerServiceClient) sendLockWorkerForMultiTopics(request *MultiTopic
 	return oprot.Flush()
 }
 
-func (p *ConsumerServiceClient) recvLockWorkerForMultiTopics() (value *MultiTopicsLockWorkerResponse, err error) {
+func (p *ConsumerServiceClient) recvLockWorkerForTopics() (value *TopicsLockWorkerResponse, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -331,10 +328,10 @@ func (p *ConsumerServiceClient) recvLockWorkerForMultiTopics() (value *MultiTopi
 		return
 	}
 	if p.SeqId != seqId {
-		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "lockWorkerForMultiTopics failed: out of sequence response")
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "lockWorkerForTopics failed: out of sequence response")
 		return
 	}
-	result := LockWorkerForMultiTopicsResult{}
+	result := LockWorkerForTopicsResult{}
 	if err = result.Read(iprot); err != nil {
 		return
 	}
@@ -351,9 +348,8 @@ func (p *ConsumerServiceClient) recvLockWorkerForMultiTopics() (value *MultiTopi
 
 // check if worker can register
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) CheckRegister(request *CheckRegisterRequest) (r *CheckRegisterResponse, err error) {
 	if err = p.sendCheckRegister(request); err != nil {
 		return
@@ -427,9 +423,8 @@ func (p *ConsumerServiceClient) recvCheckRegister() (value *CheckRegisterRespons
 
 // unlock a consume unit for specified worker
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) UnlockPartition(request *UnlockPartitionRequest) (err error) {
 	if err = p.sendUnlockPartition(request); err != nil {
 		return
@@ -502,9 +497,8 @@ func (p *ConsumerServiceClient) recvUnlockPartition() (err error) {
 
 // renew worker heartbeat and serving partitions
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) Renew(request *RenewRequest) (r *RenewResponse, err error) {
 	if err = p.sendRenew(request); err != nil {
 		return
@@ -578,27 +572,26 @@ func (p *ConsumerServiceClient) recvRenew() (value *RenewResponse, err error) {
 
 // renew worker heartbeat and serving partitions for multi topics
 //
-//
 // Parameters:
-//  - Request
-func (p *ConsumerServiceClient) RenewForMultiTopics(request *MultiTopicsRenewRequest) (r *MultiTopicsRenewResponse, err error) {
-	if err = p.sendRenewForMultiTopics(request); err != nil {
+//   - Request
+func (p *ConsumerServiceClient) RenewForTopics(request *TopicsRenewRequest) (r *TopicsRenewResponse, err error) {
+	if err = p.sendRenewForTopics(request); err != nil {
 		return
 	}
-	return p.recvRenewForMultiTopics()
+	return p.recvRenewForTopics()
 }
 
-func (p *ConsumerServiceClient) sendRenewForMultiTopics(request *MultiTopicsRenewRequest) (err error) {
+func (p *ConsumerServiceClient) sendRenewForTopics(request *TopicsRenewRequest) (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
 		p.OutputProtocol = oprot
 	}
 	p.SeqId++
-	if err = oprot.WriteMessageBegin("renewForMultiTopics", thrift.CALL, p.SeqId); err != nil {
+	if err = oprot.WriteMessageBegin("renewForTopics", thrift.CALL, p.SeqId); err != nil {
 		return
 	}
-	args := RenewForMultiTopicsArgs{
+	args := RenewForTopicsArgs{
 		Request: request,
 	}
 	if err = args.Write(oprot); err != nil {
@@ -610,7 +603,7 @@ func (p *ConsumerServiceClient) sendRenewForMultiTopics(request *MultiTopicsRene
 	return oprot.Flush()
 }
 
-func (p *ConsumerServiceClient) recvRenewForMultiTopics() (value *MultiTopicsRenewResponse, err error) {
+func (p *ConsumerServiceClient) recvRenewForTopics() (value *TopicsRenewResponse, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -634,10 +627,10 @@ func (p *ConsumerServiceClient) recvRenewForMultiTopics() (value *MultiTopicsRen
 		return
 	}
 	if p.SeqId != seqId {
-		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "renewForMultiTopics failed: out of sequence response")
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "renewForTopics failed: out of sequence response")
 		return
 	}
-	result := RenewForMultiTopicsResult{}
+	result := RenewForTopicsResult{}
 	if err = result.Read(iprot); err != nil {
 		return
 	}
@@ -654,9 +647,8 @@ func (p *ConsumerServiceClient) recvRenewForMultiTopics() (value *MultiTopicsRen
 
 // update offset for a consuming consumeUnit task
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) UpdateOffset(request *UpdateOffsetRequest) (r *UpdateOffsetResponse, err error) {
 	if err = p.sendUpdateOffset(request); err != nil {
 		return
@@ -730,9 +722,8 @@ func (p *ConsumerServiceClient) recvUpdateOffset() (value *UpdateOffsetResponse,
 
 // query offset for a consumed consumeUnit task
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) QueryOffset(request *QueryOffsetRequest) (r *QueryOffsetResponse, err error) {
 	if err = p.sendQueryOffset(request); err != nil {
 		return
@@ -806,9 +797,8 @@ func (p *ConsumerServiceClient) recvQueryOffset() (value *QueryOffsetResponse, e
 
 // query worker for a consuming topic by specified consumer group
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) QueryWorker(request *QueryWorkerRequest) (r *QueryWorkerResponse, err error) {
 	if err = p.sendQueryWorker(request); err != nil {
 		return
@@ -882,27 +872,26 @@ func (p *ConsumerServiceClient) recvQueryWorker() (value *QueryWorkerResponse, e
 
 // query worker for a consuming topic by specified consumer group for multi topics
 //
-//
 // Parameters:
-//  - Request
-func (p *ConsumerServiceClient) QueryWorkerForMultiTopics(request *MultiTopicsQueryWorkerRequest) (r *MultiTopicsQueryWorkerResponse, err error) {
-	if err = p.sendQueryWorkerForMultiTopics(request); err != nil {
+//   - Request
+func (p *ConsumerServiceClient) QueryWorkerForTopics(request *TopicsQueryWorkerRequest) (r *TopicsQueryWorkerResponse, err error) {
+	if err = p.sendQueryWorkerForTopics(request); err != nil {
 		return
 	}
-	return p.recvQueryWorkerForMultiTopics()
+	return p.recvQueryWorkerForTopics()
 }
 
-func (p *ConsumerServiceClient) sendQueryWorkerForMultiTopics(request *MultiTopicsQueryWorkerRequest) (err error) {
+func (p *ConsumerServiceClient) sendQueryWorkerForTopics(request *TopicsQueryWorkerRequest) (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
 		p.OutputProtocol = oprot
 	}
 	p.SeqId++
-	if err = oprot.WriteMessageBegin("queryWorkerForMultiTopics", thrift.CALL, p.SeqId); err != nil {
+	if err = oprot.WriteMessageBegin("queryWorkerForTopics", thrift.CALL, p.SeqId); err != nil {
 		return
 	}
-	args := QueryWorkerForMultiTopicsArgs{
+	args := QueryWorkerForTopicsArgs{
 		Request: request,
 	}
 	if err = args.Write(oprot); err != nil {
@@ -914,7 +903,7 @@ func (p *ConsumerServiceClient) sendQueryWorkerForMultiTopics(request *MultiTopi
 	return oprot.Flush()
 }
 
-func (p *ConsumerServiceClient) recvQueryWorkerForMultiTopics() (value *MultiTopicsQueryWorkerResponse, err error) {
+func (p *ConsumerServiceClient) recvQueryWorkerForTopics() (value *TopicsQueryWorkerResponse, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -938,10 +927,10 @@ func (p *ConsumerServiceClient) recvQueryWorkerForMultiTopics() (value *MultiTop
 		return
 	}
 	if p.SeqId != seqId {
-		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "queryWorkerForMultiTopics failed: out of sequence response")
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "queryWorkerForTopics failed: out of sequence response")
 		return
 	}
-	result := QueryWorkerForMultiTopicsResult{}
+	result := QueryWorkerForTopicsResult{}
 	if err = result.Read(iprot); err != nil {
 		return
 	}
@@ -958,9 +947,8 @@ func (p *ConsumerServiceClient) recvQueryWorkerForMultiTopics() (value *MultiTop
 
 // query consumer group and partition offset
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) QueryOrgOffset(request *QueryOrgOffsetRequest) (r *QueryOrgOffsetResponse, err error) {
 	if err = p.sendQueryOrgOffset(request); err != nil {
 		return
@@ -1034,9 +1022,8 @@ func (p *ConsumerServiceClient) recvQueryOrgOffset() (value *QueryOrgOffsetRespo
 
 // Get workerId
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) GetWorkerId(request *GetWorkerIdRequest) (r *GetWorkerIdResponse, err error) {
 	if err = p.sendGetWorkerId(request); err != nil {
 		return
@@ -1110,9 +1097,8 @@ func (p *ConsumerServiceClient) recvGetWorkerId() (value *GetWorkerIdResponse, e
 
 // Delete consumerGroup for specific topic
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *ConsumerServiceClient) DeleteConsumerGroup(request *DeleteConsumerGroupRequest) (err error) {
 	if err = p.sendDeleteConsumerGroup(request); err != nil {
 		return
@@ -1191,15 +1177,15 @@ func NewConsumerServiceProcessor(handler ConsumerService) *ConsumerServiceProces
 	self46 := &ConsumerServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
 	self46.AddToProcessorMap("lockPartition", &consumerServiceProcessorLockPartition{handler: handler})
 	self46.AddToProcessorMap("lockWorker", &consumerServiceProcessorLockWorker{handler: handler})
-	self46.AddToProcessorMap("lockWorkerForMultiTopics", &consumerServiceProcessorLockWorkerForMultiTopics{handler: handler})
+	self46.AddToProcessorMap("lockWorkerForTopics", &consumerServiceProcessorLockWorkerForTopics{handler: handler})
 	self46.AddToProcessorMap("checkRegister", &consumerServiceProcessorCheckRegister{handler: handler})
 	self46.AddToProcessorMap("unlockPartition", &consumerServiceProcessorUnlockPartition{handler: handler})
 	self46.AddToProcessorMap("renew", &consumerServiceProcessorRenew{handler: handler})
-	self46.AddToProcessorMap("renewForMultiTopics", &consumerServiceProcessorRenewForMultiTopics{handler: handler})
+	self46.AddToProcessorMap("renewForTopics", &consumerServiceProcessorRenewForTopics{handler: handler})
 	self46.AddToProcessorMap("updateOffset", &consumerServiceProcessorUpdateOffset{handler: handler})
 	self46.AddToProcessorMap("queryOffset", &consumerServiceProcessorQueryOffset{handler: handler})
 	self46.AddToProcessorMap("queryWorker", &consumerServiceProcessorQueryWorker{handler: handler})
-	self46.AddToProcessorMap("queryWorkerForMultiTopics", &consumerServiceProcessorQueryWorkerForMultiTopics{handler: handler})
+	self46.AddToProcessorMap("queryWorkerForTopics", &consumerServiceProcessorQueryWorkerForTopics{handler: handler})
 	self46.AddToProcessorMap("queryOrgOffset", &consumerServiceProcessorQueryOrgOffset{handler: handler})
 	self46.AddToProcessorMap("getWorkerId", &consumerServiceProcessorGetWorkerId{handler: handler})
 	self46.AddToProcessorMap("deleteConsumerGroup", &consumerServiceProcessorDeleteConsumerGroup{handler: handler})
@@ -1312,16 +1298,16 @@ func (p *consumerServiceProcessorLockWorker) Process(seqId int32, iprot, oprot t
 	return true, err
 }
 
-type consumerServiceProcessorLockWorkerForMultiTopics struct {
+type consumerServiceProcessorLockWorkerForTopics struct {
 	handler ConsumerService
 }
 
-func (p *consumerServiceProcessorLockWorkerForMultiTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := LockWorkerForMultiTopicsArgs{}
+func (p *consumerServiceProcessorLockWorkerForTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := LockWorkerForTopicsArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("lockWorkerForMultiTopics", thrift.EXCEPTION, seqId)
+		oprot.WriteMessageBegin("lockWorkerForTopics", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
@@ -1329,16 +1315,16 @@ func (p *consumerServiceProcessorLockWorkerForMultiTopics) Process(seqId int32, 
 	}
 
 	iprot.ReadMessageEnd()
-	result := LockWorkerForMultiTopicsResult{}
-	var retval *MultiTopicsLockWorkerResponse
+	result := LockWorkerForTopicsResult{}
+	var retval *TopicsLockWorkerResponse
 	var err2 error
-	if retval, err2 = p.handler.LockWorkerForMultiTopics(args.Request); err2 != nil {
+	if retval, err2 = p.handler.LockWorkerForTopics(args.Request); err2 != nil {
 		switch v := err2.(type) {
 		case *common.GalaxyTalosException:
 			result.E = v
 		default:
-			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing lockWorkerForMultiTopics: "+err2.Error())
-			oprot.WriteMessageBegin("lockWorkerForMultiTopics", thrift.EXCEPTION, seqId)
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing lockWorkerForTopics: "+err2.Error())
+			oprot.WriteMessageBegin("lockWorkerForTopics", thrift.EXCEPTION, seqId)
 			x.Write(oprot)
 			oprot.WriteMessageEnd()
 			oprot.Flush()
@@ -1347,7 +1333,7 @@ func (p *consumerServiceProcessorLockWorkerForMultiTopics) Process(seqId int32, 
 	} else {
 		result.Success = retval
 	}
-	if err2 = oprot.WriteMessageBegin("lockWorkerForMultiTopics", thrift.REPLY, seqId); err2 != nil {
+	if err2 = oprot.WriteMessageBegin("lockWorkerForTopics", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -1521,16 +1507,16 @@ func (p *consumerServiceProcessorRenew) Process(seqId int32, iprot, oprot thrift
 	return true, err
 }
 
-type consumerServiceProcessorRenewForMultiTopics struct {
+type consumerServiceProcessorRenewForTopics struct {
 	handler ConsumerService
 }
 
-func (p *consumerServiceProcessorRenewForMultiTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := RenewForMultiTopicsArgs{}
+func (p *consumerServiceProcessorRenewForTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := RenewForTopicsArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("renewForMultiTopics", thrift.EXCEPTION, seqId)
+		oprot.WriteMessageBegin("renewForTopics", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
@@ -1538,16 +1524,16 @@ func (p *consumerServiceProcessorRenewForMultiTopics) Process(seqId int32, iprot
 	}
 
 	iprot.ReadMessageEnd()
-	result := RenewForMultiTopicsResult{}
-	var retval *MultiTopicsRenewResponse
+	result := RenewForTopicsResult{}
+	var retval *TopicsRenewResponse
 	var err2 error
-	if retval, err2 = p.handler.RenewForMultiTopics(args.Request); err2 != nil {
+	if retval, err2 = p.handler.RenewForTopics(args.Request); err2 != nil {
 		switch v := err2.(type) {
 		case *common.GalaxyTalosException:
 			result.E = v
 		default:
-			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing renewForMultiTopics: "+err2.Error())
-			oprot.WriteMessageBegin("renewForMultiTopics", thrift.EXCEPTION, seqId)
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing renewForTopics: "+err2.Error())
+			oprot.WriteMessageBegin("renewForTopics", thrift.EXCEPTION, seqId)
 			x.Write(oprot)
 			oprot.WriteMessageEnd()
 			oprot.Flush()
@@ -1556,7 +1542,7 @@ func (p *consumerServiceProcessorRenewForMultiTopics) Process(seqId int32, iprot
 	} else {
 		result.Success = retval
 	}
-	if err2 = oprot.WriteMessageBegin("renewForMultiTopics", thrift.REPLY, seqId); err2 != nil {
+	if err2 = oprot.WriteMessageBegin("renewForTopics", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -1733,16 +1719,16 @@ func (p *consumerServiceProcessorQueryWorker) Process(seqId int32, iprot, oprot 
 	return true, err
 }
 
-type consumerServiceProcessorQueryWorkerForMultiTopics struct {
+type consumerServiceProcessorQueryWorkerForTopics struct {
 	handler ConsumerService
 }
 
-func (p *consumerServiceProcessorQueryWorkerForMultiTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := QueryWorkerForMultiTopicsArgs{}
+func (p *consumerServiceProcessorQueryWorkerForTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := QueryWorkerForTopicsArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("queryWorkerForMultiTopics", thrift.EXCEPTION, seqId)
+		oprot.WriteMessageBegin("queryWorkerForTopics", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
@@ -1750,16 +1736,16 @@ func (p *consumerServiceProcessorQueryWorkerForMultiTopics) Process(seqId int32,
 	}
 
 	iprot.ReadMessageEnd()
-	result := QueryWorkerForMultiTopicsResult{}
-	var retval *MultiTopicsQueryWorkerResponse
+	result := QueryWorkerForTopicsResult{}
+	var retval *TopicsQueryWorkerResponse
 	var err2 error
-	if retval, err2 = p.handler.QueryWorkerForMultiTopics(args.Request); err2 != nil {
+	if retval, err2 = p.handler.QueryWorkerForTopics(args.Request); err2 != nil {
 		switch v := err2.(type) {
 		case *common.GalaxyTalosException:
 			result.E = v
 		default:
-			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing queryWorkerForMultiTopics: "+err2.Error())
-			oprot.WriteMessageBegin("queryWorkerForMultiTopics", thrift.EXCEPTION, seqId)
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing queryWorkerForTopics: "+err2.Error())
+			oprot.WriteMessageBegin("queryWorkerForTopics", thrift.EXCEPTION, seqId)
 			x.Write(oprot)
 			oprot.WriteMessageEnd()
 			oprot.Flush()
@@ -1768,7 +1754,7 @@ func (p *consumerServiceProcessorQueryWorkerForMultiTopics) Process(seqId int32,
 	} else {
 		result.Success = retval
 	}
-	if err2 = oprot.WriteMessageBegin("queryWorkerForMultiTopics", thrift.REPLY, seqId); err2 != nil {
+	if err2 = oprot.WriteMessageBegin("queryWorkerForTopics", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -2420,27 +2406,27 @@ func (p *LockWorkerResult) String() string {
 	return fmt.Sprintf("LockWorkerResult(%+v)", *p)
 }
 
-type LockWorkerForMultiTopicsArgs struct {
-	Request *MultiTopicsLockWorkerRequest `thrift:"request,1" json:"request"`
+type LockWorkerForTopicsArgs struct {
+	Request *TopicsLockWorkerRequest `thrift:"request,1" json:"request"`
 }
 
-func NewLockWorkerForMultiTopicsArgs() *LockWorkerForMultiTopicsArgs {
-	return &LockWorkerForMultiTopicsArgs{}
+func NewLockWorkerForTopicsArgs() *LockWorkerForTopicsArgs {
+	return &LockWorkerForTopicsArgs{}
 }
 
-var LockWorkerForMultiTopicsArgs_Request_DEFAULT *MultiTopicsLockWorkerRequest
+var LockWorkerForTopicsArgs_Request_DEFAULT *TopicsLockWorkerRequest
 
-func (p *LockWorkerForMultiTopicsArgs) GetRequest() *MultiTopicsLockWorkerRequest {
+func (p *LockWorkerForTopicsArgs) GetRequest() *TopicsLockWorkerRequest {
 	if !p.IsSetRequest() {
-		return LockWorkerForMultiTopicsArgs_Request_DEFAULT
+		return LockWorkerForTopicsArgs_Request_DEFAULT
 	}
 	return p.Request
 }
-func (p *LockWorkerForMultiTopicsArgs) IsSetRequest() bool {
+func (p *LockWorkerForTopicsArgs) IsSetRequest() bool {
 	return p.Request != nil
 }
 
-func (p *LockWorkerForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
+func (p *LockWorkerForTopicsArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -2472,16 +2458,16 @@ func (p *LockWorkerForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
-	p.Request = &MultiTopicsLockWorkerRequest{}
+func (p *LockWorkerForTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &TopicsLockWorkerRequest{}
 	if err := p.Request.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
 	}
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("lockWorkerForMultiTopics_args"); err != nil {
+func (p *LockWorkerForTopicsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("lockWorkerForTopics_args"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -2496,7 +2482,7 @@ func (p *LockWorkerForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *LockWorkerForTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
 	}
@@ -2509,48 +2495,48 @@ func (p *LockWorkerForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err 
 	return err
 }
 
-func (p *LockWorkerForMultiTopicsArgs) String() string {
+func (p *LockWorkerForTopicsArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("LockWorkerForMultiTopicsArgs(%+v)", *p)
+	return fmt.Sprintf("LockWorkerForTopicsArgs(%+v)", *p)
 }
 
-type LockWorkerForMultiTopicsResult struct {
-	Success *MultiTopicsLockWorkerResponse `thrift:"success,0" json:"success"`
-	E       *common.GalaxyTalosException   `thrift:"e,1" json:"e"`
+type LockWorkerForTopicsResult struct {
+	Success *TopicsLockWorkerResponse    `thrift:"success,0" json:"success"`
+	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
 }
 
-func NewLockWorkerForMultiTopicsResult() *LockWorkerForMultiTopicsResult {
-	return &LockWorkerForMultiTopicsResult{}
+func NewLockWorkerForTopicsResult() *LockWorkerForTopicsResult {
+	return &LockWorkerForTopicsResult{}
 }
 
-var LockWorkerForMultiTopicsResult_Success_DEFAULT *MultiTopicsLockWorkerResponse
+var LockWorkerForTopicsResult_Success_DEFAULT *TopicsLockWorkerResponse
 
-func (p *LockWorkerForMultiTopicsResult) GetSuccess() *MultiTopicsLockWorkerResponse {
+func (p *LockWorkerForTopicsResult) GetSuccess() *TopicsLockWorkerResponse {
 	if !p.IsSetSuccess() {
-		return LockWorkerForMultiTopicsResult_Success_DEFAULT
+		return LockWorkerForTopicsResult_Success_DEFAULT
 	}
 	return p.Success
 }
 
-var LockWorkerForMultiTopicsResult_E_DEFAULT *common.GalaxyTalosException
+var LockWorkerForTopicsResult_E_DEFAULT *common.GalaxyTalosException
 
-func (p *LockWorkerForMultiTopicsResult) GetE() *common.GalaxyTalosException {
+func (p *LockWorkerForTopicsResult) GetE() *common.GalaxyTalosException {
 	if !p.IsSetE() {
-		return LockWorkerForMultiTopicsResult_E_DEFAULT
+		return LockWorkerForTopicsResult_E_DEFAULT
 	}
 	return p.E
 }
-func (p *LockWorkerForMultiTopicsResult) IsSetSuccess() bool {
+func (p *LockWorkerForTopicsResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) IsSetE() bool {
+func (p *LockWorkerForTopicsResult) IsSetE() bool {
 	return p.E != nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
+func (p *LockWorkerForTopicsResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -2586,15 +2572,15 @@ func (p *LockWorkerForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) ReadField0(iprot thrift.TProtocol) error {
-	p.Success = &MultiTopicsLockWorkerResponse{}
+func (p *LockWorkerForTopicsResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &TopicsLockWorkerResponse{}
 	if err := p.Success.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
 	}
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+func (p *LockWorkerForTopicsResult) ReadField1(iprot thrift.TProtocol) error {
 	p.E = &common.GalaxyTalosException{}
 	if err := p.E.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.E, err)
@@ -2602,8 +2588,8 @@ func (p *LockWorkerForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) erro
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("lockWorkerForMultiTopics_result"); err != nil {
+func (p *LockWorkerForTopicsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("lockWorkerForTopics_result"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField0(oprot); err != nil {
@@ -2621,7 +2607,7 @@ func (p *LockWorkerForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LockWorkerForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *LockWorkerForTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
@@ -2636,7 +2622,7 @@ func (p *LockWorkerForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (er
 	return err
 }
 
-func (p *LockWorkerForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *LockWorkerForTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
 	if p.IsSetE() {
 		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
 			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
@@ -2651,11 +2637,11 @@ func (p *LockWorkerForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (er
 	return err
 }
 
-func (p *LockWorkerForMultiTopicsResult) String() string {
+func (p *LockWorkerForTopicsResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("LockWorkerForMultiTopicsResult(%+v)", *p)
+	return fmt.Sprintf("LockWorkerForTopicsResult(%+v)", *p)
 }
 
 type CheckRegisterArgs struct {
@@ -3328,27 +3314,27 @@ func (p *RenewResult) String() string {
 	return fmt.Sprintf("RenewResult(%+v)", *p)
 }
 
-type RenewForMultiTopicsArgs struct {
-	Request *MultiTopicsRenewRequest `thrift:"request,1" json:"request"`
+type RenewForTopicsArgs struct {
+	Request *TopicsRenewRequest `thrift:"request,1" json:"request"`
 }
 
-func NewRenewForMultiTopicsArgs() *RenewForMultiTopicsArgs {
-	return &RenewForMultiTopicsArgs{}
+func NewRenewForTopicsArgs() *RenewForTopicsArgs {
+	return &RenewForTopicsArgs{}
 }
 
-var RenewForMultiTopicsArgs_Request_DEFAULT *MultiTopicsRenewRequest
+var RenewForTopicsArgs_Request_DEFAULT *TopicsRenewRequest
 
-func (p *RenewForMultiTopicsArgs) GetRequest() *MultiTopicsRenewRequest {
+func (p *RenewForTopicsArgs) GetRequest() *TopicsRenewRequest {
 	if !p.IsSetRequest() {
-		return RenewForMultiTopicsArgs_Request_DEFAULT
+		return RenewForTopicsArgs_Request_DEFAULT
 	}
 	return p.Request
 }
-func (p *RenewForMultiTopicsArgs) IsSetRequest() bool {
+func (p *RenewForTopicsArgs) IsSetRequest() bool {
 	return p.Request != nil
 }
 
-func (p *RenewForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
+func (p *RenewForTopicsArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -3380,16 +3366,16 @@ func (p *RenewForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *RenewForMultiTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
-	p.Request = &MultiTopicsRenewRequest{}
+func (p *RenewForTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &TopicsRenewRequest{}
 	if err := p.Request.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
 	}
 	return nil
 }
 
-func (p *RenewForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("renewForMultiTopics_args"); err != nil {
+func (p *RenewForTopicsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("renewForTopics_args"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -3404,7 +3390,7 @@ func (p *RenewForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *RenewForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *RenewForTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
 	}
@@ -3417,48 +3403,48 @@ func (p *RenewForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err error
 	return err
 }
 
-func (p *RenewForMultiTopicsArgs) String() string {
+func (p *RenewForTopicsArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("RenewForMultiTopicsArgs(%+v)", *p)
+	return fmt.Sprintf("RenewForTopicsArgs(%+v)", *p)
 }
 
-type RenewForMultiTopicsResult struct {
-	Success *MultiTopicsRenewResponse    `thrift:"success,0" json:"success"`
+type RenewForTopicsResult struct {
+	Success *TopicsRenewResponse         `thrift:"success,0" json:"success"`
 	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
 }
 
-func NewRenewForMultiTopicsResult() *RenewForMultiTopicsResult {
-	return &RenewForMultiTopicsResult{}
+func NewRenewForTopicsResult() *RenewForTopicsResult {
+	return &RenewForTopicsResult{}
 }
 
-var RenewForMultiTopicsResult_Success_DEFAULT *MultiTopicsRenewResponse
+var RenewForTopicsResult_Success_DEFAULT *TopicsRenewResponse
 
-func (p *RenewForMultiTopicsResult) GetSuccess() *MultiTopicsRenewResponse {
+func (p *RenewForTopicsResult) GetSuccess() *TopicsRenewResponse {
 	if !p.IsSetSuccess() {
-		return RenewForMultiTopicsResult_Success_DEFAULT
+		return RenewForTopicsResult_Success_DEFAULT
 	}
 	return p.Success
 }
 
-var RenewForMultiTopicsResult_E_DEFAULT *common.GalaxyTalosException
+var RenewForTopicsResult_E_DEFAULT *common.GalaxyTalosException
 
-func (p *RenewForMultiTopicsResult) GetE() *common.GalaxyTalosException {
+func (p *RenewForTopicsResult) GetE() *common.GalaxyTalosException {
 	if !p.IsSetE() {
-		return RenewForMultiTopicsResult_E_DEFAULT
+		return RenewForTopicsResult_E_DEFAULT
 	}
 	return p.E
 }
-func (p *RenewForMultiTopicsResult) IsSetSuccess() bool {
+func (p *RenewForTopicsResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *RenewForMultiTopicsResult) IsSetE() bool {
+func (p *RenewForTopicsResult) IsSetE() bool {
 	return p.E != nil
 }
 
-func (p *RenewForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
+func (p *RenewForTopicsResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -3494,15 +3480,15 @@ func (p *RenewForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *RenewForMultiTopicsResult) ReadField0(iprot thrift.TProtocol) error {
-	p.Success = &MultiTopicsRenewResponse{}
+func (p *RenewForTopicsResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &TopicsRenewResponse{}
 	if err := p.Success.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
 	}
 	return nil
 }
 
-func (p *RenewForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+func (p *RenewForTopicsResult) ReadField1(iprot thrift.TProtocol) error {
 	p.E = &common.GalaxyTalosException{}
 	if err := p.E.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.E, err)
@@ -3510,8 +3496,8 @@ func (p *RenewForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *RenewForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("renewForMultiTopics_result"); err != nil {
+func (p *RenewForTopicsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("renewForTopics_result"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField0(oprot); err != nil {
@@ -3529,7 +3515,7 @@ func (p *RenewForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *RenewForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *RenewForTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
@@ -3544,7 +3530,7 @@ func (p *RenewForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (err err
 	return err
 }
 
-func (p *RenewForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *RenewForTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
 	if p.IsSetE() {
 		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
 			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
@@ -3559,11 +3545,11 @@ func (p *RenewForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (err err
 	return err
 }
 
-func (p *RenewForMultiTopicsResult) String() string {
+func (p *RenewForTopicsResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("RenewForMultiTopicsResult(%+v)", *p)
+	return fmt.Sprintf("RenewForTopicsResult(%+v)", *p)
 }
 
 type UpdateOffsetArgs struct {
@@ -4280,27 +4266,27 @@ func (p *QueryWorkerResult) String() string {
 	return fmt.Sprintf("QueryWorkerResult(%+v)", *p)
 }
 
-type QueryWorkerForMultiTopicsArgs struct {
-	Request *MultiTopicsQueryWorkerRequest `thrift:"request,1" json:"request"`
+type QueryWorkerForTopicsArgs struct {
+	Request *TopicsQueryWorkerRequest `thrift:"request,1" json:"request"`
 }
 
-func NewQueryWorkerForMultiTopicsArgs() *QueryWorkerForMultiTopicsArgs {
-	return &QueryWorkerForMultiTopicsArgs{}
+func NewQueryWorkerForTopicsArgs() *QueryWorkerForTopicsArgs {
+	return &QueryWorkerForTopicsArgs{}
 }
 
-var QueryWorkerForMultiTopicsArgs_Request_DEFAULT *MultiTopicsQueryWorkerRequest
+var QueryWorkerForTopicsArgs_Request_DEFAULT *TopicsQueryWorkerRequest
 
-func (p *QueryWorkerForMultiTopicsArgs) GetRequest() *MultiTopicsQueryWorkerRequest {
+func (p *QueryWorkerForTopicsArgs) GetRequest() *TopicsQueryWorkerRequest {
 	if !p.IsSetRequest() {
-		return QueryWorkerForMultiTopicsArgs_Request_DEFAULT
+		return QueryWorkerForTopicsArgs_Request_DEFAULT
 	}
 	return p.Request
 }
-func (p *QueryWorkerForMultiTopicsArgs) IsSetRequest() bool {
+func (p *QueryWorkerForTopicsArgs) IsSetRequest() bool {
 	return p.Request != nil
 }
 
-func (p *QueryWorkerForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
+func (p *QueryWorkerForTopicsArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -4332,16 +4318,16 @@ func (p *QueryWorkerForMultiTopicsArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
-	p.Request = &MultiTopicsQueryWorkerRequest{}
+func (p *QueryWorkerForTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &TopicsQueryWorkerRequest{}
 	if err := p.Request.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
 	}
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("queryWorkerForMultiTopics_args"); err != nil {
+func (p *QueryWorkerForTopicsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("queryWorkerForTopics_args"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -4356,7 +4342,7 @@ func (p *QueryWorkerForMultiTopicsArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *QueryWorkerForTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
 	}
@@ -4369,48 +4355,48 @@ func (p *QueryWorkerForMultiTopicsArgs) writeField1(oprot thrift.TProtocol) (err
 	return err
 }
 
-func (p *QueryWorkerForMultiTopicsArgs) String() string {
+func (p *QueryWorkerForTopicsArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("QueryWorkerForMultiTopicsArgs(%+v)", *p)
+	return fmt.Sprintf("QueryWorkerForTopicsArgs(%+v)", *p)
 }
 
-type QueryWorkerForMultiTopicsResult struct {
-	Success *MultiTopicsQueryWorkerResponse `thrift:"success,0" json:"success"`
-	E       *common.GalaxyTalosException    `thrift:"e,1" json:"e"`
+type QueryWorkerForTopicsResult struct {
+	Success *TopicsQueryWorkerResponse   `thrift:"success,0" json:"success"`
+	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
 }
 
-func NewQueryWorkerForMultiTopicsResult() *QueryWorkerForMultiTopicsResult {
-	return &QueryWorkerForMultiTopicsResult{}
+func NewQueryWorkerForTopicsResult() *QueryWorkerForTopicsResult {
+	return &QueryWorkerForTopicsResult{}
 }
 
-var QueryWorkerForMultiTopicsResult_Success_DEFAULT *MultiTopicsQueryWorkerResponse
+var QueryWorkerForTopicsResult_Success_DEFAULT *TopicsQueryWorkerResponse
 
-func (p *QueryWorkerForMultiTopicsResult) GetSuccess() *MultiTopicsQueryWorkerResponse {
+func (p *QueryWorkerForTopicsResult) GetSuccess() *TopicsQueryWorkerResponse {
 	if !p.IsSetSuccess() {
-		return QueryWorkerForMultiTopicsResult_Success_DEFAULT
+		return QueryWorkerForTopicsResult_Success_DEFAULT
 	}
 	return p.Success
 }
 
-var QueryWorkerForMultiTopicsResult_E_DEFAULT *common.GalaxyTalosException
+var QueryWorkerForTopicsResult_E_DEFAULT *common.GalaxyTalosException
 
-func (p *QueryWorkerForMultiTopicsResult) GetE() *common.GalaxyTalosException {
+func (p *QueryWorkerForTopicsResult) GetE() *common.GalaxyTalosException {
 	if !p.IsSetE() {
-		return QueryWorkerForMultiTopicsResult_E_DEFAULT
+		return QueryWorkerForTopicsResult_E_DEFAULT
 	}
 	return p.E
 }
-func (p *QueryWorkerForMultiTopicsResult) IsSetSuccess() bool {
+func (p *QueryWorkerForTopicsResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) IsSetE() bool {
+func (p *QueryWorkerForTopicsResult) IsSetE() bool {
 	return p.E != nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
+func (p *QueryWorkerForTopicsResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -4446,15 +4432,15 @@ func (p *QueryWorkerForMultiTopicsResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) ReadField0(iprot thrift.TProtocol) error {
-	p.Success = &MultiTopicsQueryWorkerResponse{}
+func (p *QueryWorkerForTopicsResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &TopicsQueryWorkerResponse{}
 	if err := p.Success.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
 	}
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+func (p *QueryWorkerForTopicsResult) ReadField1(iprot thrift.TProtocol) error {
 	p.E = &common.GalaxyTalosException{}
 	if err := p.E.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.E, err)
@@ -4462,8 +4448,8 @@ func (p *QueryWorkerForMultiTopicsResult) ReadField1(iprot thrift.TProtocol) err
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("queryWorkerForMultiTopics_result"); err != nil {
+func (p *QueryWorkerForTopicsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("queryWorkerForTopics_result"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField0(oprot); err != nil {
@@ -4481,7 +4467,7 @@ func (p *QueryWorkerForMultiTopicsResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *QueryWorkerForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *QueryWorkerForTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
@@ -4496,7 +4482,7 @@ func (p *QueryWorkerForMultiTopicsResult) writeField0(oprot thrift.TProtocol) (e
 	return err
 }
 
-func (p *QueryWorkerForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *QueryWorkerForTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
 	if p.IsSetE() {
 		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
 			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
@@ -4511,11 +4497,11 @@ func (p *QueryWorkerForMultiTopicsResult) writeField1(oprot thrift.TProtocol) (e
 	return err
 }
 
-func (p *QueryWorkerForMultiTopicsResult) String() string {
+func (p *QueryWorkerForTopicsResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("QueryWorkerForMultiTopicsResult(%+v)", *p)
+	return fmt.Sprintf("QueryWorkerForTopicsResult(%+v)", *p)
 }
 
 type QueryOrgOffsetArgs struct {

@@ -23,15 +23,15 @@ func Usage() {
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
 	fmt.Fprintln(os.Stderr, "  LockPartitionResponse lockPartition(LockPartitionRequest request)")
 	fmt.Fprintln(os.Stderr, "  LockWorkerResponse lockWorker(LockWorkerRequest request)")
-	fmt.Fprintln(os.Stderr, "  MultiTopicsLockWorkerResponse lockWorkerForMultiTopics(MultiTopicsLockWorkerRequest request)")
+	fmt.Fprintln(os.Stderr, "  TopicsLockWorkerResponse lockWorkerForTopics(TopicsLockWorkerRequest request)")
 	fmt.Fprintln(os.Stderr, "  CheckRegisterResponse checkRegister(CheckRegisterRequest request)")
 	fmt.Fprintln(os.Stderr, "  void unlockPartition(UnlockPartitionRequest request)")
 	fmt.Fprintln(os.Stderr, "  RenewResponse renew(RenewRequest request)")
-	fmt.Fprintln(os.Stderr, "  MultiTopicsRenewResponse renewForMultiTopics(MultiTopicsRenewRequest request)")
+	fmt.Fprintln(os.Stderr, "  TopicsRenewResponse renewForTopics(TopicsRenewRequest request)")
 	fmt.Fprintln(os.Stderr, "  UpdateOffsetResponse updateOffset(UpdateOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryOffsetResponse queryOffset(QueryOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryWorkerResponse queryWorker(QueryWorkerRequest request)")
-	fmt.Fprintln(os.Stderr, "  MultiTopicsQueryWorkerResponse queryWorkerForMultiTopics(MultiTopicsQueryWorkerRequest request)")
+	fmt.Fprintln(os.Stderr, "  TopicsQueryWorkerResponse queryWorkerForTopics(TopicsQueryWorkerRequest request)")
 	fmt.Fprintln(os.Stderr, "  QueryOrgOffsetResponse queryOrgOffset(QueryOrgOffsetRequest request)")
 	fmt.Fprintln(os.Stderr, "  GetWorkerIdResponse getWorkerId(GetWorkerIdRequest request)")
 	fmt.Fprintln(os.Stderr, "  void deleteConsumerGroup(DeleteConsumerGroupRequest request)")
@@ -181,9 +181,9 @@ func main() {
 		fmt.Print(client.LockWorker(value0))
 		fmt.Print("\n")
 		break
-	case "lockWorkerForMultiTopics":
+	case "lockWorkerForTopics":
 		if flag.NArg()-1 != 1 {
-			fmt.Fprintln(os.Stderr, "LockWorkerForMultiTopics requires 1 args")
+			fmt.Fprintln(os.Stderr, "LockWorkerForTopics requires 1 args")
 			flag.Usage()
 		}
 		arg59 := flag.Arg(1)
@@ -196,14 +196,14 @@ func main() {
 		}
 		factory62 := thrift.NewTSimpleJSONProtocolFactory()
 		jsProt63 := factory62.GetProtocol(mbTrans60)
-		argvalue0 := consumer.NewMultiTopicsLockWorkerRequest()
+		argvalue0 := consumer.NewTopicsLockWorkerRequest()
 		err64 := argvalue0.Read(jsProt63)
 		if err64 != nil {
 			Usage()
 			return
 		}
 		value0 := argvalue0
-		fmt.Print(client.LockWorkerForMultiTopics(value0))
+		fmt.Print(client.LockWorkerForTopics(value0))
 		fmt.Print("\n")
 		break
 	case "checkRegister":
@@ -281,9 +281,9 @@ func main() {
 		fmt.Print(client.Renew(value0))
 		fmt.Print("\n")
 		break
-	case "renewForMultiTopics":
+	case "renewForTopics":
 		if flag.NArg()-1 != 1 {
-			fmt.Fprintln(os.Stderr, "RenewForMultiTopics requires 1 args")
+			fmt.Fprintln(os.Stderr, "RenewForTopics requires 1 args")
 			flag.Usage()
 		}
 		arg83 := flag.Arg(1)
@@ -296,14 +296,14 @@ func main() {
 		}
 		factory86 := thrift.NewTSimpleJSONProtocolFactory()
 		jsProt87 := factory86.GetProtocol(mbTrans84)
-		argvalue0 := consumer.NewMultiTopicsRenewRequest()
+		argvalue0 := consumer.NewTopicsRenewRequest()
 		err88 := argvalue0.Read(jsProt87)
 		if err88 != nil {
 			Usage()
 			return
 		}
 		value0 := argvalue0
-		fmt.Print(client.RenewForMultiTopics(value0))
+		fmt.Print(client.RenewForTopics(value0))
 		fmt.Print("\n")
 		break
 	case "updateOffset":
@@ -381,9 +381,9 @@ func main() {
 		fmt.Print(client.QueryWorker(value0))
 		fmt.Print("\n")
 		break
-	case "queryWorkerForMultiTopics":
+	case "queryWorkerForTopics":
 		if flag.NArg()-1 != 1 {
-			fmt.Fprintln(os.Stderr, "QueryWorkerForMultiTopics requires 1 args")
+			fmt.Fprintln(os.Stderr, "QueryWorkerForTopics requires 1 args")
 			flag.Usage()
 		}
 		arg107 := flag.Arg(1)
@@ -396,14 +396,14 @@ func main() {
 		}
 		factory110 := thrift.NewTSimpleJSONProtocolFactory()
 		jsProt111 := factory110.GetProtocol(mbTrans108)
-		argvalue0 := consumer.NewMultiTopicsQueryWorkerRequest()
+		argvalue0 := consumer.NewTopicsQueryWorkerRequest()
 		err112 := argvalue0.Read(jsProt111)
 		if err112 != nil {
 			Usage()
 			return
 		}
 		value0 := argvalue0
-		fmt.Print(client.QueryWorkerForMultiTopics(value0))
+		fmt.Print(client.QueryWorkerForTopics(value0))
 		fmt.Print("\n")
 		break
 	case "queryOrgOffset":

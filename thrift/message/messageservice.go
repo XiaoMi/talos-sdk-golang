@@ -83,12 +83,24 @@ type MessageService interface {
 	// Parameters:
 	//  - Request
 	GetUnkownStateTransaction(request *GetUnkownStateTransactionRequest) (r *GetUnkownStateTransactionResponse, err error)
-	// look up all topics and partition number that match topic pattern
+	// get partition offsets for time index
 	//
 	//
 	// Parameters:
 	//  - Request
-	LookupTopics(request *LookupTopicsRequest) (r *LookupTopicsResponse, err error)
+	GetTopicCheckpoint(request *GetCheckpointRequest) (r *GetCheckpointResponse, err error)
+	// getPartitionCheckpoint by timeIndex
+	//
+	//
+	// Parameters:
+	//  - Request
+	GetPartitionCheckpoint(request *GetPartitionCheckpointRequest) (r *GetPartitionCheckpointResponse, err error)
+	// deleteMessageIndex from startOffset to endOffset
+	//
+	//
+	// Parameters:
+	//  - Request
+	DeleteMessageIndex(request *DeleteMessageIndexRequest) (err error)
 }
 
 type MessageServiceClient struct {
@@ -105,9 +117,8 @@ func NewMessageServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtocol
 
 // Put message to talos;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) PutMessage(request *PutMessageRequest) (r *PutMessageResponse, err error) {
 	if err = p.sendPutMessage(request); err != nil {
 		return
@@ -148,16 +159,16 @@ func (p *MessageServiceClient) recvPutMessage() (value *PutMessageResponse, err 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error14 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error15 error
-		error15, err = error14.Read(iprot)
+		error16 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error17 error
+		error17, err = error16.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error15
+		err = error17
 		return
 	}
 	if p.SeqId != seqId {
@@ -181,9 +192,8 @@ func (p *MessageServiceClient) recvPutMessage() (value *PutMessageResponse, err 
 
 // Get message from talos;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetMessage(request *GetMessageRequest) (r *GetMessageResponse, err error) {
 	if err = p.sendGetMessage(request); err != nil {
 		return
@@ -224,16 +234,16 @@ func (p *MessageServiceClient) recvGetMessage() (value *GetMessageResponse, err 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error16 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error17 error
-		error17, err = error16.Read(iprot)
+		error18 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error19 error
+		error19, err = error18.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error17
+		err = error19
 		return
 	}
 	if p.SeqId != seqId {
@@ -258,9 +268,8 @@ func (p *MessageServiceClient) recvGetMessage() (value *GetMessageResponse, err 
 // getTopicOffset for all partitions of specified topic, which will return all
 // current available message offset range.
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetTopicOffset(request *GetTopicOffsetRequest) (r *GetTopicOffsetResponse, err error) {
 	if err = p.sendGetTopicOffset(request); err != nil {
 		return
@@ -301,16 +310,16 @@ func (p *MessageServiceClient) recvGetTopicOffset() (value *GetTopicOffsetRespon
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error18 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error19 error
-		error19, err = error18.Read(iprot)
+		error20 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error21 error
+		error21, err = error20.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error19
+		err = error21
 		return
 	}
 	if p.SeqId != seqId {
@@ -334,9 +343,8 @@ func (p *MessageServiceClient) recvGetTopicOffset() (value *GetTopicOffsetRespon
 
 // getPartitionOffset for specified topicAndPartition
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetPartitionOffset(request *GetPartitionOffsetRequest) (r *GetPartitionOffsetResponse, err error) {
 	if err = p.sendGetPartitionOffset(request); err != nil {
 		return
@@ -377,16 +385,16 @@ func (p *MessageServiceClient) recvGetPartitionOffset() (value *GetPartitionOffs
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error20 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error21 error
-		error21, err = error20.Read(iprot)
+		error22 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error23 error
+		error23, err = error22.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error21
+		err = error23
 		return
 	}
 	if p.SeqId != seqId {
@@ -410,9 +418,8 @@ func (p *MessageServiceClient) recvGetPartitionOffset() (value *GetPartitionOffs
 
 // getPartitionsOffset list for specified partitions in the same restServer
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetPartitionsOffset(request *GetPartitionsOffsetRequest) (r *GetPartitionsOffsetResponse, err error) {
 	if err = p.sendGetPartitionsOffset(request); err != nil {
 		return
@@ -453,16 +460,16 @@ func (p *MessageServiceClient) recvGetPartitionsOffset() (value *GetPartitionsOf
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error22 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error23 error
-		error23, err = error22.Read(iprot)
+		error24 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error25 error
+		error25, err = error24.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error23
+		err = error25
 		return
 	}
 	if p.SeqId != seqId {
@@ -482,9 +489,8 @@ func (p *MessageServiceClient) recvGetPartitionsOffset() (value *GetPartitionsOf
 
 // getScheduleInfo return all partitions and server which serving it of specified topic.
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetScheduleInfo(request *GetScheduleInfoRequest) (r *GetScheduleInfoResponse, err error) {
 	if err = p.sendGetScheduleInfo(request); err != nil {
 		return
@@ -525,16 +531,16 @@ func (p *MessageServiceClient) recvGetScheduleInfo() (value *GetScheduleInfoResp
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error24 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error25 error
-		error25, err = error24.Read(iprot)
+		error26 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error27 error
+		error27, err = error26.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error25
+		err = error27
 		return
 	}
 	if p.SeqId != seqId {
@@ -558,9 +564,8 @@ func (p *MessageServiceClient) recvGetScheduleInfo() (value *GetScheduleInfoResp
 
 // Prepare transaction message;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) Prepare(request *PrepareRequest) (r *PrepareResponse, err error) {
 	if err = p.sendPrepare(request); err != nil {
 		return
@@ -601,16 +606,16 @@ func (p *MessageServiceClient) recvPrepare() (value *PrepareResponse, err error)
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error26 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error27 error
-		error27, err = error26.Read(iprot)
+		error28 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error29 error
+		error29, err = error28.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error27
+		err = error29
 		return
 	}
 	if p.SeqId != seqId {
@@ -634,9 +639,8 @@ func (p *MessageServiceClient) recvPrepare() (value *PrepareResponse, err error)
 
 // Commit transaction message;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) Commit(request *CommitRequest) (r *CommitResponse, err error) {
 	if err = p.sendCommit(request); err != nil {
 		return
@@ -677,16 +681,16 @@ func (p *MessageServiceClient) recvCommit() (value *CommitResponse, err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error28 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error29 error
-		error29, err = error28.Read(iprot)
+		error30 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error31 error
+		error31, err = error30.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error29
+		err = error31
 		return
 	}
 	if p.SeqId != seqId {
@@ -710,9 +714,8 @@ func (p *MessageServiceClient) recvCommit() (value *CommitResponse, err error) {
 
 // Rollback transaction message;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) Rollback(request *RollbackRequest) (r *RollbackResponse, err error) {
 	if err = p.sendRollback(request); err != nil {
 		return
@@ -753,16 +756,16 @@ func (p *MessageServiceClient) recvRollback() (value *RollbackResponse, err erro
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error30 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error31 error
-		error31, err = error30.Read(iprot)
+		error32 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error33 error
+		error33, err = error32.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error31
+		err = error33
 		return
 	}
 	if p.SeqId != seqId {
@@ -786,9 +789,8 @@ func (p *MessageServiceClient) recvRollback() (value *RollbackResponse, err erro
 
 // get list of unkown status transaction for callback
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *MessageServiceClient) GetUnkownStateTransaction(request *GetUnkownStateTransactionRequest) (r *GetUnkownStateTransactionResponse, err error) {
 	if err = p.sendGetUnkownStateTransaction(request); err != nil {
 		return
@@ -829,16 +831,16 @@ func (p *MessageServiceClient) recvGetUnkownStateTransaction() (value *GetUnkown
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error32 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error33 error
-		error33, err = error32.Read(iprot)
+		error34 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error35 error
+		error35, err = error34.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error33
+		err = error35
 		return
 	}
 	if p.SeqId != seqId {
@@ -860,29 +862,28 @@ func (p *MessageServiceClient) recvGetUnkownStateTransaction() (value *GetUnkown
 	return
 }
 
-// look up all topics and partition number that match topic pattern
-//
+// get partition offsets for time index
 //
 // Parameters:
-//  - Request
-func (p *MessageServiceClient) LookupTopics(request *LookupTopicsRequest) (r *LookupTopicsResponse, err error) {
-	if err = p.sendLookupTopics(request); err != nil {
+//   - Request
+func (p *MessageServiceClient) GetTopicCheckpoint(request *GetCheckpointRequest) (r *GetCheckpointResponse, err error) {
+	if err = p.sendGetTopicCheckpoint(request); err != nil {
 		return
 	}
-	return p.recvLookupTopics()
+	return p.recvGetTopicCheckpoint()
 }
 
-func (p *MessageServiceClient) sendLookupTopics(request *LookupTopicsRequest) (err error) {
+func (p *MessageServiceClient) sendGetTopicCheckpoint(request *GetCheckpointRequest) (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
 		p.OutputProtocol = oprot
 	}
 	p.SeqId++
-	if err = oprot.WriteMessageBegin("lookupTopics", thrift.CALL, p.SeqId); err != nil {
+	if err = oprot.WriteMessageBegin("getTopicCheckpoint", thrift.CALL, p.SeqId); err != nil {
 		return
 	}
-	args := LookupTopicsArgs{
+	args := GetTopicCheckpointArgs{
 		Request: request,
 	}
 	if err = args.Write(oprot); err != nil {
@@ -894,7 +895,7 @@ func (p *MessageServiceClient) sendLookupTopics(request *LookupTopicsRequest) (e
 	return oprot.Flush()
 }
 
-func (p *MessageServiceClient) recvLookupTopics() (value *LookupTopicsResponse, err error) {
+func (p *MessageServiceClient) recvGetTopicCheckpoint() (value *GetCheckpointResponse, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -905,23 +906,23 @@ func (p *MessageServiceClient) recvLookupTopics() (value *LookupTopicsResponse, 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error34 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error35 error
-		error35, err = error34.Read(iprot)
+		error36 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error37 error
+		error37, err = error36.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error35
+		err = error37
 		return
 	}
 	if p.SeqId != seqId {
-		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "lookupTopics failed: out of sequence response")
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "getTopicCheckpoint failed: out of sequence response")
 		return
 	}
-	result := LookupTopicsResult{}
+	result := GetTopicCheckpointResult{}
 	if err = result.Read(iprot); err != nil {
 		return
 	}
@@ -936,24 +937,175 @@ func (p *MessageServiceClient) recvLookupTopics() (value *LookupTopicsResponse, 
 	return
 }
 
+// getPartitionCheckpoint by timeIndex
+//
+// Parameters:
+//   - Request
+func (p *MessageServiceClient) GetPartitionCheckpoint(request *GetPartitionCheckpointRequest) (r *GetPartitionCheckpointResponse, err error) {
+	if err = p.sendGetPartitionCheckpoint(request); err != nil {
+		return
+	}
+	return p.recvGetPartitionCheckpoint()
+}
+
+func (p *MessageServiceClient) sendGetPartitionCheckpoint(request *GetPartitionCheckpointRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("getPartitionCheckpoint", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := GetPartitionCheckpointArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *MessageServiceClient) recvGetPartitionCheckpoint() (value *GetPartitionCheckpointResponse, err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error38 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error39 error
+		error39, err = error38.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error39
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "getPartitionCheckpoint failed: out of sequence response")
+		return
+	}
+	result := GetPartitionCheckpointResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	value = result.GetSuccess()
+	return
+}
+
+// deleteMessageIndex from startOffset to endOffset
+//
+// Parameters:
+//   - Request
+func (p *MessageServiceClient) DeleteMessageIndex(request *DeleteMessageIndexRequest) (err error) {
+	if err = p.sendDeleteMessageIndex(request); err != nil {
+		return
+	}
+	return p.recvDeleteMessageIndex()
+}
+
+func (p *MessageServiceClient) sendDeleteMessageIndex(request *DeleteMessageIndexRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("deleteMessageIndex", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := DeleteMessageIndexArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *MessageServiceClient) recvDeleteMessageIndex() (err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error40 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error41 error
+		error41, err = error40.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error41
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "deleteMessageIndex failed: out of sequence response")
+		return
+	}
+	result := DeleteMessageIndexResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	return
+}
+
 type MessageServiceProcessor struct {
 	*common.TalosBaseServiceProcessor
 }
 
 func NewMessageServiceProcessor(handler MessageService) *MessageServiceProcessor {
-	self36 := &MessageServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
-	self36.AddToProcessorMap("putMessage", &messageServiceProcessorPutMessage{handler: handler})
-	self36.AddToProcessorMap("getMessage", &messageServiceProcessorGetMessage{handler: handler})
-	self36.AddToProcessorMap("getTopicOffset", &messageServiceProcessorGetTopicOffset{handler: handler})
-	self36.AddToProcessorMap("getPartitionOffset", &messageServiceProcessorGetPartitionOffset{handler: handler})
-	self36.AddToProcessorMap("getPartitionsOffset", &messageServiceProcessorGetPartitionsOffset{handler: handler})
-	self36.AddToProcessorMap("getScheduleInfo", &messageServiceProcessorGetScheduleInfo{handler: handler})
-	self36.AddToProcessorMap("prepare", &messageServiceProcessorPrepare{handler: handler})
-	self36.AddToProcessorMap("commit", &messageServiceProcessorCommit{handler: handler})
-	self36.AddToProcessorMap("rollback", &messageServiceProcessorRollback{handler: handler})
-	self36.AddToProcessorMap("getUnkownStateTransaction", &messageServiceProcessorGetUnkownStateTransaction{handler: handler})
-	self36.AddToProcessorMap("lookupTopics", &messageServiceProcessorLookupTopics{handler: handler})
-	return self36
+	self42 := &MessageServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
+	self42.AddToProcessorMap("putMessage", &messageServiceProcessorPutMessage{handler: handler})
+	self42.AddToProcessorMap("getMessage", &messageServiceProcessorGetMessage{handler: handler})
+	self42.AddToProcessorMap("getTopicOffset", &messageServiceProcessorGetTopicOffset{handler: handler})
+	self42.AddToProcessorMap("getPartitionOffset", &messageServiceProcessorGetPartitionOffset{handler: handler})
+	self42.AddToProcessorMap("getPartitionsOffset", &messageServiceProcessorGetPartitionsOffset{handler: handler})
+	self42.AddToProcessorMap("getScheduleInfo", &messageServiceProcessorGetScheduleInfo{handler: handler})
+	self42.AddToProcessorMap("prepare", &messageServiceProcessorPrepare{handler: handler})
+	self42.AddToProcessorMap("commit", &messageServiceProcessorCommit{handler: handler})
+	self42.AddToProcessorMap("rollback", &messageServiceProcessorRollback{handler: handler})
+	self42.AddToProcessorMap("getUnkownStateTransaction", &messageServiceProcessorGetUnkownStateTransaction{handler: handler})
+	self42.AddToProcessorMap("getTopicCheckpoint", &messageServiceProcessorGetTopicCheckpoint{handler: handler})
+	self42.AddToProcessorMap("getPartitionCheckpoint", &messageServiceProcessorGetPartitionCheckpoint{handler: handler})
+	self42.AddToProcessorMap("deleteMessageIndex", &messageServiceProcessorDeleteMessageIndex{handler: handler})
+	return self42
 }
 
 type messageServiceProcessorPutMessage struct {
@@ -1481,16 +1633,16 @@ func (p *messageServiceProcessorGetUnkownStateTransaction) Process(seqId int32, 
 	return true, err
 }
 
-type messageServiceProcessorLookupTopics struct {
+type messageServiceProcessorGetTopicCheckpoint struct {
 	handler MessageService
 }
 
-func (p *messageServiceProcessorLookupTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := LookupTopicsArgs{}
+func (p *messageServiceProcessorGetTopicCheckpoint) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := GetTopicCheckpointArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-		oprot.WriteMessageBegin("lookupTopics", thrift.EXCEPTION, seqId)
+		oprot.WriteMessageBegin("getTopicCheckpoint", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
@@ -1498,16 +1650,16 @@ func (p *messageServiceProcessorLookupTopics) Process(seqId int32, iprot, oprot 
 	}
 
 	iprot.ReadMessageEnd()
-	result := LookupTopicsResult{}
-	var retval *LookupTopicsResponse
+	result := GetTopicCheckpointResult{}
+	var retval *GetCheckpointResponse
 	var err2 error
-	if retval, err2 = p.handler.LookupTopics(args.Request); err2 != nil {
+	if retval, err2 = p.handler.GetTopicCheckpoint(args.Request); err2 != nil {
 		switch v := err2.(type) {
 		case *common.GalaxyTalosException:
 			result.E = v
 		default:
-			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing lookupTopics: "+err2.Error())
-			oprot.WriteMessageBegin("lookupTopics", thrift.EXCEPTION, seqId)
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getTopicCheckpoint: "+err2.Error())
+			oprot.WriteMessageBegin("getTopicCheckpoint", thrift.EXCEPTION, seqId)
 			x.Write(oprot)
 			oprot.WriteMessageEnd()
 			oprot.Flush()
@@ -1516,7 +1668,110 @@ func (p *messageServiceProcessorLookupTopics) Process(seqId int32, iprot, oprot 
 	} else {
 		result.Success = retval
 	}
-	if err2 = oprot.WriteMessageBegin("lookupTopics", thrift.REPLY, seqId); err2 != nil {
+	if err2 = oprot.WriteMessageBegin("getTopicCheckpoint", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type messageServiceProcessorGetPartitionCheckpoint struct {
+	handler MessageService
+}
+
+func (p *messageServiceProcessorGetPartitionCheckpoint) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := GetPartitionCheckpointArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("getPartitionCheckpoint", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := GetPartitionCheckpointResult{}
+	var retval *GetPartitionCheckpointResponse
+	var err2 error
+	if retval, err2 = p.handler.GetPartitionCheckpoint(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getPartitionCheckpoint: "+err2.Error())
+			oprot.WriteMessageBegin("getPartitionCheckpoint", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("getPartitionCheckpoint", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type messageServiceProcessorDeleteMessageIndex struct {
+	handler MessageService
+}
+
+func (p *messageServiceProcessorDeleteMessageIndex) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := DeleteMessageIndexArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("deleteMessageIndex", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := DeleteMessageIndexResult{}
+	var err2 error
+	if err2 = p.handler.DeleteMessageIndex(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing deleteMessageIndex: "+err2.Error())
+			oprot.WriteMessageBegin("deleteMessageIndex", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	}
+	if err2 = oprot.WriteMessageBegin("deleteMessageIndex", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -3878,27 +4133,27 @@ func (p *GetUnkownStateTransactionResult) String() string {
 	return fmt.Sprintf("GetUnkownStateTransactionResult(%+v)", *p)
 }
 
-type LookupTopicsArgs struct {
-	Request *LookupTopicsRequest `thrift:"request,1" json:"request"`
+type GetTopicCheckpointArgs struct {
+	Request *GetCheckpointRequest `thrift:"request,1" json:"request"`
 }
 
-func NewLookupTopicsArgs() *LookupTopicsArgs {
-	return &LookupTopicsArgs{}
+func NewGetTopicCheckpointArgs() *GetTopicCheckpointArgs {
+	return &GetTopicCheckpointArgs{}
 }
 
-var LookupTopicsArgs_Request_DEFAULT *LookupTopicsRequest
+var GetTopicCheckpointArgs_Request_DEFAULT *GetCheckpointRequest
 
-func (p *LookupTopicsArgs) GetRequest() *LookupTopicsRequest {
+func (p *GetTopicCheckpointArgs) GetRequest() *GetCheckpointRequest {
 	if !p.IsSetRequest() {
-		return LookupTopicsArgs_Request_DEFAULT
+		return GetTopicCheckpointArgs_Request_DEFAULT
 	}
 	return p.Request
 }
-func (p *LookupTopicsArgs) IsSetRequest() bool {
+func (p *GetTopicCheckpointArgs) IsSetRequest() bool {
 	return p.Request != nil
 }
 
-func (p *LookupTopicsArgs) Read(iprot thrift.TProtocol) error {
+func (p *GetTopicCheckpointArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -3930,16 +4185,16 @@ func (p *LookupTopicsArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
-	p.Request = &LookupTopicsRequest{}
+func (p *GetTopicCheckpointArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &GetCheckpointRequest{}
 	if err := p.Request.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
 	}
 	return nil
 }
 
-func (p *LookupTopicsArgs) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("lookupTopics_args"); err != nil {
+func (p *GetTopicCheckpointArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getTopicCheckpoint_args"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -3954,7 +4209,7 @@ func (p *LookupTopicsArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *GetTopicCheckpointArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
 		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
 	}
@@ -3967,48 +4222,48 @@ func (p *LookupTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	return err
 }
 
-func (p *LookupTopicsArgs) String() string {
+func (p *GetTopicCheckpointArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("LookupTopicsArgs(%+v)", *p)
+	return fmt.Sprintf("GetTopicCheckpointArgs(%+v)", *p)
 }
 
-type LookupTopicsResult struct {
-	Success *LookupTopicsResponse        `thrift:"success,0" json:"success"`
+type GetTopicCheckpointResult struct {
+	Success *GetCheckpointResponse       `thrift:"success,0" json:"success"`
 	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
 }
 
-func NewLookupTopicsResult() *LookupTopicsResult {
-	return &LookupTopicsResult{}
+func NewGetTopicCheckpointResult() *GetTopicCheckpointResult {
+	return &GetTopicCheckpointResult{}
 }
 
-var LookupTopicsResult_Success_DEFAULT *LookupTopicsResponse
+var GetTopicCheckpointResult_Success_DEFAULT *GetCheckpointResponse
 
-func (p *LookupTopicsResult) GetSuccess() *LookupTopicsResponse {
+func (p *GetTopicCheckpointResult) GetSuccess() *GetCheckpointResponse {
 	if !p.IsSetSuccess() {
-		return LookupTopicsResult_Success_DEFAULT
+		return GetTopicCheckpointResult_Success_DEFAULT
 	}
 	return p.Success
 }
 
-var LookupTopicsResult_E_DEFAULT *common.GalaxyTalosException
+var GetTopicCheckpointResult_E_DEFAULT *common.GalaxyTalosException
 
-func (p *LookupTopicsResult) GetE() *common.GalaxyTalosException {
+func (p *GetTopicCheckpointResult) GetE() *common.GalaxyTalosException {
 	if !p.IsSetE() {
-		return LookupTopicsResult_E_DEFAULT
+		return GetTopicCheckpointResult_E_DEFAULT
 	}
 	return p.E
 }
-func (p *LookupTopicsResult) IsSetSuccess() bool {
+func (p *GetTopicCheckpointResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *LookupTopicsResult) IsSetE() bool {
+func (p *GetTopicCheckpointResult) IsSetE() bool {
 	return p.E != nil
 }
 
-func (p *LookupTopicsResult) Read(iprot thrift.TProtocol) error {
+func (p *GetTopicCheckpointResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -4044,15 +4299,15 @@ func (p *LookupTopicsResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsResult) ReadField0(iprot thrift.TProtocol) error {
-	p.Success = &LookupTopicsResponse{}
+func (p *GetTopicCheckpointResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &GetCheckpointResponse{}
 	if err := p.Success.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
 	}
 	return nil
 }
 
-func (p *LookupTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+func (p *GetTopicCheckpointResult) ReadField1(iprot thrift.TProtocol) error {
 	p.E = &common.GalaxyTalosException{}
 	if err := p.E.Read(iprot); err != nil {
 		return fmt.Errorf("%T error reading struct: %s", p.E, err)
@@ -4060,8 +4315,8 @@ func (p *LookupTopicsResult) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsResult) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("lookupTopics_result"); err != nil {
+func (p *GetTopicCheckpointResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getTopicCheckpoint_result"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField0(oprot); err != nil {
@@ -4079,7 +4334,7 @@ func (p *LookupTopicsResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *GetTopicCheckpointResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
@@ -4094,7 +4349,7 @@ func (p *LookupTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
 	return err
 }
 
-func (p *LookupTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *GetTopicCheckpointResult) writeField1(oprot thrift.TProtocol) (err error) {
 	if p.IsSetE() {
 		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
 			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
@@ -4109,9 +4364,441 @@ func (p *LookupTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
 	return err
 }
 
-func (p *LookupTopicsResult) String() string {
+func (p *GetTopicCheckpointResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("LookupTopicsResult(%+v)", *p)
+	return fmt.Sprintf("GetTopicCheckpointResult(%+v)", *p)
+}
+
+type GetPartitionCheckpointArgs struct {
+	Request *GetPartitionCheckpointRequest `thrift:"request,1" json:"request"`
+}
+
+func NewGetPartitionCheckpointArgs() *GetPartitionCheckpointArgs {
+	return &GetPartitionCheckpointArgs{}
+}
+
+var GetPartitionCheckpointArgs_Request_DEFAULT *GetPartitionCheckpointRequest
+
+func (p *GetPartitionCheckpointArgs) GetRequest() *GetPartitionCheckpointRequest {
+	if !p.IsSetRequest() {
+		return GetPartitionCheckpointArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *GetPartitionCheckpointArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *GetPartitionCheckpointArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &GetPartitionCheckpointRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getPartitionCheckpoint_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPartitionCheckpointArgs(%+v)", *p)
+}
+
+type GetPartitionCheckpointResult struct {
+	Success *GetPartitionCheckpointResponse `thrift:"success,0" json:"success"`
+	E       *common.GalaxyTalosException    `thrift:"e,1" json:"e"`
+}
+
+func NewGetPartitionCheckpointResult() *GetPartitionCheckpointResult {
+	return &GetPartitionCheckpointResult{}
+}
+
+var GetPartitionCheckpointResult_Success_DEFAULT *GetPartitionCheckpointResponse
+
+func (p *GetPartitionCheckpointResult) GetSuccess() *GetPartitionCheckpointResponse {
+	if !p.IsSetSuccess() {
+		return GetPartitionCheckpointResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+var GetPartitionCheckpointResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *GetPartitionCheckpointResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return GetPartitionCheckpointResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *GetPartitionCheckpointResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *GetPartitionCheckpointResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *GetPartitionCheckpointResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 0:
+			if err := p.ReadField0(iprot); err != nil {
+				return err
+			}
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &GetPartitionCheckpointResponse{}
+	if err := p.Success.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getPartitionCheckpoint_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField0(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.Success, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 0:success: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPartitionCheckpointResult(%+v)", *p)
+}
+
+type DeleteMessageIndexArgs struct {
+	Request *DeleteMessageIndexRequest `thrift:"request,1" json:"request"`
+}
+
+func NewDeleteMessageIndexArgs() *DeleteMessageIndexArgs {
+	return &DeleteMessageIndexArgs{}
+}
+
+var DeleteMessageIndexArgs_Request_DEFAULT *DeleteMessageIndexRequest
+
+func (p *DeleteMessageIndexArgs) GetRequest() *DeleteMessageIndexRequest {
+	if !p.IsSetRequest() {
+		return DeleteMessageIndexArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *DeleteMessageIndexArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *DeleteMessageIndexArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &DeleteMessageIndexRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("deleteMessageIndex_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteMessageIndexArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteMessageIndexArgs(%+v)", *p)
+}
+
+type DeleteMessageIndexResult struct {
+	E *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewDeleteMessageIndexResult() *DeleteMessageIndexResult {
+	return &DeleteMessageIndexResult{}
+}
+
+var DeleteMessageIndexResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *DeleteMessageIndexResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return DeleteMessageIndexResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *DeleteMessageIndexResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *DeleteMessageIndexResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("deleteMessageIndex_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *DeleteMessageIndexResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteMessageIndexResult(%+v)", *p)
 }

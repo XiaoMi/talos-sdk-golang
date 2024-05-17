@@ -56,22 +56,55 @@ type TopicService interface {
 	DeleteTopicGroup(request *DeleteTopicGroupRequest) (err error)
 	// listTopicGroup;
 	//
+	ListTopicGroup() (r *ListTopicGroupResponse, err error)
+	// updateTopicGroup;
+	//
 	//
 	// Parameters:
 	//  - Request
-	ListTopicGroup(request *ListTopicGroupRequest) (r *ListTopicGroupResponse, err error)
+	UpdateTopicGroup(request *UpdateTopicGroupRequest) (err error)
 	// deleteTopic, the caller must have CHANGE_TOPIC permission;
 	//
 	//
 	// Parameters:
 	//  - Request
 	DeleteTopic(request *DeleteTopicRequest) (err error)
+	// look up all topics and partition number that match topic pattern
+	//
+	//
+	// Parameters:
+	//  - Request
+	LookupTopics(request *LookupTopicsRequest) (r *LookupTopicsResponse, err error)
+	// look up all topics that match topic pattern
+	//
+	//
+	// Parameters:
+	//  - Request
+	MatchTopics(request *MatchTopicsRequest) (r *MatchTopicsResponse, err error)
 	// changeTopicAttribute, the caller must have CHANGE_TOPIC permission;
 	//
 	//
 	// Parameters:
 	//  - Request
 	ChangeTopicAttribute(request *ChangeTopicAttributeRequest) (err error)
+	// deleteTopicAttribute, the caller must have CHANGE_TOPIC permission;
+	//
+	//
+	// Parameters:
+	//  - Request
+	DeleteTopicAttribute(request *DeleteTopicAttributeRequest) (err error)
+	// changeTopicOwnerInfo, the caller must have CHANGE_TOPIC permission;
+	//
+	//
+	// Parameters:
+	//  - Request
+	ChangeTopicOwnerInfo(request *ChangeTopicOwnerInfoRequest) (err error)
+	// changeReplicationTopicSourceInfo, the caller must have CHANGE_TOPIC permission;
+	//
+	//
+	// Parameters:
+	//  - Request
+	ChangeReplicationTopicSourceInfo(request *ChangeReplicationTopicSourceInfoRequest) (err error)
 	// describeTopic, the caller must have DESCRIBE_TOPIC permission;
 	//
 	//
@@ -168,9 +201,8 @@ func NewTopicServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, 
 
 // createTopic, one must be a Developer that call this method;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) CreateTopic(request *CreateTopicRequest) (r *CreateTopicResponse, err error) {
 	if err = p.sendCreateTopic(request); err != nil {
 		return
@@ -211,16 +243,16 @@ func (p *TopicServiceClient) recvCreateTopic() (value *CreateTopicResponse, err 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error18 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error19 error
-		error19, err = error18.Read(iprot)
+		error21 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error22 error
+		error22, err = error21.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error19
+		err = error22
 		return
 	}
 	if p.SeqId != seqId {
@@ -244,9 +276,8 @@ func (p *TopicServiceClient) recvCreateTopic() (value *CreateTopicResponse, err 
 
 // createReplicationTopic, one must be a Developer that call this method;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) CreateReplicationTopic(request *CreateReplicationTopicRequest) (r *CreateTopicResponse, err error) {
 	if err = p.sendCreateReplicationTopic(request); err != nil {
 		return
@@ -287,16 +318,16 @@ func (p *TopicServiceClient) recvCreateReplicationTopic() (value *CreateTopicRes
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error20 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error21 error
-		error21, err = error20.Read(iprot)
+		error23 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error24 error
+		error24, err = error23.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error21
+		err = error24
 		return
 	}
 	if p.SeqId != seqId {
@@ -320,9 +351,8 @@ func (p *TopicServiceClient) recvCreateReplicationTopic() (value *CreateTopicRes
 
 // createTopicGroup, one must be a Developer that call this method;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) CreateTopicGroup(request *CreateTopicGroupRequest) (r *CreateTopicGroupResponse, err error) {
 	if err = p.sendCreateTopicGroup(request); err != nil {
 		return
@@ -363,16 +393,16 @@ func (p *TopicServiceClient) recvCreateTopicGroup() (value *CreateTopicGroupResp
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error22 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error23 error
-		error23, err = error22.Read(iprot)
+		error25 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error26 error
+		error26, err = error25.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error23
+		err = error26
 		return
 	}
 	if p.SeqId != seqId {
@@ -396,9 +426,8 @@ func (p *TopicServiceClient) recvCreateTopicGroup() (value *CreateTopicGroupResp
 
 // desribeTopicGroup;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) DescribeTopicGroup(request *DescribeTopicGroupRequest) (r *DescribeTopicGroupResponse, err error) {
 	if err = p.sendDescribeTopicGroup(request); err != nil {
 		return
@@ -439,16 +468,16 @@ func (p *TopicServiceClient) recvDescribeTopicGroup() (value *DescribeTopicGroup
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error24 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error25 error
-		error25, err = error24.Read(iprot)
+		error27 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error28 error
+		error28, err = error27.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error25
+		err = error28
 		return
 	}
 	if p.SeqId != seqId {
@@ -472,9 +501,8 @@ func (p *TopicServiceClient) recvDescribeTopicGroup() (value *DescribeTopicGroup
 
 // deleteTopicGroup;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) DeleteTopicGroup(request *DeleteTopicGroupRequest) (err error) {
 	if err = p.sendDeleteTopicGroup(request); err != nil {
 		return
@@ -515,16 +543,16 @@ func (p *TopicServiceClient) recvDeleteTopicGroup() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error26 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error27 error
-		error27, err = error26.Read(iprot)
+		error29 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error30 error
+		error30, err = error29.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error27
+		err = error30
 		return
 	}
 	if p.SeqId != seqId {
@@ -546,18 +574,14 @@ func (p *TopicServiceClient) recvDeleteTopicGroup() (err error) {
 }
 
 // listTopicGroup;
-//
-//
-// Parameters:
-//  - Request
-func (p *TopicServiceClient) ListTopicGroup(request *ListTopicGroupRequest) (r *ListTopicGroupResponse, err error) {
-	if err = p.sendListTopicGroup(request); err != nil {
+func (p *TopicServiceClient) ListTopicGroup() (r *ListTopicGroupResponse, err error) {
+	if err = p.sendListTopicGroup(); err != nil {
 		return
 	}
 	return p.recvListTopicGroup()
 }
 
-func (p *TopicServiceClient) sendListTopicGroup(request *ListTopicGroupRequest) (err error) {
+func (p *TopicServiceClient) sendListTopicGroup() (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -567,9 +591,7 @@ func (p *TopicServiceClient) sendListTopicGroup(request *ListTopicGroupRequest) 
 	if err = oprot.WriteMessageBegin("listTopicGroup", thrift.CALL, p.SeqId); err != nil {
 		return
 	}
-	args := ListTopicGroupArgs{
-		Request: request,
-	}
+	args := ListTopicGroupArgs{}
 	if err = args.Write(oprot); err != nil {
 		return
 	}
@@ -590,16 +612,16 @@ func (p *TopicServiceClient) recvListTopicGroup() (value *ListTopicGroupResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error28 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error29 error
-		error29, err = error28.Read(iprot)
+		error31 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error32 error
+		error32, err = error31.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error29
+		err = error32
 		return
 	}
 	if p.SeqId != seqId {
@@ -621,11 +643,84 @@ func (p *TopicServiceClient) recvListTopicGroup() (value *ListTopicGroupResponse
 	return
 }
 
-// deleteTopic, the caller must have CHANGE_TOPIC permission;
-//
+// updateTopicGroup;
 //
 // Parameters:
-//  - Request
+//   - Request
+func (p *TopicServiceClient) UpdateTopicGroup(request *UpdateTopicGroupRequest) (err error) {
+	if err = p.sendUpdateTopicGroup(request); err != nil {
+		return
+	}
+	return p.recvUpdateTopicGroup()
+}
+
+func (p *TopicServiceClient) sendUpdateTopicGroup(request *UpdateTopicGroupRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("updateTopicGroup", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := UpdateTopicGroupArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvUpdateTopicGroup() (err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error33 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error34 error
+		error34, err = error33.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error34
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "updateTopicGroup failed: out of sequence response")
+		return
+	}
+	result := UpdateTopicGroupResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	return
+}
+
+// deleteTopic, the caller must have CHANGE_TOPIC permission;
+//
+// Parameters:
+//   - Request
 func (p *TopicServiceClient) DeleteTopic(request *DeleteTopicRequest) (err error) {
 	if err = p.sendDeleteTopic(request); err != nil {
 		return
@@ -666,16 +761,16 @@ func (p *TopicServiceClient) recvDeleteTopic() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error30 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error31 error
-		error31, err = error30.Read(iprot)
+		error35 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error36 error
+		error36, err = error35.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error31
+		err = error36
 		return
 	}
 	if p.SeqId != seqId {
@@ -696,11 +791,160 @@ func (p *TopicServiceClient) recvDeleteTopic() (err error) {
 	return
 }
 
-// changeTopicAttribute, the caller must have CHANGE_TOPIC permission;
-//
+// look up all topics and partition number that match topic pattern
 //
 // Parameters:
-//  - Request
+//   - Request
+func (p *TopicServiceClient) LookupTopics(request *LookupTopicsRequest) (r *LookupTopicsResponse, err error) {
+	if err = p.sendLookupTopics(request); err != nil {
+		return
+	}
+	return p.recvLookupTopics()
+}
+
+func (p *TopicServiceClient) sendLookupTopics(request *LookupTopicsRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("lookupTopics", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := LookupTopicsArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvLookupTopics() (value *LookupTopicsResponse, err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error37 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error38 error
+		error38, err = error37.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error38
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "lookupTopics failed: out of sequence response")
+		return
+	}
+	result := LookupTopicsResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	value = result.GetSuccess()
+	return
+}
+
+// look up all topics that match topic pattern
+//
+// Parameters:
+//   - Request
+func (p *TopicServiceClient) MatchTopics(request *MatchTopicsRequest) (r *MatchTopicsResponse, err error) {
+	if err = p.sendMatchTopics(request); err != nil {
+		return
+	}
+	return p.recvMatchTopics()
+}
+
+func (p *TopicServiceClient) sendMatchTopics(request *MatchTopicsRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("matchTopics", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := MatchTopicsArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvMatchTopics() (value *MatchTopicsResponse, err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error39 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error40 error
+		error40, err = error39.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error40
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "matchTopics failed: out of sequence response")
+		return
+	}
+	result := MatchTopicsResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	value = result.GetSuccess()
+	return
+}
+
+// changeTopicAttribute, the caller must have CHANGE_TOPIC permission;
+//
+// Parameters:
+//   - Request
 func (p *TopicServiceClient) ChangeTopicAttribute(request *ChangeTopicAttributeRequest) (err error) {
 	if err = p.sendChangeTopicAttribute(request); err != nil {
 		return
@@ -741,16 +985,16 @@ func (p *TopicServiceClient) recvChangeTopicAttribute() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error32 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error33 error
-		error33, err = error32.Read(iprot)
+		error41 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error42 error
+		error42, err = error41.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error33
+		err = error42
 		return
 	}
 	if p.SeqId != seqId {
@@ -771,11 +1015,232 @@ func (p *TopicServiceClient) recvChangeTopicAttribute() (err error) {
 	return
 }
 
-// describeTopic, the caller must have DESCRIBE_TOPIC permission;
-//
+// deleteTopicAttribute, the caller must have CHANGE_TOPIC permission;
 //
 // Parameters:
-//  - Request
+//   - Request
+func (p *TopicServiceClient) DeleteTopicAttribute(request *DeleteTopicAttributeRequest) (err error) {
+	if err = p.sendDeleteTopicAttribute(request); err != nil {
+		return
+	}
+	return p.recvDeleteTopicAttribute()
+}
+
+func (p *TopicServiceClient) sendDeleteTopicAttribute(request *DeleteTopicAttributeRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("deleteTopicAttribute", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := DeleteTopicAttributeArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvDeleteTopicAttribute() (err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error43 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error44 error
+		error44, err = error43.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error44
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "deleteTopicAttribute failed: out of sequence response")
+		return
+	}
+	result := DeleteTopicAttributeResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	return
+}
+
+// changeTopicOwnerInfo, the caller must have CHANGE_TOPIC permission;
+//
+// Parameters:
+//   - Request
+func (p *TopicServiceClient) ChangeTopicOwnerInfo(request *ChangeTopicOwnerInfoRequest) (err error) {
+	if err = p.sendChangeTopicOwnerInfo(request); err != nil {
+		return
+	}
+	return p.recvChangeTopicOwnerInfo()
+}
+
+func (p *TopicServiceClient) sendChangeTopicOwnerInfo(request *ChangeTopicOwnerInfoRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("changeTopicOwnerInfo", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := ChangeTopicOwnerInfoArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvChangeTopicOwnerInfo() (err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error45 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error46 error
+		error46, err = error45.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error46
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "changeTopicOwnerInfo failed: out of sequence response")
+		return
+	}
+	result := ChangeTopicOwnerInfoResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	return
+}
+
+// changeReplicationTopicSourceInfo, the caller must have CHANGE_TOPIC permission;
+//
+// Parameters:
+//   - Request
+func (p *TopicServiceClient) ChangeReplicationTopicSourceInfo(request *ChangeReplicationTopicSourceInfoRequest) (err error) {
+	if err = p.sendChangeReplicationTopicSourceInfo(request); err != nil {
+		return
+	}
+	return p.recvChangeReplicationTopicSourceInfo()
+}
+
+func (p *TopicServiceClient) sendChangeReplicationTopicSourceInfo(request *ChangeReplicationTopicSourceInfoRequest) (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("changeReplicationTopicSourceInfo", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := ChangeReplicationTopicSourceInfoArgs{
+		Request: request,
+	}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *TopicServiceClient) recvChangeReplicationTopicSourceInfo() (err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	_, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error47 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error48 error
+		error48, err = error47.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error48
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "changeReplicationTopicSourceInfo failed: out of sequence response")
+		return
+	}
+	result := ChangeReplicationTopicSourceInfoResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	if result.E != nil {
+		err = result.E
+		return
+	}
+	return
+}
+
+// describeTopic, the caller must have DESCRIBE_TOPIC permission;
+//
+// Parameters:
+//   - Request
 func (p *TopicServiceClient) DescribeTopic(request *DescribeTopicRequest) (r *DescribeTopicResponse, err error) {
 	if err = p.sendDescribeTopic(request); err != nil {
 		return
@@ -816,16 +1281,16 @@ func (p *TopicServiceClient) recvDescribeTopic() (value *DescribeTopicResponse, 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error34 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error35 error
-		error35, err = error34.Read(iprot)
+		error49 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error50 error
+		error50, err = error49.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error35
+		err = error50
 		return
 	}
 	if p.SeqId != seqId {
@@ -849,9 +1314,8 @@ func (p *TopicServiceClient) recvDescribeTopic() (value *DescribeTopicResponse, 
 
 // getDescribeInfo, the caller must have DESCRIBE_TOPIC permission;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) GetDescribeInfo(request *GetDescribeInfoRequest) (r *GetDescribeInfoResponse, err error) {
 	if err = p.sendGetDescribeInfo(request); err != nil {
 		return
@@ -892,16 +1356,16 @@ func (p *TopicServiceClient) recvGetDescribeInfo() (value *GetDescribeInfoRespon
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error36 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error37 error
-		error37, err = error36.Read(iprot)
+		error51 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error52 error
+		error52, err = error51.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error37
+		err = error52
 		return
 	}
 	if p.SeqId != seqId {
@@ -925,9 +1389,8 @@ func (p *TopicServiceClient) recvGetDescribeInfo() (value *GetDescribeInfoRespon
 
 // getTopicAttribute, the caller must have DESCRIBE_TOPIC permission;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) GetTopicAttribute(request *GetTopicAttributeRequest) (r *GetTopicAttributeResponse, err error) {
 	if err = p.sendGetTopicAttribute(request); err != nil {
 		return
@@ -968,16 +1431,16 @@ func (p *TopicServiceClient) recvGetTopicAttribute() (value *GetTopicAttributeRe
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error38 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error39 error
-		error39, err = error38.Read(iprot)
+		error53 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error54 error
+		error54, err = error53.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error39
+		err = error54
 		return
 	}
 	if p.SeqId != seqId {
@@ -1001,7 +1464,6 @@ func (p *TopicServiceClient) recvGetTopicAttribute() (value *GetTopicAttributeRe
 
 // listTopicsInfo will return the topics which owned by the call developer
 // and its describe information.
-//
 func (p *TopicServiceClient) ListTopicsInfo() (r *ListTopicsInfoResponse, err error) {
 	if err = p.sendListTopicsInfo(); err != nil {
 		return
@@ -1040,16 +1502,16 @@ func (p *TopicServiceClient) recvListTopicsInfo() (value *ListTopicsInfoResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error40 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error41 error
-		error41, err = error40.Read(iprot)
+		error55 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error56 error
+		error56, err = error55.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error41
+		err = error56
 		return
 	}
 	if p.SeqId != seqId {
@@ -1074,7 +1536,6 @@ func (p *TopicServiceClient) recvListTopicsInfo() (value *ListTopicsInfoResponse
 // listTopics for the developer that call this method, and this method will
 // only return the topics that owned by the call developer, if none,
 // listTopics will return nothing.
-//
 func (p *TopicServiceClient) ListTopics() (r *ListTopicsResponse, err error) {
 	if err = p.sendListTopics(); err != nil {
 		return
@@ -1113,16 +1574,16 @@ func (p *TopicServiceClient) recvListTopics() (value *ListTopicsResponse, err er
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error42 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error43 error
-		error43, err = error42.Read(iprot)
+		error57 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error58 error
+		error58, err = error57.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error43
+		err = error58
 		return
 	}
 	if p.SeqId != seqId {
@@ -1182,16 +1643,16 @@ func (p *TopicServiceClient) recvGetBindTopics() (value *ListTopicsResponse, err
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error44 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error45 error
-		error45, err = error44.Read(iprot)
+		error59 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error60 error
+		error60, err = error59.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error45
+		err = error60
 		return
 	}
 	if p.SeqId != seqId {
@@ -1215,9 +1676,8 @@ func (p *TopicServiceClient) recvGetBindTopics() (value *ListTopicsResponse, err
 
 // setTopicQuota, the caller must be talos admin or topic owner
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) SetTopicQuota(request *SetTopicQuotaRequest) (err error) {
 	if err = p.sendSetTopicQuota(request); err != nil {
 		return
@@ -1258,16 +1718,16 @@ func (p *TopicServiceClient) recvSetTopicQuota() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error46 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error47 error
-		error47, err = error46.Read(iprot)
+		error61 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error62 error
+		error62, err = error61.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error47
+		err = error62
 		return
 	}
 	if p.SeqId != seqId {
@@ -1290,9 +1750,8 @@ func (p *TopicServiceClient) recvSetTopicQuota() (err error) {
 
 // queryTopicQuota, the caller must be talos admin or topic owner
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) QueryTopicQuota(request *QueryTopicQuotaRequest) (r *QueryTopicQuotaResponse, err error) {
 	if err = p.sendQueryTopicQuota(request); err != nil {
 		return
@@ -1333,16 +1792,16 @@ func (p *TopicServiceClient) recvQueryTopicQuota() (value *QueryTopicQuotaRespon
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error48 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error49 error
-		error49, err = error48.Read(iprot)
+		error63 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error64 error
+		error64, err = error63.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error49
+		err = error64
 		return
 	}
 	if p.SeqId != seqId {
@@ -1366,9 +1825,8 @@ func (p *TopicServiceClient) recvQueryTopicQuota() (value *QueryTopicQuotaRespon
 
 // deleteTopicQuota, the caller must be talos admin or topic owner
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) DeleteTopicQuota(request *DeleteTopicQuotaRequest) (err error) {
 	if err = p.sendDeleteTopicQuota(request); err != nil {
 		return
@@ -1409,16 +1867,16 @@ func (p *TopicServiceClient) recvDeleteTopicQuota() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error50 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error51 error
-		error51, err = error50.Read(iprot)
+		error65 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error66 error
+		error66, err = error65.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error51
+		err = error66
 		return
 	}
 	if p.SeqId != seqId {
@@ -1443,9 +1901,8 @@ func (p *TopicServiceClient) recvDeleteTopicQuota() (err error) {
 // permission devolution is not be allowed, the old permission will be
 // overwrite after setPermission.
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) SetPermission(request *SetPermissionRequest) (err error) {
 	if err = p.sendSetPermission(request); err != nil {
 		return
@@ -1486,16 +1943,16 @@ func (p *TopicServiceClient) recvSetPermission() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error52 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error53 error
-		error53, err = error52.Read(iprot)
+		error67 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error68 error
+		error68, err = error67.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error53
+		err = error68
 		return
 	}
 	if p.SeqId != seqId {
@@ -1520,9 +1977,8 @@ func (p *TopicServiceClient) recvSetPermission() (err error) {
 // revokePermission for the topic owner, the accountId will have
 // NONE permission after revokePermission;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) RevokePermission(request *RevokePermissionRequest) (err error) {
 	if err = p.sendRevokePermission(request); err != nil {
 		return
@@ -1563,16 +2019,16 @@ func (p *TopicServiceClient) recvRevokePermission() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error54 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error55 error
-		error55, err = error54.Read(iprot)
+		error69 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error70 error
+		error70, err = error69.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error55
+		err = error70
 		return
 	}
 	if p.SeqId != seqId {
@@ -1595,9 +2051,8 @@ func (p *TopicServiceClient) recvRevokePermission() (err error) {
 
 // listPermission, the caller must have DESCRIBE_TOPIC permission;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) ListPermission(request *ListPermissionRequest) (r *ListPermissionResponse, err error) {
 	if err = p.sendListPermission(request); err != nil {
 		return
@@ -1638,16 +2093,16 @@ func (p *TopicServiceClient) recvListPermission() (value *ListPermissionResponse
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error56 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error57 error
-		error57, err = error56.Read(iprot)
+		error71 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error72 error
+		error72, err = error71.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error57
+		err = error72
 		return
 	}
 	if p.SeqId != seqId {
@@ -1671,9 +2126,8 @@ func (p *TopicServiceClient) recvListPermission() (value *ListPermissionResponse
 
 // getPermission, the caller must hava DESCRIBE_TOPIC permission;
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) GetPermission(request *GetPermissionRequest) (r *GetPermissionResponse, err error) {
 	if err = p.sendGetPermission(request); err != nil {
 		return
@@ -1714,16 +2168,16 @@ func (p *TopicServiceClient) recvGetPermission() (value *GetPermissionResponse, 
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error58 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error59 error
-		error59, err = error58.Read(iprot)
+		error73 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error74 error
+		error74, err = error73.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error59
+		err = error74
 		return
 	}
 	if p.SeqId != seqId {
@@ -1747,9 +2201,8 @@ func (p *TopicServiceClient) recvGetPermission() (value *GetPermissionResponse, 
 
 // addSubResourceName, the caller must be a developer owner of topic
 //
-//
 // Parameters:
-//  - Request
+//   - Request
 func (p *TopicServiceClient) AddSubResourceName(request *AddSubResourceNameRequest) (err error) {
 	if err = p.sendAddSubResourceName(request); err != nil {
 		return
@@ -1790,16 +2243,16 @@ func (p *TopicServiceClient) recvAddSubResourceName() (err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error60 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error61 error
-		error61, err = error60.Read(iprot)
+		error75 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error76 error
+		error76, err = error75.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error61
+		err = error76
 		return
 	}
 	if p.SeqId != seqId {
@@ -1825,30 +2278,36 @@ type TopicServiceProcessor struct {
 }
 
 func NewTopicServiceProcessor(handler TopicService) *TopicServiceProcessor {
-	self62 := &TopicServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
-	self62.AddToProcessorMap("createTopic", &topicServiceProcessorCreateTopic{handler: handler})
-	self62.AddToProcessorMap("createReplicationTopic", &topicServiceProcessorCreateReplicationTopic{handler: handler})
-	self62.AddToProcessorMap("createTopicGroup", &topicServiceProcessorCreateTopicGroup{handler: handler})
-	self62.AddToProcessorMap("describeTopicGroup", &topicServiceProcessorDescribeTopicGroup{handler: handler})
-	self62.AddToProcessorMap("deleteTopicGroup", &topicServiceProcessorDeleteTopicGroup{handler: handler})
-	self62.AddToProcessorMap("listTopicGroup", &topicServiceProcessorListTopicGroup{handler: handler})
-	self62.AddToProcessorMap("deleteTopic", &topicServiceProcessorDeleteTopic{handler: handler})
-	self62.AddToProcessorMap("changeTopicAttribute", &topicServiceProcessorChangeTopicAttribute{handler: handler})
-	self62.AddToProcessorMap("describeTopic", &topicServiceProcessorDescribeTopic{handler: handler})
-	self62.AddToProcessorMap("getDescribeInfo", &topicServiceProcessorGetDescribeInfo{handler: handler})
-	self62.AddToProcessorMap("getTopicAttribute", &topicServiceProcessorGetTopicAttribute{handler: handler})
-	self62.AddToProcessorMap("listTopicsInfo", &topicServiceProcessorListTopicsInfo{handler: handler})
-	self62.AddToProcessorMap("listTopics", &topicServiceProcessorListTopics{handler: handler})
-	self62.AddToProcessorMap("getBindTopics", &topicServiceProcessorGetBindTopics{handler: handler})
-	self62.AddToProcessorMap("setTopicQuota", &topicServiceProcessorSetTopicQuota{handler: handler})
-	self62.AddToProcessorMap("queryTopicQuota", &topicServiceProcessorQueryTopicQuota{handler: handler})
-	self62.AddToProcessorMap("deleteTopicQuota", &topicServiceProcessorDeleteTopicQuota{handler: handler})
-	self62.AddToProcessorMap("setPermission", &topicServiceProcessorSetPermission{handler: handler})
-	self62.AddToProcessorMap("revokePermission", &topicServiceProcessorRevokePermission{handler: handler})
-	self62.AddToProcessorMap("listPermission", &topicServiceProcessorListPermission{handler: handler})
-	self62.AddToProcessorMap("getPermission", &topicServiceProcessorGetPermission{handler: handler})
-	self62.AddToProcessorMap("addSubResourceName", &topicServiceProcessorAddSubResourceName{handler: handler})
-	return self62
+	self77 := &TopicServiceProcessor{common.NewTalosBaseServiceProcessor(handler)}
+	self77.AddToProcessorMap("createTopic", &topicServiceProcessorCreateTopic{handler: handler})
+	self77.AddToProcessorMap("createReplicationTopic", &topicServiceProcessorCreateReplicationTopic{handler: handler})
+	self77.AddToProcessorMap("createTopicGroup", &topicServiceProcessorCreateTopicGroup{handler: handler})
+	self77.AddToProcessorMap("describeTopicGroup", &topicServiceProcessorDescribeTopicGroup{handler: handler})
+	self77.AddToProcessorMap("deleteTopicGroup", &topicServiceProcessorDeleteTopicGroup{handler: handler})
+	self77.AddToProcessorMap("listTopicGroup", &topicServiceProcessorListTopicGroup{handler: handler})
+	self77.AddToProcessorMap("updateTopicGroup", &topicServiceProcessorUpdateTopicGroup{handler: handler})
+	self77.AddToProcessorMap("deleteTopic", &topicServiceProcessorDeleteTopic{handler: handler})
+	self77.AddToProcessorMap("lookupTopics", &topicServiceProcessorLookupTopics{handler: handler})
+	self77.AddToProcessorMap("matchTopics", &topicServiceProcessorMatchTopics{handler: handler})
+	self77.AddToProcessorMap("changeTopicAttribute", &topicServiceProcessorChangeTopicAttribute{handler: handler})
+	self77.AddToProcessorMap("deleteTopicAttribute", &topicServiceProcessorDeleteTopicAttribute{handler: handler})
+	self77.AddToProcessorMap("changeTopicOwnerInfo", &topicServiceProcessorChangeTopicOwnerInfo{handler: handler})
+	self77.AddToProcessorMap("changeReplicationTopicSourceInfo", &topicServiceProcessorChangeReplicationTopicSourceInfo{handler: handler})
+	self77.AddToProcessorMap("describeTopic", &topicServiceProcessorDescribeTopic{handler: handler})
+	self77.AddToProcessorMap("getDescribeInfo", &topicServiceProcessorGetDescribeInfo{handler: handler})
+	self77.AddToProcessorMap("getTopicAttribute", &topicServiceProcessorGetTopicAttribute{handler: handler})
+	self77.AddToProcessorMap("listTopicsInfo", &topicServiceProcessorListTopicsInfo{handler: handler})
+	self77.AddToProcessorMap("listTopics", &topicServiceProcessorListTopics{handler: handler})
+	self77.AddToProcessorMap("getBindTopics", &topicServiceProcessorGetBindTopics{handler: handler})
+	self77.AddToProcessorMap("setTopicQuota", &topicServiceProcessorSetTopicQuota{handler: handler})
+	self77.AddToProcessorMap("queryTopicQuota", &topicServiceProcessorQueryTopicQuota{handler: handler})
+	self77.AddToProcessorMap("deleteTopicQuota", &topicServiceProcessorDeleteTopicQuota{handler: handler})
+	self77.AddToProcessorMap("setPermission", &topicServiceProcessorSetPermission{handler: handler})
+	self77.AddToProcessorMap("revokePermission", &topicServiceProcessorRevokePermission{handler: handler})
+	self77.AddToProcessorMap("listPermission", &topicServiceProcessorListPermission{handler: handler})
+	self77.AddToProcessorMap("getPermission", &topicServiceProcessorGetPermission{handler: handler})
+	self77.AddToProcessorMap("addSubResourceName", &topicServiceProcessorAddSubResourceName{handler: handler})
+	return self77
 }
 
 type topicServiceProcessorCreateTopic struct {
@@ -2133,7 +2592,7 @@ func (p *topicServiceProcessorListTopicGroup) Process(seqId int32, iprot, oprot 
 	result := ListTopicGroupResult{}
 	var retval *ListTopicGroupResponse
 	var err2 error
-	if retval, err2 = p.handler.ListTopicGroup(args.Request); err2 != nil {
+	if retval, err2 = p.handler.ListTopicGroup(); err2 != nil {
 		switch v := err2.(type) {
 		case *common.GalaxyTalosException:
 			result.E = v
@@ -2149,6 +2608,56 @@ func (p *topicServiceProcessorListTopicGroup) Process(seqId int32, iprot, oprot 
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("listTopicGroup", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type topicServiceProcessorUpdateTopicGroup struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorUpdateTopicGroup) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := UpdateTopicGroupArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("updateTopicGroup", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := UpdateTopicGroupResult{}
+	var err2 error
+	if err2 = p.handler.UpdateTopicGroup(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing updateTopicGroup: "+err2.Error())
+			oprot.WriteMessageBegin("updateTopicGroup", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	}
+	if err2 = oprot.WriteMessageBegin("updateTopicGroup", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -2216,6 +2725,112 @@ func (p *topicServiceProcessorDeleteTopic) Process(seqId int32, iprot, oprot thr
 	return true, err
 }
 
+type topicServiceProcessorLookupTopics struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorLookupTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := LookupTopicsArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("lookupTopics", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := LookupTopicsResult{}
+	var retval *LookupTopicsResponse
+	var err2 error
+	if retval, err2 = p.handler.LookupTopics(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing lookupTopics: "+err2.Error())
+			oprot.WriteMessageBegin("lookupTopics", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("lookupTopics", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type topicServiceProcessorMatchTopics struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorMatchTopics) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := MatchTopicsArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("matchTopics", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := MatchTopicsResult{}
+	var retval *MatchTopicsResponse
+	var err2 error
+	if retval, err2 = p.handler.MatchTopics(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing matchTopics: "+err2.Error())
+			oprot.WriteMessageBegin("matchTopics", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("matchTopics", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
 type topicServiceProcessorChangeTopicAttribute struct {
 	handler TopicService
 }
@@ -2249,6 +2864,156 @@ func (p *topicServiceProcessorChangeTopicAttribute) Process(seqId int32, iprot, 
 		}
 	}
 	if err2 = oprot.WriteMessageBegin("changeTopicAttribute", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type topicServiceProcessorDeleteTopicAttribute struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorDeleteTopicAttribute) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := DeleteTopicAttributeArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("deleteTopicAttribute", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := DeleteTopicAttributeResult{}
+	var err2 error
+	if err2 = p.handler.DeleteTopicAttribute(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing deleteTopicAttribute: "+err2.Error())
+			oprot.WriteMessageBegin("deleteTopicAttribute", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	}
+	if err2 = oprot.WriteMessageBegin("deleteTopicAttribute", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type topicServiceProcessorChangeTopicOwnerInfo struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorChangeTopicOwnerInfo) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ChangeTopicOwnerInfoArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("changeTopicOwnerInfo", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := ChangeTopicOwnerInfoResult{}
+	var err2 error
+	if err2 = p.handler.ChangeTopicOwnerInfo(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing changeTopicOwnerInfo: "+err2.Error())
+			oprot.WriteMessageBegin("changeTopicOwnerInfo", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	}
+	if err2 = oprot.WriteMessageBegin("changeTopicOwnerInfo", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type topicServiceProcessorChangeReplicationTopicSourceInfo struct {
+	handler TopicService
+}
+
+func (p *topicServiceProcessorChangeReplicationTopicSourceInfo) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ChangeReplicationTopicSourceInfoArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("changeReplicationTopicSourceInfo", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := ChangeReplicationTopicSourceInfoResult{}
+	var err2 error
+	if err2 = p.handler.ChangeReplicationTopicSourceInfo(args.Request); err2 != nil {
+		switch v := err2.(type) {
+		case *common.GalaxyTalosException:
+			result.E = v
+		default:
+			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing changeReplicationTopicSourceInfo: "+err2.Error())
+			oprot.WriteMessageBegin("changeReplicationTopicSourceInfo", thrift.EXCEPTION, seqId)
+			x.Write(oprot)
+			oprot.WriteMessageEnd()
+			oprot.Flush()
+			return true, err2
+		}
+	}
+	if err2 = oprot.WriteMessageBegin("changeReplicationTopicSourceInfo", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -4142,23 +4907,10 @@ func (p *DeleteTopicGroupResult) String() string {
 }
 
 type ListTopicGroupArgs struct {
-	Request *ListTopicGroupRequest `thrift:"request,1" json:"request"`
 }
 
 func NewListTopicGroupArgs() *ListTopicGroupArgs {
 	return &ListTopicGroupArgs{}
-}
-
-var ListTopicGroupArgs_Request_DEFAULT *ListTopicGroupRequest
-
-func (p *ListTopicGroupArgs) GetRequest() *ListTopicGroupRequest {
-	if !p.IsSetRequest() {
-		return ListTopicGroupArgs_Request_DEFAULT
-	}
-	return p.Request
-}
-func (p *ListTopicGroupArgs) IsSetRequest() bool {
-	return p.Request != nil
 }
 
 func (p *ListTopicGroupArgs) Read(iprot thrift.TProtocol) error {
@@ -4173,15 +4925,8 @@ func (p *ListTopicGroupArgs) Read(iprot thrift.TProtocol) error {
 		if fieldTypeId == thrift.STOP {
 			break
 		}
-		switch fieldId {
-		case 1:
-			if err := p.ReadField1(iprot); err != nil {
-				return err
-			}
-		default:
-			if err := iprot.Skip(fieldTypeId); err != nil {
-				return err
-			}
+		if err := iprot.Skip(fieldTypeId); err != nil {
+			return err
 		}
 		if err := iprot.ReadFieldEnd(); err != nil {
 			return err
@@ -4193,20 +4938,9 @@ func (p *ListTopicGroupArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *ListTopicGroupArgs) ReadField1(iprot thrift.TProtocol) error {
-	p.Request = &ListTopicGroupRequest{}
-	if err := p.Request.Read(iprot); err != nil {
-		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
-	}
-	return nil
-}
-
 func (p *ListTopicGroupArgs) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("listTopicGroup_args"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
-	}
-	if err := p.writeField1(oprot); err != nil {
-		return err
 	}
 	if err := oprot.WriteFieldStop(); err != nil {
 		return fmt.Errorf("write field stop error: %s", err)
@@ -4215,19 +4949,6 @@ func (p *ListTopicGroupArgs) Write(oprot thrift.TProtocol) error {
 		return fmt.Errorf("write struct stop error: %s", err)
 	}
 	return nil
-}
-
-func (p *ListTopicGroupArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
-		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
-	}
-	if err := p.Request.Write(oprot); err != nil {
-		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
-	}
-	if err := oprot.WriteFieldEnd(); err != nil {
-		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
-	}
-	return err
 }
 
 func (p *ListTopicGroupArgs) String() string {
@@ -4377,6 +5098,200 @@ func (p *ListTopicGroupResult) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("ListTopicGroupResult(%+v)", *p)
+}
+
+type UpdateTopicGroupArgs struct {
+	Request *UpdateTopicGroupRequest `thrift:"request,1" json:"request"`
+}
+
+func NewUpdateTopicGroupArgs() *UpdateTopicGroupArgs {
+	return &UpdateTopicGroupArgs{}
+}
+
+var UpdateTopicGroupArgs_Request_DEFAULT *UpdateTopicGroupRequest
+
+func (p *UpdateTopicGroupArgs) GetRequest() *UpdateTopicGroupRequest {
+	if !p.IsSetRequest() {
+		return UpdateTopicGroupArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *UpdateTopicGroupArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *UpdateTopicGroupArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &UpdateTopicGroupRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("updateTopicGroup_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *UpdateTopicGroupArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UpdateTopicGroupArgs(%+v)", *p)
+}
+
+type UpdateTopicGroupResult struct {
+	E *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewUpdateTopicGroupResult() *UpdateTopicGroupResult {
+	return &UpdateTopicGroupResult{}
+}
+
+var UpdateTopicGroupResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *UpdateTopicGroupResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return UpdateTopicGroupResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *UpdateTopicGroupResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *UpdateTopicGroupResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("updateTopicGroup_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *UpdateTopicGroupResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *UpdateTopicGroupResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UpdateTopicGroupResult(%+v)", *p)
 }
 
 type DeleteTopicArgs struct {
@@ -4573,6 +5488,482 @@ func (p *DeleteTopicResult) String() string {
 	return fmt.Sprintf("DeleteTopicResult(%+v)", *p)
 }
 
+type LookupTopicsArgs struct {
+	Request *LookupTopicsRequest `thrift:"request,1" json:"request"`
+}
+
+func NewLookupTopicsArgs() *LookupTopicsArgs {
+	return &LookupTopicsArgs{}
+}
+
+var LookupTopicsArgs_Request_DEFAULT *LookupTopicsRequest
+
+func (p *LookupTopicsArgs) GetRequest() *LookupTopicsRequest {
+	if !p.IsSetRequest() {
+		return LookupTopicsArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *LookupTopicsArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *LookupTopicsArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &LookupTopicsRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("lookupTopics_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *LookupTopicsArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("LookupTopicsArgs(%+v)", *p)
+}
+
+type LookupTopicsResult struct {
+	Success *LookupTopicsResponse        `thrift:"success,0" json:"success"`
+	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewLookupTopicsResult() *LookupTopicsResult {
+	return &LookupTopicsResult{}
+}
+
+var LookupTopicsResult_Success_DEFAULT *LookupTopicsResponse
+
+func (p *LookupTopicsResult) GetSuccess() *LookupTopicsResponse {
+	if !p.IsSetSuccess() {
+		return LookupTopicsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+var LookupTopicsResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *LookupTopicsResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return LookupTopicsResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *LookupTopicsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *LookupTopicsResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *LookupTopicsResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 0:
+			if err := p.ReadField0(iprot); err != nil {
+				return err
+			}
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &LookupTopicsResponse{}
+	if err := p.Success.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("lookupTopics_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField0(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *LookupTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.Success, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 0:success: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *LookupTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *LookupTopicsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("LookupTopicsResult(%+v)", *p)
+}
+
+type MatchTopicsArgs struct {
+	Request *MatchTopicsRequest `thrift:"request,1" json:"request"`
+}
+
+func NewMatchTopicsArgs() *MatchTopicsArgs {
+	return &MatchTopicsArgs{}
+}
+
+var MatchTopicsArgs_Request_DEFAULT *MatchTopicsRequest
+
+func (p *MatchTopicsArgs) GetRequest() *MatchTopicsRequest {
+	if !p.IsSetRequest() {
+		return MatchTopicsArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *MatchTopicsArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *MatchTopicsArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &MatchTopicsRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("matchTopics_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *MatchTopicsArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MatchTopicsArgs(%+v)", *p)
+}
+
+type MatchTopicsResult struct {
+	Success *MatchTopicsResponse         `thrift:"success,0" json:"success"`
+	E       *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewMatchTopicsResult() *MatchTopicsResult {
+	return &MatchTopicsResult{}
+}
+
+var MatchTopicsResult_Success_DEFAULT *MatchTopicsResponse
+
+func (p *MatchTopicsResult) GetSuccess() *MatchTopicsResponse {
+	if !p.IsSetSuccess() {
+		return MatchTopicsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+var MatchTopicsResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *MatchTopicsResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return MatchTopicsResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *MatchTopicsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *MatchTopicsResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *MatchTopicsResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 0:
+			if err := p.ReadField0(iprot); err != nil {
+				return err
+			}
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsResult) ReadField0(iprot thrift.TProtocol) error {
+	p.Success = &MatchTopicsResponse{}
+	if err := p.Success.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Success, err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("matchTopics_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField0(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *MatchTopicsResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			return fmt.Errorf("%T write field begin error 0:success: %s", p, err)
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.Success, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 0:success: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *MatchTopicsResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *MatchTopicsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("MatchTopicsResult(%+v)", *p)
+}
+
 type ChangeTopicAttributeArgs struct {
 	Request *ChangeTopicAttributeRequest `thrift:"request,1" json:"request"`
 }
@@ -4765,6 +6156,588 @@ func (p *ChangeTopicAttributeResult) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("ChangeTopicAttributeResult(%+v)", *p)
+}
+
+type DeleteTopicAttributeArgs struct {
+	Request *DeleteTopicAttributeRequest `thrift:"request,1" json:"request"`
+}
+
+func NewDeleteTopicAttributeArgs() *DeleteTopicAttributeArgs {
+	return &DeleteTopicAttributeArgs{}
+}
+
+var DeleteTopicAttributeArgs_Request_DEFAULT *DeleteTopicAttributeRequest
+
+func (p *DeleteTopicAttributeArgs) GetRequest() *DeleteTopicAttributeRequest {
+	if !p.IsSetRequest() {
+		return DeleteTopicAttributeArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *DeleteTopicAttributeArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *DeleteTopicAttributeArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &DeleteTopicAttributeRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("deleteTopicAttribute_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteTopicAttributeArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteTopicAttributeArgs(%+v)", *p)
+}
+
+type DeleteTopicAttributeResult struct {
+	E *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewDeleteTopicAttributeResult() *DeleteTopicAttributeResult {
+	return &DeleteTopicAttributeResult{}
+}
+
+var DeleteTopicAttributeResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *DeleteTopicAttributeResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return DeleteTopicAttributeResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *DeleteTopicAttributeResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *DeleteTopicAttributeResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("deleteTopicAttribute_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteTopicAttributeResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *DeleteTopicAttributeResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteTopicAttributeResult(%+v)", *p)
+}
+
+type ChangeTopicOwnerInfoArgs struct {
+	Request *ChangeTopicOwnerInfoRequest `thrift:"request,1" json:"request"`
+}
+
+func NewChangeTopicOwnerInfoArgs() *ChangeTopicOwnerInfoArgs {
+	return &ChangeTopicOwnerInfoArgs{}
+}
+
+var ChangeTopicOwnerInfoArgs_Request_DEFAULT *ChangeTopicOwnerInfoRequest
+
+func (p *ChangeTopicOwnerInfoArgs) GetRequest() *ChangeTopicOwnerInfoRequest {
+	if !p.IsSetRequest() {
+		return ChangeTopicOwnerInfoArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *ChangeTopicOwnerInfoArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *ChangeTopicOwnerInfoArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &ChangeTopicOwnerInfoRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("changeTopicOwnerInfo_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *ChangeTopicOwnerInfoArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ChangeTopicOwnerInfoArgs(%+v)", *p)
+}
+
+type ChangeTopicOwnerInfoResult struct {
+	E *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewChangeTopicOwnerInfoResult() *ChangeTopicOwnerInfoResult {
+	return &ChangeTopicOwnerInfoResult{}
+}
+
+var ChangeTopicOwnerInfoResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *ChangeTopicOwnerInfoResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return ChangeTopicOwnerInfoResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *ChangeTopicOwnerInfoResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *ChangeTopicOwnerInfoResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("changeTopicOwnerInfo_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ChangeTopicOwnerInfoResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *ChangeTopicOwnerInfoResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ChangeTopicOwnerInfoResult(%+v)", *p)
+}
+
+type ChangeReplicationTopicSourceInfoArgs struct {
+	Request *ChangeReplicationTopicSourceInfoRequest `thrift:"request,1" json:"request"`
+}
+
+func NewChangeReplicationTopicSourceInfoArgs() *ChangeReplicationTopicSourceInfoArgs {
+	return &ChangeReplicationTopicSourceInfoArgs{}
+}
+
+var ChangeReplicationTopicSourceInfoArgs_Request_DEFAULT *ChangeReplicationTopicSourceInfoRequest
+
+func (p *ChangeReplicationTopicSourceInfoArgs) GetRequest() *ChangeReplicationTopicSourceInfoRequest {
+	if !p.IsSetRequest() {
+		return ChangeReplicationTopicSourceInfoArgs_Request_DEFAULT
+	}
+	return p.Request
+}
+func (p *ChangeReplicationTopicSourceInfoArgs) IsSetRequest() bool {
+	return p.Request != nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoArgs) ReadField1(iprot thrift.TProtocol) error {
+	p.Request = &ChangeReplicationTopicSourceInfoRequest{}
+	if err := p.Request.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.Request, err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("changeReplicationTopicSourceInfo_args"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("request", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:request: %s", p, err)
+	}
+	if err := p.Request.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.Request, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:request: %s", p, err)
+	}
+	return err
+}
+
+func (p *ChangeReplicationTopicSourceInfoArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ChangeReplicationTopicSourceInfoArgs(%+v)", *p)
+}
+
+type ChangeReplicationTopicSourceInfoResult struct {
+	E *common.GalaxyTalosException `thrift:"e,1" json:"e"`
+}
+
+func NewChangeReplicationTopicSourceInfoResult() *ChangeReplicationTopicSourceInfoResult {
+	return &ChangeReplicationTopicSourceInfoResult{}
+}
+
+var ChangeReplicationTopicSourceInfoResult_E_DEFAULT *common.GalaxyTalosException
+
+func (p *ChangeReplicationTopicSourceInfoResult) GetE() *common.GalaxyTalosException {
+	if !p.IsSetE() {
+		return ChangeReplicationTopicSourceInfoResult_E_DEFAULT
+	}
+	return p.E
+}
+func (p *ChangeReplicationTopicSourceInfoResult) IsSetE() bool {
+	return p.E != nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoResult) ReadField1(iprot thrift.TProtocol) error {
+	p.E = &common.GalaxyTalosException{}
+	if err := p.E.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.E, err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("changeReplicationTopicSourceInfo_result"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *ChangeReplicationTopicSourceInfoResult) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetE() {
+		if err := oprot.WriteFieldBegin("e", thrift.STRUCT, 1); err != nil {
+			return fmt.Errorf("%T write field begin error 1:e: %s", p, err)
+		}
+		if err := p.E.Write(oprot); err != nil {
+			return fmt.Errorf("%T error writing struct: %s", p.E, err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return fmt.Errorf("%T write field end error 1:e: %s", p, err)
+		}
+	}
+	return err
+}
+
+func (p *ChangeReplicationTopicSourceInfoResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ChangeReplicationTopicSourceInfoResult(%+v)", *p)
 }
 
 type DescribeTopicArgs struct {
