@@ -5419,18 +5419,32 @@ func (p *GetScheduleInfoResponse) String() string {
 	return fmt.Sprintf("GetScheduleInfoResponse(%+v)", *p)
 }
 
-type LookupTopicsRequest struct {
-	TopicGroup string `thrift:"topicGroup,1,required" json:"topicGroup"`
+type GetCheckpointRequest struct {
+	TopicTalosResourceName *topic.TopicTalosResourceName `thrift:"topicTalosResourceName,1,required" json:"topicTalosResourceName"`
+	PartitionTimeIndexMap  map[int32]int64               `thrift:"partitionTimeIndexMap,2,required" json:"partitionTimeIndexMap"`
 }
 
-func NewLookupTopicsRequest() *LookupTopicsRequest {
-	return &LookupTopicsRequest{}
+func NewGetCheckpointRequest() *GetCheckpointRequest {
+	return &GetCheckpointRequest{}
 }
 
-func (p *LookupTopicsRequest) GetTopicGroup() string {
-	return p.TopicGroup
+var GetCheckpointRequest_TopicTalosResourceName_DEFAULT *topic.TopicTalosResourceName
+
+func (p *GetCheckpointRequest) GetTopicTalosResourceName() *topic.TopicTalosResourceName {
+	if !p.IsSetTopicTalosResourceName() {
+		return GetCheckpointRequest_TopicTalosResourceName_DEFAULT
+	}
+	return p.TopicTalosResourceName
 }
-func (p *LookupTopicsRequest) Read(iprot thrift.TProtocol) error {
+
+func (p *GetCheckpointRequest) GetPartitionTimeIndexMap() map[int32]int64 {
+	return p.PartitionTimeIndexMap
+}
+func (p *GetCheckpointRequest) IsSetTopicTalosResourceName() bool {
+	return p.TopicTalosResourceName != nil
+}
+
+func (p *GetCheckpointRequest) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return fmt.Errorf("%T read error: %s", p, err)
 	}
@@ -5445,6 +5459,10 @@ func (p *LookupTopicsRequest) Read(iprot thrift.TProtocol) error {
 		switch fieldId {
 		case 1:
 			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
 				return err
 			}
 		default:
@@ -5462,115 +5480,35 @@ func (p *LookupTopicsRequest) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsRequest) ReadField1(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return fmt.Errorf("error reading field 1: %s", err)
-	} else {
-		p.TopicGroup = v
+func (p *GetCheckpointRequest) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicTalosResourceName = &topic.TopicTalosResourceName{}
+	if err := p.TopicTalosResourceName.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicTalosResourceName, err)
 	}
 	return nil
 }
 
-func (p *LookupTopicsRequest) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("LookupTopicsRequest"); err != nil {
-		return fmt.Errorf("%T write struct begin error: %s", p, err)
-	}
-	if err := p.writeField1(oprot); err != nil {
-		return err
-	}
-	if err := oprot.WriteFieldStop(); err != nil {
-		return fmt.Errorf("write field stop error: %s", err)
-	}
-	if err := oprot.WriteStructEnd(); err != nil {
-		return fmt.Errorf("write struct stop error: %s", err)
-	}
-	return nil
-}
-
-func (p *LookupTopicsRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err := oprot.WriteFieldBegin("topicGroup", thrift.STRING, 1); err != nil {
-		return fmt.Errorf("%T write field begin error 1:topicGroup: %s", p, err)
-	}
-	if err := oprot.WriteString(string(p.TopicGroup)); err != nil {
-		return fmt.Errorf("%T.topicGroup (1) field write error: %s", p, err)
-	}
-	if err := oprot.WriteFieldEnd(); err != nil {
-		return fmt.Errorf("%T write field end error 1:topicGroup: %s", p, err)
-	}
-	return err
-}
-
-func (p *LookupTopicsRequest) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("LookupTopicsRequest(%+v)", *p)
-}
-
-type LookupTopicsResponse struct {
-	Topics map[string]int32 `thrift:"topics,1,required" json:"topics"`
-}
-
-func NewLookupTopicsResponse() *LookupTopicsResponse {
-	return &LookupTopicsResponse{}
-}
-
-func (p *LookupTopicsResponse) GetTopics() map[string]int32 {
-	return p.Topics
-}
-func (p *LookupTopicsResponse) Read(iprot thrift.TProtocol) error {
-	if _, err := iprot.ReadStructBegin(); err != nil {
-		return fmt.Errorf("%T read error: %s", p, err)
-	}
-	for {
-		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-		if err != nil {
-			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-		switch fieldId {
-		case 1:
-			if err := p.ReadField1(iprot); err != nil {
-				return err
-			}
-		default:
-			if err := iprot.Skip(fieldTypeId); err != nil {
-				return err
-			}
-		}
-		if err := iprot.ReadFieldEnd(); err != nil {
-			return err
-		}
-	}
-	if err := iprot.ReadStructEnd(); err != nil {
-		return fmt.Errorf("%T read struct end error: %s", p, err)
-	}
-	return nil
-}
-
-func (p *LookupTopicsResponse) ReadField1(iprot thrift.TProtocol) error {
+func (p *GetCheckpointRequest) ReadField2(iprot thrift.TProtocol) error {
 	_, _, size, err := iprot.ReadMapBegin()
 	if err != nil {
 		return fmt.Errorf("error reading map begin: %s", err)
 	}
-	tMap := make(map[string]int32, size)
-	p.Topics = tMap
+	tMap := make(map[int32]int64, size)
+	p.PartitionTimeIndexMap = tMap
 	for i := 0; i < size; i++ {
-		var _key12 string
-		if v, err := iprot.ReadString(); err != nil {
+		var _key12 int32
+		if v, err := iprot.ReadI32(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
 			_key12 = v
 		}
-		var _val13 int32
-		if v, err := iprot.ReadI32(); err != nil {
+		var _val13 int64
+		if v, err := iprot.ReadI64(); err != nil {
 			return fmt.Errorf("error reading field 0: %s", err)
 		} else {
 			_val13 = v
 		}
-		p.Topics[_key12] = _val13
+		p.PartitionTimeIndexMap[_key12] = _val13
 	}
 	if err := iprot.ReadMapEnd(); err != nil {
 		return fmt.Errorf("error reading map end: %s", err)
@@ -5578,8 +5516,142 @@ func (p *LookupTopicsResponse) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsResponse) Write(oprot thrift.TProtocol) error {
-	if err := oprot.WriteStructBegin("LookupTopicsResponse"); err != nil {
+func (p *GetCheckpointRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetCheckpointRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetCheckpointRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicTalosResourceName", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicTalosResourceName: %s", p, err)
+	}
+	if err := p.TopicTalosResourceName.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicTalosResourceName, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicTalosResourceName: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetCheckpointRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("partitionTimeIndexMap", thrift.MAP, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:partitionTimeIndexMap: %s", p, err)
+	}
+	if err := oprot.WriteMapBegin(thrift.I32, thrift.I64, len(p.PartitionTimeIndexMap)); err != nil {
+		return fmt.Errorf("error writing map begin: %s", err)
+	}
+	for k, v := range p.PartitionTimeIndexMap {
+		if err := oprot.WriteI32(int32(k)); err != nil {
+			return fmt.Errorf("%T. (0) field write error: %s", p, err)
+		}
+		if err := oprot.WriteI64(int64(v)); err != nil {
+			return fmt.Errorf("%T. (0) field write error: %s", p, err)
+		}
+	}
+	if err := oprot.WriteMapEnd(); err != nil {
+		return fmt.Errorf("error writing map end: %s", err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:partitionTimeIndexMap: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetCheckpointRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetCheckpointRequest(%+v)", *p)
+}
+
+type GetCheckpointResponse struct {
+	PartitionsCheckPoint map[int32]int64 `thrift:"partitionsCheckPoint,1,required" json:"partitionsCheckPoint"`
+}
+
+func NewGetCheckpointResponse() *GetCheckpointResponse {
+	return &GetCheckpointResponse{}
+}
+
+func (p *GetCheckpointResponse) GetPartitionsCheckPoint() map[int32]int64 {
+	return p.PartitionsCheckPoint
+}
+func (p *GetCheckpointResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetCheckpointResponse) ReadField1(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return fmt.Errorf("error reading map begin: %s", err)
+	}
+	tMap := make(map[int32]int64, size)
+	p.PartitionsCheckPoint = tMap
+	for i := 0; i < size; i++ {
+		var _key14 int32
+		if v, err := iprot.ReadI32(); err != nil {
+			return fmt.Errorf("error reading field 0: %s", err)
+		} else {
+			_key14 = v
+		}
+		var _val15 int64
+		if v, err := iprot.ReadI64(); err != nil {
+			return fmt.Errorf("error reading field 0: %s", err)
+		} else {
+			_val15 = v
+		}
+		p.PartitionsCheckPoint[_key14] = _val15
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return fmt.Errorf("error reading map end: %s", err)
+	}
+	return nil
+}
+
+func (p *GetCheckpointResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetCheckpointResponse"); err != nil {
 		return fmt.Errorf("%T write struct begin error: %s", p, err)
 	}
 	if err := p.writeField1(oprot); err != nil {
@@ -5594,18 +5666,18 @@ func (p *LookupTopicsResponse) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *LookupTopicsResponse) writeField1(oprot thrift.TProtocol) (err error) {
-	if err := oprot.WriteFieldBegin("topics", thrift.MAP, 1); err != nil {
-		return fmt.Errorf("%T write field begin error 1:topics: %s", p, err)
+func (p *GetCheckpointResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("partitionsCheckPoint", thrift.MAP, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:partitionsCheckPoint: %s", p, err)
 	}
-	if err := oprot.WriteMapBegin(thrift.STRING, thrift.I32, len(p.Topics)); err != nil {
+	if err := oprot.WriteMapBegin(thrift.I32, thrift.I64, len(p.PartitionsCheckPoint)); err != nil {
 		return fmt.Errorf("error writing map begin: %s", err)
 	}
-	for k, v := range p.Topics {
-		if err := oprot.WriteString(string(k)); err != nil {
+	for k, v := range p.PartitionsCheckPoint {
+		if err := oprot.WriteI32(int32(k)); err != nil {
 			return fmt.Errorf("%T. (0) field write error: %s", p, err)
 		}
-		if err := oprot.WriteI32(int32(v)); err != nil {
+		if err := oprot.WriteI64(int64(v)); err != nil {
 			return fmt.Errorf("%T. (0) field write error: %s", p, err)
 		}
 	}
@@ -5613,14 +5685,396 @@ func (p *LookupTopicsResponse) writeField1(oprot thrift.TProtocol) (err error) {
 		return fmt.Errorf("error writing map end: %s", err)
 	}
 	if err := oprot.WriteFieldEnd(); err != nil {
-		return fmt.Errorf("%T write field end error 1:topics: %s", p, err)
+		return fmt.Errorf("%T write field end error 1:partitionsCheckPoint: %s", p, err)
 	}
 	return err
 }
 
-func (p *LookupTopicsResponse) String() string {
+func (p *GetCheckpointResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("LookupTopicsResponse(%+v)", *p)
+	return fmt.Sprintf("GetCheckpointResponse(%+v)", *p)
+}
+
+type GetPartitionCheckpointRequest struct {
+	TopicAndPartition  *topic.TopicAndPartition `thrift:"topicAndPartition,1,required" json:"topicAndPartition"`
+	PartitionTimeIndex int64                    `thrift:"partitionTimeIndex,2,required" json:"partitionTimeIndex"`
+}
+
+func NewGetPartitionCheckpointRequest() *GetPartitionCheckpointRequest {
+	return &GetPartitionCheckpointRequest{}
+}
+
+var GetPartitionCheckpointRequest_TopicAndPartition_DEFAULT *topic.TopicAndPartition
+
+func (p *GetPartitionCheckpointRequest) GetTopicAndPartition() *topic.TopicAndPartition {
+	if !p.IsSetTopicAndPartition() {
+		return GetPartitionCheckpointRequest_TopicAndPartition_DEFAULT
+	}
+	return p.TopicAndPartition
+}
+
+func (p *GetPartitionCheckpointRequest) GetPartitionTimeIndex() int64 {
+	return p.PartitionTimeIndex
+}
+func (p *GetPartitionCheckpointRequest) IsSetTopicAndPartition() bool {
+	return p.TopicAndPartition != nil
+}
+
+func (p *GetPartitionCheckpointRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointRequest) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicAndPartition = &topic.TopicAndPartition{}
+	if err := p.TopicAndPartition.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicAndPartition, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointRequest) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return fmt.Errorf("error reading field 2: %s", err)
+	} else {
+		p.PartitionTimeIndex = v
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetPartitionCheckpointRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicAndPartition", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicAndPartition: %s", p, err)
+	}
+	if err := p.TopicAndPartition.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicAndPartition, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicAndPartition: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("partitionTimeIndex", thrift.I64, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:partitionTimeIndex: %s", p, err)
+	}
+	if err := oprot.WriteI64(int64(p.PartitionTimeIndex)); err != nil {
+		return fmt.Errorf("%T.partitionTimeIndex (2) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:partitionTimeIndex: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPartitionCheckpointRequest(%+v)", *p)
+}
+
+type GetPartitionCheckpointResponse struct {
+	PartitionCheckPoint int64 `thrift:"partitionCheckPoint,1,required" json:"partitionCheckPoint"`
+}
+
+func NewGetPartitionCheckpointResponse() *GetPartitionCheckpointResponse {
+	return &GetPartitionCheckpointResponse{}
+}
+
+func (p *GetPartitionCheckpointResponse) GetPartitionCheckPoint() int64 {
+	return p.PartitionCheckPoint
+}
+func (p *GetPartitionCheckpointResponse) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResponse) ReadField1(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return fmt.Errorf("error reading field 1: %s", err)
+	} else {
+		p.PartitionCheckPoint = v
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResponse) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("GetPartitionCheckpointResponse"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *GetPartitionCheckpointResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("partitionCheckPoint", thrift.I64, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:partitionCheckPoint: %s", p, err)
+	}
+	if err := oprot.WriteI64(int64(p.PartitionCheckPoint)); err != nil {
+		return fmt.Errorf("%T.partitionCheckPoint (1) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:partitionCheckPoint: %s", p, err)
+	}
+	return err
+}
+
+func (p *GetPartitionCheckpointResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetPartitionCheckpointResponse(%+v)", *p)
+}
+
+type DeleteMessageIndexRequest struct {
+	TopicAndPartition *topic.TopicAndPartition `thrift:"topicAndPartition,1,required" json:"topicAndPartition"`
+	StartOffset       int64                    `thrift:"startOffset,2,required" json:"startOffset"`
+	EndOffset         int64                    `thrift:"endOffset,3,required" json:"endOffset"`
+}
+
+func NewDeleteMessageIndexRequest() *DeleteMessageIndexRequest {
+	return &DeleteMessageIndexRequest{}
+}
+
+var DeleteMessageIndexRequest_TopicAndPartition_DEFAULT *topic.TopicAndPartition
+
+func (p *DeleteMessageIndexRequest) GetTopicAndPartition() *topic.TopicAndPartition {
+	if !p.IsSetTopicAndPartition() {
+		return DeleteMessageIndexRequest_TopicAndPartition_DEFAULT
+	}
+	return p.TopicAndPartition
+}
+
+func (p *DeleteMessageIndexRequest) GetStartOffset() int64 {
+	return p.StartOffset
+}
+
+func (p *DeleteMessageIndexRequest) GetEndOffset() int64 {
+	return p.EndOffset
+}
+func (p *DeleteMessageIndexRequest) IsSetTopicAndPartition() bool {
+	return p.TopicAndPartition != nil
+}
+
+func (p *DeleteMessageIndexRequest) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return fmt.Errorf("%T read error: %s", p, err)
+	}
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return fmt.Errorf("%T field %d read error: %s", p, fieldId, err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 1:
+			if err := p.ReadField1(iprot); err != nil {
+				return err
+			}
+		case 2:
+			if err := p.ReadField2(iprot); err != nil {
+				return err
+			}
+		case 3:
+			if err := p.ReadField3(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return fmt.Errorf("%T read struct end error: %s", p, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexRequest) ReadField1(iprot thrift.TProtocol) error {
+	p.TopicAndPartition = &topic.TopicAndPartition{}
+	if err := p.TopicAndPartition.Read(iprot); err != nil {
+		return fmt.Errorf("%T error reading struct: %s", p.TopicAndPartition, err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexRequest) ReadField2(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return fmt.Errorf("error reading field 2: %s", err)
+	} else {
+		p.StartOffset = v
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexRequest) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return fmt.Errorf("error reading field 3: %s", err)
+	} else {
+		p.EndOffset = v
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexRequest) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("DeleteMessageIndexRequest"); err != nil {
+		return fmt.Errorf("%T write struct begin error: %s", p, err)
+	}
+	if err := p.writeField1(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField2(oprot); err != nil {
+		return err
+	}
+	if err := p.writeField3(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return fmt.Errorf("write field stop error: %s", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return fmt.Errorf("write struct stop error: %s", err)
+	}
+	return nil
+}
+
+func (p *DeleteMessageIndexRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("topicAndPartition", thrift.STRUCT, 1); err != nil {
+		return fmt.Errorf("%T write field begin error 1:topicAndPartition: %s", p, err)
+	}
+	if err := p.TopicAndPartition.Write(oprot); err != nil {
+		return fmt.Errorf("%T error writing struct: %s", p.TopicAndPartition, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 1:topicAndPartition: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteMessageIndexRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("startOffset", thrift.I64, 2); err != nil {
+		return fmt.Errorf("%T write field begin error 2:startOffset: %s", p, err)
+	}
+	if err := oprot.WriteI64(int64(p.StartOffset)); err != nil {
+		return fmt.Errorf("%T.startOffset (2) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 2:startOffset: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteMessageIndexRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err := oprot.WriteFieldBegin("endOffset", thrift.I64, 3); err != nil {
+		return fmt.Errorf("%T write field begin error 3:endOffset: %s", p, err)
+	}
+	if err := oprot.WriteI64(int64(p.EndOffset)); err != nil {
+		return fmt.Errorf("%T.endOffset (3) field write error: %s", p, err)
+	}
+	if err := oprot.WriteFieldEnd(); err != nil {
+		return fmt.Errorf("%T write field end error 3:endOffset: %s", p, err)
+	}
+	return err
+}
+
+func (p *DeleteMessageIndexRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteMessageIndexRequest(%+v)", *p)
 }

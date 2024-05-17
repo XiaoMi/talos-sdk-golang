@@ -91,9 +91,9 @@ func (a *TalosAdmin) ListTopicsInfo() ([]*topic.Topic, error) {
 	return listTopicsInfoResponse.GetTopicList(), err
 }
 
-func (a *TalosAdmin) LookupTopics(request *message.LookupTopicsRequest) (
-	*message.LookupTopicsResponse, error) {
-	return a.messageClient.LookupTopics(request)
+func (a *TalosAdmin) LookupTopics(request *topic.LookupTopicsRequest) (
+	*topic.LookupTopicsResponse, error) {
+	return a.topicClient.LookupTopics(request)
 }
 
 func (a *TalosAdmin) GetTopicOffset(request *message.GetTopicOffsetRequest) (

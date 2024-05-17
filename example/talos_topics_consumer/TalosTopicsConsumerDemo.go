@@ -63,20 +63,20 @@ func main() {
 	   galaxy.talos.service.endpoint=$talosServiceURI
 	*/
 	var propertyFilename string
-	flag.StringVar(&propertyFilename, "conf", "talosConsumer.txt", "conf: talosConsumer.txt'")
+	flag.StringVar(&propertyFilename, "conf", "talosTopicsConsumer.conf", "conf: talosTopicsConsumer.conf'")
 	flag.Parse()
 
 	// init talosConsumer
-	talosConsumer, err := consumer.NewTalosMultiTopicsConsumerWithLogger(propertyFilename, NewMyMessageProcessorFactory(log),
+	talosConsumer, err := consumer.NewTalosTopicsConsumerWithLogger(propertyFilename, NewMyMessageProcessorFactory(log),
 		client.NewSimpleTopicAbnormalCallback(), log)
 	if err != nil {
-		log.Errorf("init talosMultiTopicsConsumer failed: %s", err.Error())
+		log.Errorf("init talosTopicsConsumer failed: %s", err.Error())
 		return
 	}
 
 	go func() {
 		time.Sleep(5 * time.Second)
-		// talosConsumer.ShutDown()
+		talosConsumer.ShutDown()
 	}()
 
 	// block main function
