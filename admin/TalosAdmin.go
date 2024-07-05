@@ -83,11 +83,17 @@ func (a *TalosAdmin) ChangeTopicAttribute(request *topic.ChangeTopicAttributeReq
 
 func (a *TalosAdmin) ListTopics() ([]*topic.TopicInfo, error) {
 	listTopicsResponse, err := a.topicClient.ListTopics()
+	if err != nil {
+		return nil, err
+	}
 	return listTopicsResponse.GetTopicInfos(), err
 }
 
 func (a *TalosAdmin) ListTopicsInfo() ([]*topic.Topic, error) {
 	listTopicsInfoResponse, err := a.topicClient.ListTopicsInfo()
+	if err != nil {
+		return nil, err
+	}
 	return listTopicsInfoResponse.GetTopicList(), err
 }
 
@@ -99,24 +105,36 @@ func (a *TalosAdmin) LookupTopics(request *topic.LookupTopicsRequest) (
 func (a *TalosAdmin) GetTopicOffset(request *message.GetTopicOffsetRequest) (
 	[]*message.OffsetInfo, error) {
 	getTopicOffsetResponse, err := a.messageClient.GetTopicOffset(request)
+	if err != nil {
+		return nil, err
+	}
 	return getTopicOffsetResponse.GetOffsetInfoList(), err
 }
 
 func (a *TalosAdmin) GetPartitionOffset(request *message.GetPartitionOffsetRequest) (
 	*message.OffsetInfo, error) {
 	getPartitionOffsetResponse, err := a.messageClient.GetPartitionOffset(request)
+	if err != nil {
+		return nil, err
+	}
 	return getPartitionOffsetResponse.GetOffsetInfo(), err
 }
 
 func (a *TalosAdmin) DescribeTopicGroup(request *topic.DescribeTopicGroupRequest) (
 	*topic.TopicGroup, error) {
 	getPartitionOffsetResponse, err := a.topicClient.DescribeTopicGroup(request)
+	if err != nil {
+		return nil, err
+	}
 	return getPartitionOffsetResponse.GetTopicGroup(), err
 }
 
 func (a *TalosAdmin) GetScheduleInfo(request *message.GetScheduleInfoRequest) (
 	map[*topic.TopicAndPartition]string, error) {
 	getScheduleInfoResponse, err := a.messageClient.GetScheduleInfo(request)
+	if err != nil {
+		return nil, err
+	}
 	return getScheduleInfoResponse.GetScheduleInfo(), err
 }
 
@@ -128,12 +146,18 @@ func (a *TalosAdmin) SetPermission(request *topic.SetPermissionRequest) error {
 func (a *TalosAdmin) ListPermission(request *topic.ListPermissionRequest) (
 	map[string]int32, error) {
 	listPermissionResponse, err := a.topicClient.ListPermission(request)
+	if err != nil {
+		return nil, err
+	}
 	return listPermissionResponse.GetPermissions(), err
 }
 
 func (a *TalosAdmin) QueryPermission(request *topic.GetPermissionRequest) (
 	int32, error) {
 	queryPermissionResponse, err := a.topicClient.GetPermission(request)
+	if err != nil {
+		return 0, err
+	}
 	return queryPermissionResponse.GetPermission(), err
 }
 
@@ -169,6 +193,9 @@ func (a *TalosAdmin) SetUserQuota(request *quota.SetUserQuotaRequest) error {
 
 func (a *TalosAdmin) ListAllUserQuota() (map[string]*quota.UserQuota, error) {
 	listUserQuotaResponse, err := a.quotaClient.ListUserQuota()
+	if err != nil {
+		return nil, err
+	}
 	return listUserQuotaResponse.GetUserQuotaList(), err
 }
 
@@ -178,6 +205,9 @@ func (a *TalosAdmin) DeleteUserQuota(request *quota.DeleteUserQuotaRequest) erro
 
 func (a *TalosAdmin) QueryUserQuota() (*quota.UserQuota, error) {
 	queryUserQuotaResponse, err := a.quotaClient.QueryUserQuota()
+	if err != nil {
+		return nil, err
+	}
 	return queryUserQuotaResponse.GetUserQuota(), err
 }
 
@@ -206,6 +236,9 @@ func (a *TalosAdmin) GetOrgOffsetMap(request *consumer.QueryOrgOffsetRequest) (
 
 func (a *TalosAdmin) GetWorkerId(request *consumer.GetWorkerIdRequest) (string, error) {
 	response, err := a.consumerClient.GetWorkerId(request)
+	if err != nil {
+		return "", err
+	}
 	return response.GetWorkerId(), err
 }
 
