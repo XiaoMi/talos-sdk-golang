@@ -148,12 +148,33 @@ func GenerateClientId() string {
 	return fmt.Sprintf("%d%s", CurrentTimeMills(), uuid.String()[0:8])
 }
 
+func ClientIP4() ([]byte, error) {
+	ipList, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, errors.New("unexpected IP address")
+	}
+	for _, addr := range ipList {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ip4 := ipnet.IP.To4(); ip4 != nil {
+				return ip4, nil
+			}
+		}
+	}
+	return nil, errors.New("unknown IP address")
+}
+
+// CheckAndGenerateClientId example: 10_189_32_151-go172163819113877e88b3d
 func CheckAndGenerateClientId(prefix string) (string, error) {
 	err := CheckNameValidity(prefix)
 	if err != nil {
 		return "", err
 	}
-	return prefix + GenerateClientId(), nil
+	ip, err := ClientIP4()
+	if err != nil {
+		return "", err
+	}
+	localIp := fmt.Sprintf("%d_%d_%d_%d", ip[0], ip[1], ip[2], ip[3])
+	return localIp + "-" + prefix + GenerateClientId(), nil
 }
 
 func CheckStartOffsetValidity(startOffset int64) error {
