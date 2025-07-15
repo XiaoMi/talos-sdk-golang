@@ -258,24 +258,24 @@ func UpdateMessage(msg *message.Message, messageType message.MessageType) {
 	}
 }
 
-func CheckMessagesValidity(msgList []*message.Message) error {
+func CheckMessagesValidity(msgList []*message.Message, maxSingleMsgBytes int64) error {
 	totalSize := int64(0)
 	for _, msg := range msgList {
-		if err := CheckMessageValidity(msg); err != nil {
+		if err := CheckMessageValidity(msg, maxSingleMsgBytes); err != nil {
 			return err
 		}
 		totalSize += int64(len(msg.GetMessage()))
 	}
 
-	if totalSize > TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL*2 {
+	if totalSize > maxSingleMsgBytes*2 {
 		return fmt.Errorf("Total Messages byte must less than %v ",
-			TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL*2)
+			maxSingleMsgBytes*2)
 	}
 	return nil
 }
 
-func CheckMessageValidity(msg *message.Message) error {
-	if err := CheckMessageLenValidity(msg); err != nil {
+func CheckMessageValidity(msg *message.Message, maxSingleMsgBytes int64) error {
+	if err := CheckMessageLenValidity(msg, maxSingleMsgBytes); err != nil {
 		return fmt.Errorf("Check MessageLength validity error: %s ", err.Error())
 	}
 	if err := CheckMessageSequenceNumberValidity(msg); err != nil {
@@ -287,15 +287,15 @@ func CheckMessageValidity(msg *message.Message) error {
 	return nil
 }
 
-func CheckMessageLenValidity(msg *message.Message) error {
+func CheckMessageLenValidity(msg *message.Message, maxSingleMsgBytes int64) error {
 	if len(msg.Message) == 0 {
 		return fmt.Errorf("Field \"message\" must be set. ")
 	}
 	data := msg.GetMessage()
-	if len(data) > TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL ||
+	if int64(len(data)) > maxSingleMsgBytes ||
 		len(data) < TALOS_SINGLE_MESSAGE_BYTES_MINIMAL {
 		return fmt.Errorf("Data must be less than or equal to %v bytes, got bytes: %v ",
-			TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL, len(data))
+			maxSingleMsgBytes, len(data))
 	}
 	return nil
 }

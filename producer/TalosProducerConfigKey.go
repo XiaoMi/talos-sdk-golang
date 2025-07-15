@@ -46,6 +46,14 @@ const (
 	GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_BYTES_MAXIMUM = 10 * 1024 * 1024
 
 	/**
+	 * The producer max bytes of a single message
+	 */
+	GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES         = "galaxy.talos.producer.max.single.message.bytes"
+	GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_DEFAULT = 10 * 1024 * 1024
+	GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_MINIMUM = 10 * 1024 * 1024
+	GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_MAXIMUM = 100 * 1024 * 1024
+
+	/**
 	 * The producer thread pool number
 	 */
 	GALAXY_TALOS_PRODUCER_THREAD_POOL_SIZE         = "galaxy.talos.producer.thread.pool.size"

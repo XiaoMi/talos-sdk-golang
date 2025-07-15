@@ -21,6 +21,7 @@ type TalosProducerConfig struct {
 	maxBufferedMsgTime        int64
 	maxPutMsgNumber           int64
 	maxPutMsgBytes            int64
+	maxSingleMsgBytes         int64
 	threadPoolsize            int64
 	checkPartitionInterval    int64
 	updatePartitionIdInterval int64
@@ -83,6 +84,9 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 	maxPutMsgBytes, _ := strconv.ParseInt(props.GetProperty(
 		GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_BYTES,
 		strconv.Itoa(GALAXY_TALOS_PRODUCER_MAX_PUT_MESSAGE_BYTES_DEFAULT)), 10, 64)
+	maxSingleMsgBytes, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_DEFAULT)), 10, 64)
 	threadPoolsize, _ := strconv.ParseInt(props.GetProperty(
 		GALAXY_TALOS_PRODUCER_THREAD_POOL_SIZE,
 		strconv.Itoa(GALAXY_TALOS_PRODUCER_THREAD_POOL_SIZE_DEFAULT)), 10, 64)
@@ -111,6 +115,7 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 		maxBufferedMsgTime:        maxBufferedMsgTime,
 		maxPutMsgNumber:           maxPutMsgNumber,
 		maxPutMsgBytes:            maxPutMsgBytes,
+		maxSingleMsgBytes:         maxSingleMsgBytes,
 		threadPoolsize:            threadPoolsize,
 		checkPartitionInterval:    checkPartitionInterval,
 		updatePartitionIdInterval: updatePartitionIdInterval,
@@ -174,6 +179,10 @@ func (p *TalosProducerConfig) GetMaxPutMsgNumber() int64 {
 
 func (p *TalosProducerConfig) GetMaxPutMsgBytes() int64 {
 	return p.maxPutMsgBytes
+}
+
+func (p *TalosProducerConfig) GetMaxSingleMsgBytes() int64 {
+	return p.maxSingleMsgBytes
 }
 
 func (p *TalosProducerConfig) GetThreadPoolsize() int64 {
@@ -248,6 +257,18 @@ func (p *TalosProducerConfig) SetMaxPutMsgBytes(maxPutMsgBytes int64) {
 		return
 	}
 	p.maxPutMsgBytes = maxPutMsgBytes
+}
+
+func (p *TalosProducerConfig) SetMaxSingleMsgBytes(maxSingleMsgBytes int64) {
+	err := utils.CheckParameterRange(
+		GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES,
+		p.maxSingleMsgBytes,
+		GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_MINIMUM,
+		GALAXY_TALOS_PRODUCER_MAX_SINGLE_MESSAGE_BYTES_MAXIMUM)
+	if err != nil {
+		return
+	}
+	p.maxSingleMsgBytes = maxSingleMsgBytes
 }
 
 func (p *TalosProducerConfig) SetThreadPoolsize(threadPoolsize int64) {

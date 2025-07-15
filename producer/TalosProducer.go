@@ -282,7 +282,7 @@ func (p *TalosProducer) DoAddUserMessage(msgList []*message.Message) error {
 		// set timestamp and messageType if not set;
 		utils.UpdateMessage(msg, message.MessageType_BINARY)
 		// check data validity
-		if err := utils.CheckMessageValidity(msg); err != nil {
+		if err := utils.CheckMessageValidity(msg, p.producerConfig.GetMaxSingleMsgBytes()); err != nil {
 			return err
 		}
 

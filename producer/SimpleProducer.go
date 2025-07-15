@@ -167,7 +167,7 @@ func (p *SimpleProducer) PutMessageList(msgList []*message.Message) error {
 	}
 
 	//check data validity
-	if err := utils.CheckMessagesValidity(msgList); err != nil {
+	if err := utils.CheckMessagesValidity(msgList, p.producerConfig.GetMaxSingleMsgBytes()); err != nil {
 		p.log.Errorf("message data invalidity: %s", err.Error())
 		return err
 	}

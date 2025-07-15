@@ -23,8 +23,8 @@ const (
 	TALOS_NAME_BODY_REGEX                                = "^[a-zA-Z0-9_-]+$"
 	TALOS_NAME_HEAD_REGEX                                = "^[-_]+|_$"
 	TALOS_SINGLE_MESSAGE_BYTES_MINIMAL                   = 1
-	TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL                   = 10485760
-	TALOS_MESSAGE_BLOCK_BYTES_MAXIMAL                    = 20971520
+	TALOS_SINGLE_MESSAGE_BYTES_MAXIMAL                   = 104857600
+	TALOS_MESSAGE_BLOCK_BYTES_MAXIMAL                    = 209715200
 	TALOS_PARTITION_KEY_LENGTH_MINIMAL                   = 1
 	TALOS_PARTITION_KEY_LENGTH_MAXIMAL                   = 256
 	TALOS_CLOUD_TOPIC_NAME_DELIMITER                     = "/"
