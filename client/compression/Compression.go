@@ -15,8 +15,6 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/client/serialization"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
 	"github.com/XiaoMi/talos-sdk-golang/utils"
-
-	"github.com/DataDog/zstd"
 	"github.com/bkaradzic/go-lz4"
 	xSnappy "github.com/eapache/go-xerial-snappy"
 	zstdV2 "github.com/klauspost/compress/zstd"
@@ -69,28 +67,20 @@ func DoCompress(
 		writer.Close()
 		messageBlockData = append(messageBlockData, gzipBuf.Bytes()...)
 	case message.MessageCompressionType_ZSTD:
-		if compressConfig.IsZstdCompressedWithPureGo() {
-			var enc, _ = zstdV2.NewWriter(nil,
-				zstdV2.WithSingleSegment(true),
-				zstdV2.WithZeroFrames(true),
-				zstdV2.WithEncoderLevel(zstdV2.EncoderLevelFromZstd(int(compressConfig.GetCompressionLevel()))),
-				zstdV2.WithEncoderConcurrency(int(compressConfig.GetZstdEncoderConcurrency())))
-			compressed := enc.EncodeAll(
-				messageSerializedBuffer.Bytes(),
-				make([]byte, 0, messageSerializedBuffer.Len()),
-			)
-			err := enc.Close()
-			if err != nil {
-				return nil, err
-			}
-			messageBlockData = append(messageBlockData, compressed...)
-		} else {
-			result, err := zstd.Compress(nil, messageSerializedBuffer.Bytes())
-			if err != nil {
-				return nil, err
-			}
-			messageBlockData = append(messageBlockData, result...)
+		var enc, _ = zstdV2.NewWriter(nil,
+			zstdV2.WithSingleSegment(true),
+			zstdV2.WithZeroFrames(true),
+			zstdV2.WithEncoderLevel(zstdV2.EncoderLevelFromZstd(int(compressConfig.GetCompressionLevel()))),
+			zstdV2.WithEncoderConcurrency(int(compressConfig.GetZstdEncoderConcurrency())))
+		compressed := enc.EncodeAll(
+			messageSerializedBuffer.Bytes(),
+			make([]byte, 0, messageSerializedBuffer.Len()),
+		)
+		err := enc.Close()
+		if err != nil {
+			return nil, err
 		}
+		messageBlockData = append(messageBlockData, compressed...)
 	case message.MessageCompressionType_LZ4:
 		compressed := make([]byte, 0)
 		compressed, err := lz4.Encode(nil, messageSerializedBuffer.Bytes())
@@ -161,20 +151,12 @@ func DoDecompress(
 		}
 		messageBlockData = bytes.NewBuffer(messageByteSlice)
 	case message.MessageCompressionType_ZSTD:
-		if decompressConfig.IsZstdCompressedWithPureGo() {
-			var zstdV2Decoder, _ = zstdV2.NewReader(nil, zstdV2.WithDecoderConcurrency(int(decompressConfig.GetZstdDecoderConcurrency())))
-			result, err := zstdV2Decoder.DecodeAll(messageBlock.GetMessageBlock(), nil)
-			if err != nil {
-				return nil, err
-			}
-			messageBlockData = bytes.NewBuffer(result)
-		} else {
-			result, err := zstd.Decompress(nil, messageBlock.GetMessageBlock())
-			if err != nil {
-				return nil, err
-			}
-			messageBlockData = bytes.NewBuffer(result)
+		var zstdV2Decoder, _ = zstdV2.NewReader(nil, zstdV2.WithDecoderConcurrency(int(decompressConfig.GetZstdDecoderConcurrency())))
+		result, err := zstdV2Decoder.DecodeAll(messageBlock.GetMessageBlock(), nil)
+		if err != nil {
+			return nil, err
 		}
+		messageBlockData = bytes.NewBuffer(result)
 	case message.MessageCompressionType_LZ4:
 		decompressed := make([]byte, 0)
 		decompressed, err := lz4.Decode(nil, messageBlock.GetMessageBlock())
