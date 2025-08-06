@@ -142,4 +142,10 @@ const (
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_VALUE    = "galaxy.talos.consumer.start.reset.offset.value"
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_START = -1
 	GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_END   = -2
+
+	/**
+	 * The consumer zstd compression decoder concurrency, default is 1, when creating a decoder, only a go routine decoder is created
+	 */
+	GALAXY_TALOS_CONSUMER_ZSTD_DECODER_CONCURRENCY         = "galaxy.talos.consumer.zstd.decoder.concurrency"
+	GALAXY_TALOS_CONSUMER_ZSTD_DECODER_CONCURRENCY_DEFAULT = 1
 )

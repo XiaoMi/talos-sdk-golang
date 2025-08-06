@@ -249,7 +249,8 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 	messageAndOffsetList := make([]*message.MessageAndOffset, 0)
 	messageAndOffsetList, err = compression.Decompress(
 		getMessageResponse.GetMessageBlocks(),
-		getMessageResponse.GetUnHandledMessageNumber())
+		getMessageResponse.GetUnHandledMessageNumber(),
+		c.consumerConfig)
 	if err != nil {
 		return nil, err
 	}

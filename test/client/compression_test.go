@@ -19,6 +19,22 @@ import (
 	"github.com/XiaoMi/talos-sdk-golang/client/compression"
 )
 
+type DummyEncoderConfig struct {
+	t message.MessageCompressionType
+}
+
+func (c DummyEncoderConfig) GetCompressionType() message.MessageCompressionType {
+	return c.t
+}
+func (DummyEncoderConfig) GetCompressionLevel() int64              { return 0 }
+func (DummyEncoderConfig) GetCompressionEncoderConcurrency() int64 { return 0 }
+func (DummyEncoderConfig) IsCompressedWithPureGo() bool            { return false }
+
+type DummyDecoderConfig struct{}
+
+func (DummyDecoderConfig) GetCompressionDecoderConcurrency() int64 { return 0 }
+func (DummyDecoderConfig) IsCompressedWithPureGo() bool            { return false }
+
 func setUp() []*message.Message {
 	var messageList = make([]*message.Message, 0, 100)
 
@@ -54,7 +70,7 @@ func setUp() []*message.Message {
 
 func TestNonCompression(t *testing.T) {
 	messageList := setUp()
-	messageBlock, err := compression.Compress(messageList, message.MessageCompressionType_NONE)
+	messageBlock, err := compression.Compress(messageList, DummyEncoderConfig{})
 	if err != nil || messageBlock.GetCompressionType() != message.MessageCompressionType_NONE ||
 		int32(len(messageList)) != messageBlock.GetMessageNumber() {
 		t.Errorf("compress type error")
@@ -69,7 +85,7 @@ func TestNonCompression(t *testing.T) {
 	t.Logf("CompressionType: None, message BlockSize: %v", messageBlock.GetMessageBlockSize())
 
 	//verify message right
-	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber)
+	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber, DummyDecoderConfig{})
 	if len(verifyMessageList) != len(messageList) || err != nil {
 		t.Errorf("decompress error: wrong size or unKnow")
 	}
@@ -91,7 +107,8 @@ func TestNonCompression(t *testing.T) {
 
 func TestSnappy(t *testing.T) {
 	messageList := setUp()
-	messageBlock, err := compression.Compress(messageList, message.MessageCompressionType_SNAPPY)
+	cfg := DummyEncoderConfig{t: message.MessageCompressionType_SNAPPY}
+	messageBlock, err := compression.Compress(messageList, cfg)
 	if message.MessageCompressionType_SNAPPY != messageBlock.GetCompressionType() || err != nil {
 		t.Errorf("compression type error")
 	}
@@ -107,7 +124,7 @@ func TestSnappy(t *testing.T) {
 	messageBlock.AppendTimestamp = &appendTimestamp
 	t.Logf("CompressionType: Snappy, message BlockSize: %v", len(messageBlock.GetMessageBlock()))
 
-	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber)
+	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber, DummyDecoderConfig{})
 	if len(verifyMessageList) != len(messageList) || err != nil {
 		t.Errorf("decompress error: wrong size or unKnow")
 	}
@@ -128,7 +145,8 @@ func TestSnappy(t *testing.T) {
 
 func TestGzip(t *testing.T) {
 	messageList := setUp()
-	messageBlock, err := compression.Compress(messageList, message.MessageCompressionType_GZIP)
+	cfg := DummyEncoderConfig{t: message.MessageCompressionType_GZIP}
+	messageBlock, err := compression.Compress(messageList, cfg)
 	if message.MessageCompressionType_GZIP != messageBlock.GetCompressionType() || err != nil {
 		t.Errorf("compression type error")
 	}
@@ -144,7 +162,7 @@ func TestGzip(t *testing.T) {
 	messageBlock.AppendTimestamp = &appendTimestamp
 	t.Logf("CompressionType: Gzip, message BlockSize: %v", len(messageBlock.GetMessageBlock()))
 
-	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber)
+	verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber, DummyDecoderConfig{})
 	if len(verifyMessageList) != len(messageList) || err != nil {
 		t.Errorf("decompress error: wrong size or unKnow")
 	}
@@ -174,7 +192,8 @@ func TestCompression(t *testing.T) {
 		message.MessageCompressionType_LZ4,
 	}
 	for _, compressionType := range compressionTypeList {
-		messageBlock, err := compression.Compress(messageList, compressionType)
+		cfg := DummyEncoderConfig{t: compressionType}
+		messageBlock, err := compression.Compress(messageList, cfg)
 		if err != nil {
 			t.Errorf("compression type error")
 		}
@@ -190,7 +209,7 @@ func TestCompression(t *testing.T) {
 		messageBlock.AppendTimestamp = &appendTimestamp
 		t.Logf("CompressionType: %s, message BlockSize: %v", messageBlock.CompressionType.String(), len(messageBlock.GetMessageBlock()))
 
-		verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber)
+		verifyMessageList, err := compression.DoDecompress(messageBlock, unHandledMessageNumber, DummyDecoderConfig{})
 		if len(verifyMessageList) != len(messageList) || err != nil {
 			t.Errorf("decompress error: wrong size or unKnow")
 		}

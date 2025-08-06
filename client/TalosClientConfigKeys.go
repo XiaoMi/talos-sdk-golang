@@ -77,23 +77,30 @@ const (
 	 * The TALOS client falcon monitor related
 	 */
 	GALAXY_TALOS_METRIC_FALCON_URL         = "galaxy.talos.metric.falcon.url"
-    GALAXY_TALOS_METRIC_FALCON_URL_DEFAULT = "http://127.0.0.1:1988/v1/push"
+	GALAXY_TALOS_METRIC_FALCON_URL_DEFAULT = "http://127.0.0.1:1988/v1/push"
 
-    GALAXY_TALOS_REPORT_METRIC_INTERVAL         = "galaxy.talos.client.report.metric.interval"
-    GALAXY_TALOS_REPORT_METRIC_INTERVAL_DEFAULT = 60
+	GALAXY_TALOS_REPORT_METRIC_INTERVAL         = "galaxy.talos.client.report.metric.interval"
+	GALAXY_TALOS_REPORT_METRIC_INTERVAL_DEFAULT = 60
 
-    GALAXY_TALOS_CLIENT_FALCON_STEP         = "galaxy.talos.sdk.falcon.step"
-    GALAXY_TALOS_CLIENT_FALCON_STEP_DEFAULT = 60
+	GALAXY_TALOS_CLIENT_FALCON_STEP         = "galaxy.talos.sdk.falcon.step"
+	GALAXY_TALOS_CLIENT_FALCON_STEP_DEFAULT = 60
 
-    GALAXY_TALOS_CLIENT_ALERT_TYPE         = "galaxy.talos.client.alert.type"
-    GALAXY_TALOS_CLIENT_ALERT_TYPE_DEFAULT = "srv"
+	GALAXY_TALOS_CLIENT_ALERT_TYPE         = "galaxy.talos.client.alert.type"
+	GALAXY_TALOS_CLIENT_ALERT_TYPE_DEFAULT = "srv"
 
-    GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.consumer.metric.falcon.endpoint"
-    GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.consumer."
+	GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.consumer.metric.falcon.endpoint"
+	GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.consumer."
 
-    GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.producer.metric.falcon.endpoint"
-    GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.producer."
+	GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.producer.metric.falcon.endpoint"
+	GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.producer."
 
-    GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH         = "galaxy.talos.client.falcon.monitor.switch"
-    GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT = true
+	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH         = "galaxy.talos.client.falcon.monitor.switch"
+	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT = true
+
+	/**
+	 * decide whether to use zstd compression for pure Go implementation
+	 * default is false, which means that the producer need to use the zstd C library and open CGO
+	 */
+	GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO         = "galaxy.talos.client.zstd.compress.with.purego"
+	GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO_DEFAULT = false
 )

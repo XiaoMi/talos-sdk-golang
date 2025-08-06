@@ -227,7 +227,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 
 func (p *SimpleProducer) compressMessageList(
 	msgList []*message.Message) (*message.MessageBlock, error) {
-	return compression.Compress(msgList, p.producerConfig.GetCompressionType())
+	return compression.Compress(msgList, p.producerConfig)
 }
 
 func getTopicInfo(topicClient topic.TopicService, topicName string, partitionId int32) (

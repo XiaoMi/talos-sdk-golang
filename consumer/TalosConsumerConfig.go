@@ -30,6 +30,7 @@ type TalosConsumerConfig struct {
 	checkpointAutoCommit            bool
 	resetOffsetWhenStart            bool
 	resetOffsetValueWhenStart       int64
+	zstdDecoderConcurrency          int64
 	*client.TalosClientConfig
 }
 
@@ -99,7 +100,9 @@ func initConsumerConfig(props *utils.Properties) *TalosConsumerConfig {
 	resetOffsetValueWhenStart, _ := strconv.ParseInt(props.GetProperty(
 		GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_VALUE,
 		strconv.Itoa(GALAXY_TALOS_CONSUMER_START_RESET_OFFSET_AS_START)), 10, 64)
-
+	zstdDecoderConcurrency, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_CONSUMER_ZSTD_DECODER_CONCURRENCY,
+		strconv.Itoa(GALAXY_TALOS_CONSUMER_ZSTD_DECODER_CONCURRENCY_DEFAULT)), 10, 64)
 	return &TalosConsumerConfig{
 		partitionCheckInterval:          partitionCheckInterval,
 		topicPatternCheckInterval:       topicPatternCheckInterval,
@@ -117,6 +120,7 @@ func initConsumerConfig(props *utils.Properties) *TalosConsumerConfig {
 		checkpointAutoCommit:            checkpointAutoCommit,
 		resetOffsetWhenStart:            resetOffsetWhenStart,
 		resetOffsetValueWhenStart:       resetOffsetValueWhenStart,
+		zstdDecoderConcurrency:          zstdDecoderConcurrency,
 		TalosClientConfig:               talosClientConfig,
 	}
 }
@@ -252,6 +256,9 @@ func (c *TalosConsumerConfig) GetResetOffsetWhenStart() bool {
 func (c *TalosConsumerConfig) GetResetOffsetValueWhenStart() int64 {
 	return c.resetOffsetValueWhenStart
 }
+func (c *TalosConsumerConfig) GetZstdDecoderConcurrency() int64 {
+	return c.zstdDecoderConcurrency
+}
 
 func (c *TalosConsumerConfig) SetPartitionCheckInterval(partitionCheckInterval int64) {
 	err := utils.CheckParameterRange(GALAXY_TALOS_CONSUMER_CHECK_PARTITION_INTERVAL,
@@ -374,4 +381,8 @@ func (c *TalosConsumerConfig) SetResetOffsetValueWhenStart(resetOffsetValueWhenS
 		return
 	}
 	c.resetOffsetValueWhenStart = resetOffsetValueWhenStart
+}
+
+func (c *TalosConsumerConfig) SetCompressDecoderConcurrency(decoderConcurrency int64) {
+	c.zstdDecoderConcurrency = decoderConcurrency
 }

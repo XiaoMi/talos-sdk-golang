@@ -28,6 +28,8 @@ type TalosProducerConfig struct {
 	waitPartitionWorkingTime  int64
 	updatePartitionMsgNum     int64
 	compressionType           string
+	compressionLevel          int64
+	zstdEncoderConcurrency    int64 // for compression
 	*client.TalosClientConfig
 }
 
@@ -105,6 +107,12 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 	compressionType := props.GetProperty(
 		GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE,
 		GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE_DEFAULT)
+	compressionLevel, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_COMPRESSION_LEVEL,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_COMPRESSION_LEVEL_DEFAULT)), 10, 64)
+	zstdEncoderConcurrency, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_ZSTD_ENCODER_CONCURRENCY,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_ZSTD_ENCODER_CONCURRENCY_DEFAULT)), 10, 64)
 	if compressionType != "NONE" && compressionType != "SNAPPY" && compressionType != "ZSTD" && compressionType != "LZ4" &&
 		compressionType != "GZIP" {
 		return nil, fmt.Errorf("Unsupported Compression Type: %v ", compressionType)
@@ -122,6 +130,8 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 		waitPartitionWorkingTime:  waitPartitionWorkingTime,
 		updatePartitionMsgNum:     updatePartitionMsgNum,
 		compressionType:           compressionType,
+		compressionLevel:          compressionLevel,
+		zstdEncoderConcurrency:    zstdEncoderConcurrency,
 		TalosClientConfig:         talosClientConfig,
 	}, nil
 }
@@ -223,6 +233,14 @@ func (p *TalosProducerConfig) GetCompressionType() message.MessageCompressionTyp
 	}
 }
 
+func (p *TalosProducerConfig) GetCompressionLevel() int64 {
+	return p.compressionLevel
+}
+
+func (p *TalosProducerConfig) GetZstdEncoderConcurrency() int64 {
+	return p.zstdEncoderConcurrency
+}
+
 func (p *TalosProducerConfig) SetMaxBufferedMsgNumber(maxBufferedMsgNumber int64) {
 	p.maxBufferedMsgNumber = maxBufferedMsgNumber
 }
@@ -309,4 +327,12 @@ func (p *TalosProducerConfig) SetUpdatePartitionMsgNum(updatePartitionMsgNum int
 
 func (p *TalosProducerConfig) SetCompressionType(compressionType string) {
 	p.compressionType = compressionType
+}
+
+func (p *TalosProducerConfig) SetCompressionLevel(compressionLevel int64) {
+	p.compressionLevel = compressionLevel
+}
+
+func (p *TalosProducerConfig) SetZstdEncoderConcurrency(encoderConcurrency int64) {
+	p.zstdEncoderConcurrency = encoderConcurrency
 }

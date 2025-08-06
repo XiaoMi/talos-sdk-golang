@@ -95,4 +95,17 @@ const (
 	 */
 	GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE         = "galaxy.talos.producer.compression.type"
 	GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE_DEFAULT = "SNAPPY"
+
+	/***
+	 * The producer compression level, reference standard zstd library levels 1-22
+	 * default is 3
+	 */
+	GALAXY_TALOS_PRODUCER_COMPRESSION_LEVEL         = "galaxy.talos.producer.compression.level"
+	GALAXY_TALOS_PRODUCER_COMPRESSION_LEVEL_DEFAULT = 3
+
+	/**
+	 * The producer zstd compression encoder concurrency, default is 1, which means that each time an encoder is initialized, only one encoder of go routine is created
+	 */
+	GALAXY_TALOS_PRODUCER_ZSTD_ENCODER_CONCURRENCY         = "galaxy.talos.producer.zstd.encoder.concurrency"
+	GALAXY_TALOS_PRODUCER_ZSTD_ENCODER_CONCURRENCY_DEFAULT = 1
 )

@@ -19,19 +19,23 @@ import (
 	"github.com/DataDog/zstd"
 	"github.com/bkaradzic/go-lz4"
 	xSnappy "github.com/eapache/go-xerial-snappy"
+	zstdV2 "github.com/klauspost/compress/zstd"
 )
 
-func Compress(messageList []*message.Message,
-	compressionType message.MessageCompressionType) (*message.MessageBlock, error) {
-	return DoCompress(messageList, compressionType,
+func Compress(
+	messageList []*message.Message,
+	compressConfig CompressConfig) (*message.MessageBlock, error) {
+	return DoCompress(messageList, compressConfig,
 		serialization.GetDefaultMessageVersion())
 }
 
-func DoCompress(messageList []*message.Message,
-	compressionType message.MessageCompressionType,
+func DoCompress(
+	messageList []*message.Message,
+	compressConfig CompressConfig,
 	messageVersion serialization.MessageVersion) (*message.MessageBlock, error) {
 
 	messageBlock := message.NewMessageBlock()
+	compressionType := compressConfig.GetCompressionType()
 	messageBlock.CompressionType = compressionType
 	messageBlock.MessageNumber = int32(len(messageList))
 
@@ -65,11 +69,28 @@ func DoCompress(messageList []*message.Message,
 		writer.Close()
 		messageBlockData = append(messageBlockData, gzipBuf.Bytes()...)
 	case message.MessageCompressionType_ZSTD:
-		result, err := zstd.Compress(nil, messageSerializedBuffer.Bytes())
-		if err != nil {
-			return nil, err
+		if compressConfig.IsZstdCompressedWithPureGo() {
+			var enc, _ = zstdV2.NewWriter(nil,
+				zstdV2.WithSingleSegment(true),
+				zstdV2.WithZeroFrames(true),
+				zstdV2.WithEncoderLevel(zstdV2.EncoderLevelFromZstd(int(compressConfig.GetCompressionLevel()))),
+				zstdV2.WithEncoderConcurrency(int(compressConfig.GetZstdEncoderConcurrency())))
+			compressed := enc.EncodeAll(
+				messageSerializedBuffer.Bytes(),
+				make([]byte, 0, messageSerializedBuffer.Len()),
+			)
+			err := enc.Close()
+			if err != nil {
+				return nil, err
+			}
+			messageBlockData = append(messageBlockData, compressed...)
+		} else {
+			result, err := zstd.Compress(nil, messageSerializedBuffer.Bytes())
+			if err != nil {
+				return nil, err
+			}
+			messageBlockData = append(messageBlockData, result...)
 		}
-		messageBlockData = append(messageBlockData, result...)
 	case message.MessageCompressionType_LZ4:
 		compressed := make([]byte, 0)
 		compressed, err := lz4.Encode(nil, messageSerializedBuffer.Bytes())
@@ -95,13 +116,15 @@ func DoCompress(messageList []*message.Message,
 	return messageBlock, nil
 }
 
-func Decompress(messageBlockList []*message.MessageBlock,
-	unhandledMessageNumber int64) ([]*message.MessageAndOffset, error) {
+func Decompress(
+	messageBlockList []*message.MessageBlock,
+	unhandledMessageNumber int64,
+	decompressConfig DecompressConfig) ([]*message.MessageAndOffset, error) {
 
 	messageAndOffsetList := make([]*message.MessageAndOffset, 0)
 	unhandledNumber := unhandledMessageNumber
 	for i := len(messageBlockList) - 1; i >= 0; i-- {
-		list, err := DoDecompress(messageBlockList[i], unhandledNumber)
+		list, err := DoDecompress(messageBlockList[i], unhandledNumber, decompressConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -111,8 +134,10 @@ func Decompress(messageBlockList []*message.MessageBlock,
 	return messageAndOffsetList, nil
 }
 
-func DoDecompress(messageBlock *message.MessageBlock,
-	unhandledNumber int64) ([]*message.MessageAndOffset, error) {
+func DoDecompress(
+	messageBlock *message.MessageBlock,
+	unhandledNumber int64,
+	decompressConfig DecompressConfig) ([]*message.MessageAndOffset, error) {
 
 	messageNumber := messageBlock.GetMessageNumber()
 	messageAndOffsetList := make([]*message.MessageAndOffset, 0, messageNumber)
@@ -136,11 +161,20 @@ func DoDecompress(messageBlock *message.MessageBlock,
 		}
 		messageBlockData = bytes.NewBuffer(messageByteSlice)
 	case message.MessageCompressionType_ZSTD:
-		result, err := zstd.Decompress(nil, messageBlock.GetMessageBlock())
-		if err != nil {
-			return nil, err
+		if decompressConfig.IsZstdCompressedWithPureGo() {
+			var zstdV2Decoder, _ = zstdV2.NewReader(nil, zstdV2.WithDecoderConcurrency(int(decompressConfig.GetZstdDecoderConcurrency())))
+			result, err := zstdV2Decoder.DecodeAll(messageBlock.GetMessageBlock(), nil)
+			if err != nil {
+				return nil, err
+			}
+			messageBlockData = bytes.NewBuffer(result)
+		} else {
+			result, err := zstd.Decompress(nil, messageBlock.GetMessageBlock())
+			if err != nil {
+				return nil, err
+			}
+			messageBlockData = bytes.NewBuffer(result)
 		}
-		messageBlockData = bytes.NewBuffer(result)
 	case message.MessageCompressionType_LZ4:
 		decompressed := make([]byte, 0)
 		decompressed, err := lz4.Decode(nil, messageBlock.GetMessageBlock())
