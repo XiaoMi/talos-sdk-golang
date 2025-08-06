@@ -33,7 +33,7 @@ type TalosClientConfig struct {
 	alertType                    string
 	clientIp                     string
 	clientMonitorSwitch          bool
-	zstdCompressionWithPureGo    bool
+	zstdCompressWithPureGo       bool
 	properties                   *utils.Properties
 }
 
@@ -103,7 +103,7 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 	clientMonitorSwitch, _ := strconv.ParseBool(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH,
 		strconv.FormatBool(GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT)))
-	enableZstdCompressionWithPureGo, _ := strconv.ParseBool(prop.GetProperty(
+	enableZstdCompressWithPureGo, _ := strconv.ParseBool(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO,
 		strconv.FormatBool(GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO_DEFAULT)))
 	return &TalosClientConfig{
@@ -127,7 +127,7 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		alertType:                    alertType,
 		clientIp:                     clientIp,
 		clientMonitorSwitch:          clientMonitorSwitch,
-		zstdCompressionWithPureGo:    enableZstdCompressionWithPureGo,
+		zstdCompressWithPureGo:       enableZstdCompressWithPureGo,
 		properties:                   prop,
 	}
 }
@@ -209,7 +209,7 @@ func (c *TalosClientConfig) IsAutoLocation() bool {
 }
 
 func (p *TalosClientConfig) IsZstdCompressedWithPureGo() bool {
-	return p.zstdCompressionWithPureGo
+	return p.zstdCompressWithPureGo
 }
 
 func (c *TalosClientConfig) ScheduleInfoMaxRetry() int64 {
@@ -264,6 +264,6 @@ func (c *TalosClientConfig) SetScheduleInfoInterval(scheduleInfoInterval int64) 
 	c.scheduleInfoInterval = scheduleInfoInterval
 }
 
-func (p *TalosClientConfig) SetCompressionWithPureGo(flag bool) {
-	p.zstdCompressionWithPureGo = flag
+func (p *TalosClientConfig) SetZstdCompressWithPureGo(flag bool) {
+	p.zstdCompressWithPureGo = flag
 }
