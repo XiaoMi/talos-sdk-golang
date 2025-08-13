@@ -127,7 +127,9 @@ func (c *ScheduleInfoCache) GetOrCreateMessageClient(topicAndPartition *topic.
 		return c.messageClient
 	}
 
+	c.infoLock.RLock()
 	host, ok := c.scheduleInfoMap[topicAndPartition.TopicName][topicAndPartition.PartitionId]
+	c.infoLock.RUnlock()
 	if !ok {
 		c.UpdateScheduleInfoCache()
 		return c.messageClient
