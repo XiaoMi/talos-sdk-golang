@@ -9,6 +9,6 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/sirupsen/logrus v1.4.2
-	github.com/stretchr/testify v1.3.0
+	github.com/sirupsen/logrus v1.8.3
+	github.com/stretchr/testify v1.7.0
 )
