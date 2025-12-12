@@ -50,10 +50,8 @@ type TalosClientFactory struct {
 
 func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 	credential *auth.Credential) *TalosClientFactory {
-	version := common.NewVersion()
-	versionStr := fmt.Sprintf("%d.%d.%s", version.Major,
-		version.Minor, version.Details)
-	agent := fmt.Sprintf("Go-SDK/%s Go/%s-%s-%s", versionStr,
+	version := GetClientVersion()
+	agent := fmt.Sprintf("Go-SDK/%s Go/%s-%s-%s", version,
 		runtime.GOOS, runtime.GOARCH, runtime.Version())
 	transport := &http.Transport{
 		Dial: func(network, addr string) (net.Conn, error) {
