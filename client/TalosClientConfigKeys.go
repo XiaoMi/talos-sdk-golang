@@ -96,11 +96,4 @@ const (
 
 	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH         = "galaxy.talos.client.falcon.monitor.switch"
 	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT = true
-
-	/**
-	 * decide whether to use zstd compression for pure Go implementation
-	 * default is false, which means that the producer need to use the zstd C library and open CGO
-	 */
-	GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO         = "galaxy.talos.client.zstd.compress.with.purego"
-	GALAXY_TALOS_CLIENT_ZSTD_COMPRESS_WITH_PUREGO_DEFAULT = false
 )

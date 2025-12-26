@@ -184,7 +184,11 @@ func NewDefaultTalosProducer(producerConfig *TalosProducerConfig, credential *au
 		log:                        logger,
 	}
 
-	p.checkAndGetTopicInfo()
+	err = p.checkAndGetTopicInfo()
+	if err != nil {
+		p.log.Errorf("CheckAndGetTopicInfo error: %s", err.Error())
+		return nil, err
+	}
 
 	p.initPartitionSender()
 
