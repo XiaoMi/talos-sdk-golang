@@ -95,4 +95,16 @@ const (
 	 */
 	GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE         = "galaxy.talos.producer.compression.type"
 	GALAXY_TALOS_PRODUCER_COMPRESSION_TYPE_DEFAULT = "SNAPPY"
+
+	/**
+   	* The producer partitionSender sleep/delay time when continuous failure
+   	*/
+	GALAXY_TALOS_PRODUCER_PUT_MESSAGE_BASE_BACKOFF_TIME 		= "galaxy.talos.producer.put.message.base.backoff.time.milli";
+	GALAXY_TALOS_PRODUCER_PUT_MESSAGE_BASE_BACKOFF_TIME_DEFAULT = 200;
+
+	/**
+	* The producer partitionSender max sleep/delay time when continuous failure
+	*/
+	GALAXY_TALOS_PRODUCER_PUT_MESSAGE_MAX_BACKOFF_TIME 			= "galaxy.talos.producer.put.message.max.backoff.time.milli";
+	GALAXY_TALOS_PRODUCER_PUT_MESSAGE_MAX_BACKOFF_TIME_DEFAULT 	= 1000 * 300;
 )

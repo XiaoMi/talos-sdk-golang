@@ -196,32 +196,50 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 			s.topicAndPartition.GetTopicTalosResourceName())
 	}
 
-	startPutMsgTime := utils.CurrentTimeMills()
-	if err := s.simpleProducer.doPut(messageList); err != nil {
-		s.producerMetrics.MarkPutMsgFailedTimes()
-		s.log.Errorf("Failed to put %d messages for partition: %d",
-			len(messageList), s.partitionId)
-		for _, msg := range messageList {
-			s.log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
-		}
-		// putMessage failed callback
-		userMessageResult.SetSuccessful(false).SetCause(err)
-		go s.MessageCallbackTask(userMessageResult)
+	return s.retryPutMessage(userMessageResult)
+}
 
-		// delay when partitionNotServing
-		if utils.IsPartitionNotServing(err) {
-			s.log.Warnf("partition: %d is not serving state, sleep "+
-				"a while for waiting it work.", s.partitionId)
-			time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
+func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
+	messageList := u.messageList
+	retry := 0
+	for {
+		retry++
+		startPutMsgTime := utils.CurrentTimeMills()
+		if err := s.simpleProducer.doPut(messageList); err != nil {
+			s.producerMetrics.MarkPutMsgFailedTimes()
+			s.log.Errorf("Failed to put %d messages for partition: %d",
+				len(messageList), s.partitionId)
+			for _, msg := range messageList {
+				s.log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
+			}
+			// putMessage failed callback
+			u.SetSuccessful(false).SetCause(err)
+			go s.MessageCallbackTask(u)
+
+			// delay when partitionNotServing
+			if utils.IsPartitionNotServing(err) {
+				s.log.Warnf("partition: %d is not serving state, sleep "+
+					"a while for waiting it work.", s.partitionId)
+				time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
+			}
+			if !s.talosProducerConfig.IsRetry() {
+				return err
+			} else if s.talosProducerConfig.MaxRetry() == -1 || s.talosProducerConfig.MaxRetry() >= int64(retry) {
+				failedPauseTime := utils.GetPutMsgFailedDelay(retry, s.talosProducerConfig.GetPutMessageBaseBackoffTime(), s.talosProducerConfig.GetPutMessageMaxBackoffTime())
+				utils.SleepPauseTime(failedPauseTime)
+				continue
+			} else {
+				return err
+			}
+		} else {
+			s.producerMetrics.MarkPutMsgDuration(utils.CurrentTimeMills() - startPutMsgTime)
+			// putMessage success callback
+			u.SetSuccessful(true)
+			go s.MessageCallbackTask(u)
+			s.log.Debugf("put %d messages for partition: %d", len(messageList), s.partitionId)
+			return nil
 		}
-		return err
 	}
-	s.producerMetrics.MarkPutMsgDuration(utils.CurrentTimeMills() - startPutMsgTime)
-	// putMessage success callback
-	userMessageResult.SetSuccessful(true)
-	go s.MessageCallbackTask(userMessageResult)
-	s.log.Debugf("put %d messages for partition: %d", len(messageList), s.partitionId)
-	return nil
 }
 
 func (s *PartitionSender) AddMessage(userMessageList []*UserMessage) {
