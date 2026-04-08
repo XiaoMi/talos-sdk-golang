@@ -447,3 +447,16 @@ func GetClusterFromEndPoint(endPoint string) string {
 	cluster = strings.ReplaceAll(cluster, ".api.xiaomi.com", "")
 	return cluster
 }
+
+func GetPutMsgFailedDelay(retry int, baseBackOffTime int64, maxBackOffTime int64) int64 {
+	delayTimes := int64(1 << retry)
+	delay := delayTimes * baseBackOffTime
+	if delay > maxBackOffTime {
+		delay = maxBackOffTime
+	}
+	return delay
+}
+
+func SleepPauseTime(pauseTime int64) {
+	time.Sleep(time.Millisecond * time.Duration(pauseTime))
+}

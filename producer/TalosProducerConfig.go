@@ -28,6 +28,10 @@ type TalosProducerConfig struct {
 	waitPartitionWorkingTime  int64
 	updatePartitionMsgNum     int64
 	compressionType           string
+	putMessageBaseBackoffTime int64
+	putMessageMaxBackoffTime  int64
+	maxRetryPutTimes		  int64
+	isPutFailedRetry		  bool
 	*client.TalosClientConfig
 }
 
@@ -109,6 +113,18 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 		compressionType != "GZIP" {
 		return nil, fmt.Errorf("Unsupported Compression Type: %v ", compressionType)
 	}
+	putMessageBaseBackoffTime, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_PUT_MESSAGE_BASE_BACKOFF_TIME,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_PUT_MESSAGE_BASE_BACKOFF_TIME_DEFAULT)), 10, 64)
+	putMessageMaxBackoffTime, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_PUT_MESSAGE_MAX_BACKOFF_TIME,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_PUT_MESSAGE_MAX_BACKOFF_TIME_DEFAULT)), 10, 64)
+	isPutFailedRetry, _ := strconv.ParseBool(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_IS_PUT_FAILED_RETRY,
+		strconv.FormatBool(GALAXY_TALOS_PRODUCER_IS_PUT_FAILED_RETRY_DEFAULT)))
+	maxRetryPutTimes, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES_DEFAULT)), 10, 64)
 	return &TalosProducerConfig{
 		maxBufferedMsgNumber:      maxBufferedMsgNumber,
 		maxBufferedMsgBytes:       maxBufferedMsgBytes,
@@ -122,6 +138,10 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 		waitPartitionWorkingTime:  waitPartitionWorkingTime,
 		updatePartitionMsgNum:     updatePartitionMsgNum,
 		compressionType:           compressionType,
+		putMessageBaseBackoffTime: putMessageBaseBackoffTime,
+		putMessageMaxBackoffTime:  putMessageMaxBackoffTime,
+		isPutFailedRetry: 		   isPutFailedRetry,
+		maxRetryPutTimes: 		   maxRetryPutTimes,
 		TalosClientConfig:         talosClientConfig,
 	}, nil
 }
@@ -223,6 +243,22 @@ func (p *TalosProducerConfig) GetCompressionType() message.MessageCompressionTyp
 	}
 }
 
+func (p *TalosProducerConfig) GetPutMessageBaseBackoffTime() int64 {
+	return p.putMessageBaseBackoffTime
+}
+
+func (p *TalosProducerConfig) GetPutMessageMaxBackoffTime() int64 {
+	return p.putMessageMaxBackoffTime
+}
+
+func (p *TalosProducerConfig) IsPutFailedRetry() bool {
+	return p.isPutFailedRetry
+}
+
+func (p *TalosProducerConfig) GetMaxRetryPutTimes() int64 {
+	return p.maxRetryPutTimes
+}
+
 func (p *TalosProducerConfig) SetMaxBufferedMsgNumber(maxBufferedMsgNumber int64) {
 	p.maxBufferedMsgNumber = maxBufferedMsgNumber
 }
@@ -309,4 +345,20 @@ func (p *TalosProducerConfig) SetUpdatePartitionMsgNum(updatePartitionMsgNum int
 
 func (p *TalosProducerConfig) SetCompressionType(compressionType string) {
 	p.compressionType = compressionType
+}
+
+func (p *TalosProducerConfig) SetPutMessageBaseBackoffTime(putMessageBaseBackoffTime int64) {
+	p.putMessageBaseBackoffTime = putMessageBaseBackoffTime
+}
+
+func (p *TalosProducerConfig) SetPutMessageMaxBackoffTime(putMessageMaxBackoffTime int64) {
+	p.putMessageMaxBackoffTime = putMessageMaxBackoffTime
+}
+
+func (p *TalosProducerConfig) SetIsPutFailedRetry(isPutFailedRetry bool) {
+	p.isPutFailedRetry = isPutFailedRetry
+}
+
+func (p *TalosProducerConfig) SetMaxRetryPutTimes(maxRetryPutTimes int64) {
+	p.maxRetryPutTimes = maxRetryPutTimes
 }
