@@ -115,8 +115,8 @@ const (
 	GALAXY_TALOS_PRODUCER_PUT_MESSAGE_MAX_BACKOFF_TIME_DEFAULT = 1000 * 300
 
 	/**
-     * The producer retry times when putMessage failed, 0 represent don't retry
-     */
-    GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES         = "galaxy.talos.producer.max.retry.times"
-    GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES_DEFAULT = 3
+	 * The producer retry times when putMessage failed, 0 represent don't retry
+	 */
+	GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES         = "galaxy.talos.producer.max.retry.times"
+	GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES_DEFAULT = 3
 )

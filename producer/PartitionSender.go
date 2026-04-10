@@ -8,7 +8,6 @@ package producer
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
