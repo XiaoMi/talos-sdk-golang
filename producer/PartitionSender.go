@@ -230,7 +230,7 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 				time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
 			}
 			if !s.talosProducerConfig.IsPutFailedRetry() {
-				s.log.Warn("Put msg failed, no retry cause isPutFailedRetry is false, ")
+				s.log.Warn("Put msg failed, no retry cause isPutFailedRetry is false, set galaxy.talos.producer.is.put.failed.retry = true to enable retry put message")
 				return err
 			} else if s.talosProducerConfig.GetMaxRetryPutTimes() == -1 || s.talosProducerConfig.GetMaxRetryPutTimes() >= int64(retry) {
 				failedPauseTime := utils.GetPutMsgFailedDelay(retry, s.talosProducerConfig.GetPutMessageBaseBackoffTime(), s.talosProducerConfig.GetPutMessageMaxBackoffTime())
