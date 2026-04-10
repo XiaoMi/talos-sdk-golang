@@ -232,7 +232,7 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 			if !s.talosProducerConfig.IsPutFailedRetry() {
 				s.log.Info("Put msg failed, no retry cause isPutFailedRetry is false")
 				return err
-			} else if s.talosProducerConfig.MaxRetry() == -1 || s.talosProducerConfig.MaxRetry() >= int64(retry) {
+			} else if s.talosProducerConfig.GetMaxRetryPutTimes() == -1 || s.talosProducerConfig.GetMaxRetryPutTimes() >= int64(retry) {
 				failedPauseTime := utils.GetPutMsgFailedDelay(retry, s.talosProducerConfig.GetPutMessageBaseBackoffTime(), s.talosProducerConfig.GetPutMessageMaxBackoffTime())
 				utils.SleepPauseTime(failedPauseTime)
 				continue

@@ -30,6 +30,7 @@ type TalosProducerConfig struct {
 	compressionType           string
 	putMessageBaseBackoffTime int64
 	putMessageMaxBackoffTime  int64
+	maxRetryPutTimes		  int64
 	isPutFailedRetry		  bool
 	*client.TalosClientConfig
 }
@@ -121,6 +122,9 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 	isPutFailedRetry, _ := strconv.ParseBool(props.GetProperty(
 		GALAXY_TALOS_PRODUCER_IS_PUT_FAILED_RETRY,
 		strconv.FormatBool(GALAXY_TALOS_PRODUCER_IS_PUT_FAILED_RETRY_DEFAULT)))
+	maxRetryPutTimes, _ := strconv.ParseInt(props.GetProperty(
+		GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES,
+		strconv.Itoa(GALAXY_TALOS_PRODUCER_MAX_RETRY_TIMES_DEFAULT)), 10, 64)
 	return &TalosProducerConfig{
 		maxBufferedMsgNumber:      maxBufferedMsgNumber,
 		maxBufferedMsgBytes:       maxBufferedMsgBytes,
@@ -137,6 +141,7 @@ func initProducerConfig(props *utils.Properties) (*TalosProducerConfig, error) {
 		putMessageBaseBackoffTime: putMessageBaseBackoffTime,
 		putMessageMaxBackoffTime:  putMessageMaxBackoffTime,
 		isPutFailedRetry: 		   isPutFailedRetry,
+		maxRetryPutTimes: 		   maxRetryPutTimes,
 		TalosClientConfig:         talosClientConfig,
 	}, nil
 }
@@ -250,6 +255,10 @@ func (p *TalosProducerConfig) IsPutFailedRetry() bool {
 	return p.isPutFailedRetry
 }
 
+func (p *TalosProducerConfig) GetMaxRetryPutTimes() int64 {
+	return p.maxRetryPutTimes
+}
+
 func (p *TalosProducerConfig) SetMaxBufferedMsgNumber(maxBufferedMsgNumber int64) {
 	p.maxBufferedMsgNumber = maxBufferedMsgNumber
 }
@@ -348,4 +357,8 @@ func (p *TalosProducerConfig) SetPutMessageMaxBackoffTime(putMessageMaxBackoffTi
 
 func (p *TalosProducerConfig) SetIsPutFailedRetry(isPutFailedRetry bool) {
 	p.isPutFailedRetry = isPutFailedRetry
+}
+
+func (p *TalosProducerConfig) SetMaxRetryPutTimes(maxRetryPutTimes int64) {
+	p.maxRetryPutTimes = maxRetryPutTimes
 }
