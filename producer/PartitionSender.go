@@ -196,7 +196,17 @@ func (s *PartitionSender) putMessage(messageList []*message.Message) error {
 			s.topicAndPartition.GetTopicTalosResourceName())
 	}
 
-	return s.retryPutMessage(userMessageResult)
+	err := s.retryPutMessage(userMessageResult)
+	if err != nil {
+		s.processPutMessageError(err, userMessageResult)
+	}
+	return err
+}
+
+func (s *PartitionSender) processPutMessageError(e error, u *UserMessageResult) {
+	// putMessage failed callback
+	u.SetSuccessful(false).SetCause(e)
+	go s.MessageCallbackTask(u)
 }
 
 func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
@@ -212,9 +222,6 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 			for _, msg := range messageList {
 				s.log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
 			}
-			// putMessage failed callback
-			u.SetSuccessful(false).SetCause(err)
-			go s.MessageCallbackTask(u)
 
 			// delay when partitionNotServing
 			if utils.IsPartitionNotServing(err) {
@@ -222,7 +229,8 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 					"a while for waiting it work.", s.partitionId)
 				time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
 			}
-			if !s.talosProducerConfig.IsRetry() {
+			if !s.talosProducerConfig.IsPutFailedRetry() {
+				s.log.Info("Put msg failed, no retry cause isPutFailedRetry is false")
 				return err
 			} else if s.talosProducerConfig.MaxRetry() == -1 || s.talosProducerConfig.MaxRetry() >= int64(retry) {
 				failedPauseTime := utils.GetPutMsgFailedDelay(retry, s.talosProducerConfig.GetPutMessageBaseBackoffTime(), s.talosProducerConfig.GetPutMessageMaxBackoffTime())
