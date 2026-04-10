@@ -8,6 +8,7 @@ package producer
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -230,10 +231,13 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 				time.Sleep(time.Duration(s.talosProducerConfig.GetWaitPartitionWorkingTime()) * time.Millisecond)
 			}
 			if !s.talosProducerConfig.IsPutFailedRetry() {
-				s.log.Info("Put msg failed, no retry cause isPutFailedRetry is false")
+				s.log.Warn("Put msg failed, no retry cause isPutFailedRetry is false, ")
 				return err
 			} else if s.talosProducerConfig.GetMaxRetryPutTimes() == -1 || s.talosProducerConfig.GetMaxRetryPutTimes() >= int64(retry) {
 				failedPauseTime := utils.GetPutMsgFailedDelay(retry, s.talosProducerConfig.GetPutMessageBaseBackoffTime(), s.talosProducerConfig.GetPutMessageMaxBackoffTime())
+				if retry % 5 == 0 {
+					s.log.Warnf("putMessage failed %d times for partition: %d, sleep %d ms for avoid infinitely retry.", retry, s.partitionId, failedPauseTime)
+				}
 				utils.SleepPauseTime(failedPauseTime)
 				continue
 			} else {
