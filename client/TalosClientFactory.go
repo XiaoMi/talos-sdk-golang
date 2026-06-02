@@ -7,10 +7,12 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
@@ -46,6 +48,47 @@ type TalosClientFactory struct {
 	agent             string
 }
 
+type dnsCacheEntry struct {
+	ips       []string
+	expiresAt time.Time
+}
+
+var dnsCacheStore = struct {
+	sync.RWMutex
+	entries map[string]*dnsCacheEntry
+	ttl     time.Duration
+}{
+	entries: make(map[string]*dnsCacheEntry),
+	ttl:     60 * time.Second,
+}
+
+func lookupWithDNSCache(ctx context.Context, host string) ([]string, error) {
+	dnsCacheStore.RLock()
+	entry, ok := dnsCacheStore.entries[host]
+	dnsCacheStore.RUnlock()
+
+	if ok && time.Now().Before(entry.expiresAt) {
+		return entry.ips, nil
+	}
+
+	ips, err := net.DefaultResolver.LookupHost(ctx, host)
+	if err != nil {
+		if ok {
+			return entry.ips, nil
+		}
+		return nil, err
+	}
+
+	dnsCacheStore.Lock()
+	dnsCacheStore.entries[host] = &dnsCacheEntry{
+		ips:       ips,
+		expiresAt: time.Now().Add(dnsCacheStore.ttl),
+	}
+	dnsCacheStore.Unlock()
+
+	return ips, nil
+}
+
 func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 	credential *auth.Credential) *TalosClientFactory {
 	version := common.NewVersion()
@@ -55,10 +98,34 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 		runtime.GOOS, runtime.GOARCH, runtime.Version())
 	httpClient := &http.Client{
 		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.DialTimeout(network, addr,
-					time.Duration(ClientConfig.ClientConnTimeout())*time.Millisecond)
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				host, port, err := net.SplitHostPort(addr)
+				if err != nil {
+					return nil, err
+				}
+
+				if net.ParseIP(host) != nil {
+					var dialer net.Dialer
+					return dialer.DialContext(ctx, network, addr)
+				}
+
+				ips, err := lookupWithDNSCache(ctx, host)
+				if err != nil {
+					return nil, err
+				}
+
+				var dialer net.Dialer
+				for _, ip := range ips {
+					conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+					if err == nil {
+						return conn, nil
+					}
+				}
+				return nil, err
 			},
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 20,
+			IdleConnTimeout:     90 * time.Second,
 		},
 		Timeout: time.Duration(ClientConfig.ClientTimeout()) * time.Millisecond,
 	}
