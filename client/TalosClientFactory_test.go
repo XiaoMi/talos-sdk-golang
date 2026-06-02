@@ -197,32 +197,8 @@ func TestDialContext_IPBypassesCache(t *testing.T) {
 		}
 	}()
 
-	// 使用与 NewTalosClientFactory 相同的 DialContext 逻辑
-	dialCtx := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		host, port, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
-		if net.ParseIP(host) != nil {
-			var dialer net.Dialer
-			return dialer.DialContext(ctx, network, addr)
-		}
-		ips, err := lookupWithDNSCache(ctx, host)
-		if err != nil {
-			return nil, err
-		}
-		var dialer net.Dialer
-		for _, ip := range ips {
-			conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
-			if err == nil {
-				return conn, nil
-			}
-		}
-		return nil, err
-	}
-
 	// 连接纯 IP，不应走缓存
-	conn, err := dialCtx(context.Background(), "tcp", ln.Addr().String())
+	conn, err := dialWithDNSCache(context.Background(), "tcp", ln.Addr().String(), net.Dialer{})
 	if err != nil {
 		t.Fatalf("dial to IP failed: %v", err)
 	}
@@ -257,32 +233,9 @@ func TestDialContext_HostnameUsesCache(t *testing.T) {
 		}
 	}()
 
-	dialCtx := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		host, port, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
-		if net.ParseIP(host) != nil {
-			var dialer net.Dialer
-			return dialer.DialContext(ctx, network, addr)
-		}
-		ips, err := lookupWithDNSCache(ctx, host)
-		if err != nil {
-			return nil, err
-		}
-		var dialer net.Dialer
-		for _, ip := range ips {
-			conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
-			if err == nil {
-				return conn, nil
-			}
-		}
-		return nil, err
-	}
-
 	// 用 localhost（hostname）连接，应走缓存
 	addr := ln.Addr().String()
-	conn, err := dialCtx(context.Background(), "tcp", "localhost"+addr[len("127.0.0.1"):])
+	conn, err := dialWithDNSCache(context.Background(), "tcp", "localhost"+addr[len("127.0.0.1"):], net.Dialer{})
 	if err != nil {
 		t.Fatalf("dial to hostname failed: %v", err)
 	}
@@ -353,36 +306,8 @@ func TestLookupWithDNSCache_CacheUpdate(t *testing.T) {
 	}
 }
 
-// testDialContext 提取 NewTalosClientFactory 中的 DialContext 逻辑用于测试
-func testDialContext(ctx context.Context, network, addr string) (net.Conn, error) {
-	host, port, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	if net.ParseIP(host) != nil {
-		var dialer net.Dialer
-		return dialer.DialContext(ctx, network, addr)
-	}
-
-	ips, err := lookupWithDNSCache(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-
-	var dialer net.Dialer
-	for _, ip := range ips {
-		conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
-		if err == nil {
-			return conn, nil
-		}
-	}
-	return nil, err
-}
-
 func TestDialContext_InvalidAddress(t *testing.T) {
-	// SplitHostPort 格式错误：缺少端口
-	_, err := testDialContext(context.Background(), "tcp", "no-port-here")
+	_, err := dialWithDNSCache(context.Background(), "tcp", "no-port-here", net.Dialer{})
 	if err == nil {
 		t.Fatal("expected error for address without port")
 	}
@@ -391,8 +316,7 @@ func TestDialContext_InvalidAddress(t *testing.T) {
 func TestDialContext_HostnameDNSFailure(t *testing.T) {
 	resetDNSCache()
 
-	// 不存在的域名，DNS 解析失败
-	_, err := testDialContext(context.Background(), "tcp", "this-host-does-not-exist.invalid:80")
+	_, err := dialWithDNSCache(context.Background(), "tcp", "this-host-does-not-exist.invalid:80", net.Dialer{})
 	if err == nil {
 		t.Fatal("expected error for non-existent hostname")
 	}
@@ -401,7 +325,6 @@ func TestDialContext_HostnameDNSFailure(t *testing.T) {
 func TestDialContext_MultiIPFallback(t *testing.T) {
 	resetDNSCache()
 
-	// 启动两个监听器，一个端口可用，一个不可用
 	lnGood, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
@@ -420,7 +343,6 @@ func TestDialContext_MultiIPFallback(t *testing.T) {
 
 	goodPort := lnGood.Addr().(*net.TCPAddr).Port
 
-	// 注入缓存：两个 IP，127.0.0.2 没有监听会失败，127.0.0.1 有监听会成功
 	dnsCacheStore.Lock()
 	dnsCacheStore.entries["fallback-host"] = &dnsCacheEntry{
 		ips:       []string{"127.0.0.2", "127.0.0.1"},
@@ -428,9 +350,8 @@ func TestDialContext_MultiIPFallback(t *testing.T) {
 	}
 	dnsCacheStore.Unlock()
 
-	// 127.0.0.2 没有监听，会失败；127.0.0.1 有监听，会成功
-	conn, err := testDialContext(context.Background(), "tcp",
-		"fallback-host:"+fmt.Sprintf("%d", goodPort))
+	conn, err := dialWithDNSCache(context.Background(), "tcp",
+		"fallback-host:"+fmt.Sprintf("%d", goodPort), net.Dialer{})
 	if err != nil {
 		t.Fatalf("expected fallback to succeed on second IP, got: %v", err)
 	}
@@ -440,16 +361,16 @@ func TestDialContext_MultiIPFallback(t *testing.T) {
 func TestDialContext_AllIPsFail(t *testing.T) {
 	resetDNSCache()
 
-	// 注入缓存：所有 IP 都不通
 	dnsCacheStore.Lock()
 	dnsCacheStore.entries["all-fail-host"] = &dnsCacheEntry{
-		ips:       []string{"127.0.0.2", "127.0.0.3"},
+		ips:       []string{"192.0.2.1", "192.0.2.2"},
 		expiresAt: time.Now().Add(60 * time.Second),
 	}
 	dnsCacheStore.Unlock()
 
-	// 端口 1 通常无权限连接，所有 IP 都会失败
-	_, err := testDialContext(context.Background(), "tcp", "all-fail-host:1")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, err := dialWithDNSCache(ctx, "tcp", "all-fail-host:80", net.Dialer{})
 	if err == nil {
 		t.Fatal("expected error when all IPs fail to connect")
 	}

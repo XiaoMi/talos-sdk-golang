@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/singleflight"
+
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/common"
 	"github.com/XiaoMi/talos-sdk-golang/thrift/consumer"
@@ -62,6 +64,8 @@ var dnsCacheStore = struct {
 	ttl:     60 * time.Second,
 }
 
+var dnsGroup singleflight.Group
+
 func lookupWithDNSCache(ctx context.Context, host string) ([]string, error) {
 	dnsCacheStore.RLock()
 	entry, ok := dnsCacheStore.entries[host]
@@ -71,13 +75,17 @@ func lookupWithDNSCache(ctx context.Context, host string) ([]string, error) {
 		return entry.ips, nil
 	}
 
-	ips, err := net.DefaultResolver.LookupHost(ctx, host)
+	// singleflight: 合并同一个 host 的并发 DNS 查询，只执行一次
+	v, err, _ := dnsGroup.Do(host, func() (interface{}, error) {
+		return net.DefaultResolver.LookupHost(ctx, host)
+	})
 	if err != nil {
 		if ok {
 			return entry.ips, nil
 		}
 		return nil, err
 	}
+	ips := v.([]string)
 
 	dnsCacheStore.Lock()
 	dnsCacheStore.entries[host] = &dnsCacheEntry{
@@ -87,6 +95,32 @@ func lookupWithDNSCache(ctx context.Context, host string) ([]string, error) {
 	dnsCacheStore.Unlock()
 
 	return ips, nil
+}
+
+func dialWithDNSCache(ctx context.Context, network, addr string, dialer net.Dialer) (net.Conn, error) {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	if net.ParseIP(host) != nil {
+		return dialer.DialContext(ctx, network, addr)
+	}
+
+	ips, err := lookupWithDNSCache(ctx, host)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastErr error
+	for _, ip := range ips {
+		conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+		if err == nil {
+			return conn, nil
+		}
+		lastErr = err
+	}
+	return nil, lastErr
 }
 
 func NewTalosClientFactory(ClientConfig *TalosClientConfig,
@@ -99,29 +133,10 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				host, port, err := net.SplitHostPort(addr)
-				if err != nil {
-					return nil, err
+				dialer := net.Dialer{
+					Timeout: time.Duration(ClientConfig.ClientConnTimeout()) * time.Millisecond,
 				}
-
-				if net.ParseIP(host) != nil {
-					var dialer net.Dialer
-					return dialer.DialContext(ctx, network, addr)
-				}
-
-				ips, err := lookupWithDNSCache(ctx, host)
-				if err != nil {
-					return nil, err
-				}
-
-				var dialer net.Dialer
-				for _, ip := range ips {
-					conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
-					if err == nil {
-						return conn, nil
-					}
-				}
-				return nil, err
+				return dialWithDNSCache(ctx, network, addr, dialer)
 			},
 			MaxIdleConns:        100,
 			MaxIdleConnsPerHost: 20,
