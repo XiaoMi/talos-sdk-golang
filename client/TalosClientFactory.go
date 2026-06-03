@@ -75,7 +75,7 @@ func lookupWithDNSCache(ctx context.Context, host string) ([]string, error) {
 		return entry.ips, nil
 	}
 
-	// singleflight: 合并同一个 host 的并发 DNS 查询，只执行一次
+	// singleflight: deduplicate concurrent DNS queries for the same host
 	v, err, _ := dnsGroup.Do(host, func() (interface{}, error) {
 		return net.DefaultResolver.LookupHost(ctx, host)
 	})
