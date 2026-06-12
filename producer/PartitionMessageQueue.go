@@ -21,6 +21,7 @@ type PartitionMessageQueue struct {
 	curMessageBytes int64
 	partitionId     int32
 	talosProducer   *TalosProducer
+	sender          Sender
 	maxBufferedTime int64
 	maxPutMsgNumber int64
 	maxPutMsgBytes  int64
@@ -132,6 +133,11 @@ func (q *PartitionMessageQueue) shouldPut() bool {
 		return true
 	}
 
+	// when partition sender is not active (closed/released)
+	if q.sender != nil && !q.sender.IsActive() {
+		return true
+	}
+
 	// when we have enough bytes data or enough number data;
 	if q.curMessageBytes >= q.maxPutMsgBytes ||
 		int64(q.userMessageList.Len()) >= q.maxPutMsgNumber {
@@ -163,7 +169,28 @@ func (q *PartitionMessageQueue) getWaitTime() int64 {
 	}
 }
 
+func (q *PartitionMessageQueue) SetSender(sender Sender) {
+	q.sender = sender
+}
+
 func (q *PartitionMessageQueue) shutdown() {
 	close(q.NofityChan)
 	close(q.QueueEmptyChan)
+}
+
+func (q *PartitionMessageQueue) GetAllMessageList() []*message.Message {
+	q.Mutex.Lock()
+	defer q.Mutex.Unlock()
+
+	allMessages := make([]*message.Message, 0)
+	returnMsgBytes, returnMsgNumber := int64(0), int64(0)
+	for q.userMessageList.Len() > 0 {
+		userMessage := q.userMessageList.Remove(q.userMessageList.Back()).(*UserMessage)
+		allMessages = append(allMessages, userMessage.GetMessage())
+		q.curMessageBytes -= userMessage.GetMessageSize()
+		returnMsgBytes += userMessage.GetMessageSize()
+		returnMsgNumber++
+	}
+	q.talosProducer.DecreaseBufferedCount(returnMsgNumber, returnMsgBytes)
+	return allMessages
 }
