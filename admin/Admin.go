@@ -17,6 +17,7 @@ type Admin interface {
 	CreateTopic(request *topic.CreateTopicRequest) (*topic.CreateTopicResponse, error)
 	DescribeTopic(request *topic.DescribeTopicRequest) (*topic.Topic, error)
 	GetDescribeInfo(request *topic.GetDescribeInfoRequest) (*topic.GetDescribeInfoResponse, error)
+	GetTopicAttribute(request *topic.GetTopicAttributeRequest) (*topic.GetTopicAttributeResponse, error)
 	DeleteTopic(request *topic.DeleteTopicRequest) error
 	ChangeTopicAttribute(request *topic.ChangeTopicAttributeRequest) error
 	ListTopics() ([]*topic.TopicInfo, error)

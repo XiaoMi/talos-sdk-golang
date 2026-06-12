@@ -381,7 +381,7 @@ func (p *TalosProducer) checkAndGetTopicInfo() error {
 	defer p.producerLock.Unlock()
 
 	rand.Seed(time.Now().UnixNano())
-	resourceNameFromServer, partitionNumber, err := p.DescribeTopicInfo()
+	resourceNameFromServer, partitionNumber, err := p.GetTopicAttribute()
 	if err != nil {
 		return err
 	}
@@ -411,10 +411,17 @@ func (p *TalosProducer) adjustPartitionSender(newPartitionNumber int32) {
 	p.producerLock.Lock()
 	defer p.producerLock.Unlock()
 
-	// Note: we do not allow and process 'newPartitionNum < partitionNumber'
-	for partitionId := p.partitionNumber; partitionId < newPartitionNumber; partitionId++ {
-		p.createPartitionSender(partitionId)
+	// Note: we allow and process 'newPartitionNum < partitionNumber'
+	if p.partitionNumber < newPartitionNumber {
+		for partitionId := p.partitionNumber; partitionId < newPartitionNumber; partitionId++ {
+			p.createPartitionSender(partitionId)
+		}
+	} else if p.partitionNumber > newPartitionNumber {
+		for partitionId := newPartitionNumber; partitionId < p.partitionNumber; partitionId++ {
+			p.releasePartitionSender(partitionId)
+		}
 	}
+
 	p.log.Infof("Adjust partitionSender and partitionNumber from: %d to %d.",
 		p.partitionNumber, newPartitionNumber)
 }
@@ -424,6 +431,17 @@ func (p *TalosProducer) createPartitionSender(partitionId int32) {
 		p.topicTalosResourceName, p.requestId, p.clientId, p.producerConfig,
 		p.talosClientFactory.NewMessageClientDefault(), p.userMessageCallback, p)
 	p.partitionSenderMap[partitionId] = partitionSender
+}
+
+func (p *TalosProducer) releasePartitionSender(partitionId int32) {
+	sender, ok := p.partitionSenderMap[partitionId]
+	if !ok {
+		p.log.Warnf("releasePartitionSender: partitionSender not found for partition: %d", partitionId)
+		return
+	}
+	sender.Close()
+	delete(p.partitionSenderMap, partitionId)
+	go sender.Shutdown()
 }
 
 func (p *TalosProducer) initCheckPartitionTask() {
@@ -469,8 +487,8 @@ func (c *TalosProducer) initProducerMonitorTask() {
  * if partition number change, invoke ReBalanceTask
  */
 func (p *TalosProducer) CheckPartitionTask() {
-	response, err := p.talosAdmin.GetDescribeInfo(
-		&topic.GetDescribeInfoRequest{TopicName: p.topicName})
+	response, err := p.talosAdmin.GetTopicAttribute(
+		&topic.GetTopicAttributeRequest{TopicName: p.topicName})
 	if err != nil {
 		p.log.Errorf("Exception in CheckPartitionTask: %s", err.Error())
 		if utils.IsTopicNotExist(err) {
@@ -489,9 +507,9 @@ func (p *TalosProducer) CheckPartitionTask() {
 		return
 	}
 
-	topicPartitionNum := response.GetPartitionNumber()
-	if p.partitionNumber < topicPartitionNum {
-		// increase partitionSender (not allow decreasing)
+	topicPartitionNum := response.GetTopicAttribute().GetPartitionNumber()
+	if p.partitionNumber != topicPartitionNum {
+		// increase partitionSender (allow decreasing)
 		p.adjustPartitionSender(topicPartitionNum)
 		// update partitionNumber
 		p.setPartitionNumber(topicPartitionNum)
@@ -531,6 +549,16 @@ func (p *TalosProducer) IncreaseBufferedCount(incrementNumber int64,
 func (p *TalosProducer) DecreaseBufferedCount(decrementNumber int64,
 	decrementBytes int64) {
 	p.bufferedCount.Decrease(decrementNumber, decrementBytes)
+}
+
+func (p *TalosProducer) GetTopicAttribute() (*topic.TopicTalosResourceName, int32, error) {
+	request := &topic.GetTopicAttributeRequest{TopicName: p.topicName}
+	response, err := p.talosAdmin.GetTopicAttribute(request)
+	if err != nil {
+		p.log.Error(err)
+		return nil, -1, err
+	}
+	return response.GetTopicTalosResourceName(), response.GetTopicAttribute().GetPartitionNumber(), nil
 }
 
 func (p *TalosProducer) DescribeTopicInfo() (*topic.TopicTalosResourceName, int32, error) {

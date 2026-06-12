@@ -9,6 +9,7 @@ package producer
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"sync/atomic"
@@ -73,8 +74,17 @@ func (m *ProducerMetrics) initMetrics() {
 	atomic.StoreInt32(&m.putMsgFailedTimes, 0)
 }
 
+type TaskState int32
+
+const (
+	TaskActive TaskState = iota
+	TaskClose
+)
+
 type Sender interface {
 	AddMessage(userMessageList []*UserMessage)
+	Close()
+	IsActive() bool
 	Shutdown()
 	MessageCallbackTask(userMessageResult *UserMessageResult)
 	MessageWriterTask()
@@ -94,6 +104,8 @@ type PartitionSender struct {
 	simpleProducer        *SimpleProducer
 	MessageWriterStopSign chan utils.StopSign
 	producerMetrics       *ProducerMetrics
+	curState              TaskState
+	stateLock             sync.Mutex
 	log                   *logrus.Logger
 }
 
@@ -131,8 +143,10 @@ func NewPartitionSender(partitionId int32, topicName string,
 		simpleProducer:        simpleProducer,
 		MessageWriterStopSign: make(chan utils.StopSign, 1),
 		producerMetrics:       NewProducerMetrics(),
+		curState:              TaskActive,
 		log:                   talosProducer.log,
 	}
+	partitionMessageQueue.SetSender(partitionSender)
 
 	partitionSender.talosProducer.WaitGroup.Add(1)
 	go partitionSender.MessageWriterTask()
@@ -155,6 +169,7 @@ func (s *PartitionSender) MessageWriterTask() {
 	for {
 		select {
 		case <-s.MessageWriterStopSign:
+			s.processBufferedMessage()
 			s.log.Infof("MessageWriterTask stop")
 			return
 		default:
@@ -213,6 +228,12 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 	messageList := u.messageList
 	retry := 0
 	for {
+		// when PartitionSender has been closed, skip message
+		if !s.IsActive() {
+			s.log.Warnf("PartitionSender has been shutdown, so skip message for partition: %d", s.partitionId)
+			return fmt.Errorf("PartitionSender for partition: %d has been closed", s.partitionId)
+		}
+
 		retry++
 		startPutMsgTime := utils.CurrentTimeMills()
 		if err := s.simpleProducer.doPut(messageList); err != nil {
@@ -220,7 +241,7 @@ func (s *PartitionSender) retryPutMessage(u *UserMessageResult) error {
 			s.log.Errorf("Failed to put %d messages for partition: %d",
 				len(messageList), s.partitionId)
 			for _, msg := range messageList {
-				s.log.Debugf("%d: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
+				s.log.Debugf("%s: %s", msg.GetSequenceNumber(), string(msg.GetMessage()))
 			}
 
 			// delay when partitionNotServing
@@ -279,10 +300,44 @@ func (s *PartitionSender) NewFalconMetrics() []*utils.FalconMetric {
 	return metrics
 }
 
+// Close marks the PartitionSender as closed,
+// causing the MessageWriter to stop processing new messages.
+func (s *PartitionSender) Close() {
+	s.stateLock.Lock()
+	defer s.stateLock.Unlock()
+
+	if s.curState == TaskActive {
+		s.curState = TaskClose
+		s.log.Infof("PartitionSender for partition: %d update status from ACTIVE to CLOSE",
+			s.partitionId)
+	} else {
+		s.log.Errorf("targetState is CLOSE, but curState is: %d for partition: %d",
+			s.curState, s.partitionId)
+	}
+}
+
+func (s *PartitionSender) IsActive() bool {
+	s.stateLock.Lock()
+	defer s.stateLock.Unlock()
+	return s.curState == TaskActive
+}
+
 func (s *PartitionSender) Shutdown() {
 	// notify PartitionMessageQueue::getMessageList return;
 	s.AddMessage(make([]*UserMessage, 0))
 	s.MessageWriterStopSign <- utils.Shutdown
 	s.partitionMessageQueue.shutdown()
 	s.log.Infof("PartitionSender for partition: %d finish stop", s.partitionId)
+}
+
+func (s *PartitionSender) processBufferedMessage() {
+	remainingMessages := s.partitionMessageQueue.GetAllMessageList()
+	if len(remainingMessages) > 0 {
+		userMessageResult := NewUserMessageResult(remainingMessages, s.partitionId)
+		userMessageResult.SetSuccessful(false)
+		userMessageResult.SetCause(
+			fmt.Errorf("%v's buffer not empty, do callback when shutdown this partitionSender",
+				s.topicAndPartition))
+		go s.MessageCallbackTask(userMessageResult)
+	}
 }
