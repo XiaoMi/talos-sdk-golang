@@ -202,7 +202,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 	timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
 	putMessageRequest.TimeoutTimestamp = &timestamp
 
-	_, err = p.scheduleInfoCache.GetOrCreateMessageClient(p.topicAndPartition).
+	putMessageResponse, err := p.scheduleInfoCache.GetOrCreateMessageClient(p.topicAndPartition).
 		PutMessage(putMessageRequest)
 	if err != nil {
 		if p.scheduleInfoCache != nil && p.scheduleInfoCache.IsAutoLocation() {
@@ -212,7 +212,7 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 			p.scheduleInfoCache.UpdateScheduleInfoCache()
 			timestamp := utils.CurrentTimeMills() + p.producerConfig.ClientTimeout()
 			putMessageRequest.TimeoutTimestamp = &timestamp
-			_, err = p.messageClient.PutMessage(putMessageRequest)
+			putMessageResponse, err = p.messageClient.PutMessage(putMessageRequest)
 			if err != nil {
 				p.log.Errorf("putMessage error: %s", err.Error())
 				return err
@@ -220,6 +220,14 @@ func (p *SimpleProducer) doPut(msgList []*message.Message) error {
 		} else {
 			return err
 		}
+	}
+
+	// update scheduleInfoCache when request has been transfered and talos auto location was set up
+	if putMessageResponse != nil && putMessageResponse.IsSetIsTransfer() &&
+		putMessageResponse.GetIsTransfer() && p.scheduleInfoCache != nil &&
+		p.scheduleInfoCache.IsAutoLocation() {
+		p.log.Infof("request has been transfered when talos auto location set up, refresh scheduleInfo")
+		p.scheduleInfoCache.UpdateScheduleInfoCache()
 	}
 
 	return nil

@@ -8,6 +8,7 @@ package client
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/message"
@@ -40,6 +41,7 @@ type ScheduleInfoCache struct {
 	talosClientConfig      *TalosClientConfig
 	infoLock               sync.RWMutex
 	clientMapLock          sync.RWMutex
+	updating               int32
 	log                    *logrus.Logger
 }
 
@@ -109,15 +111,21 @@ func (c *ScheduleInfoCache) IsAutoLocation() bool {
 }
 
 func (c *ScheduleInfoCache) UpdateScheduleInfoCache() {
-	if c.IsAutoLocation() {
-		//shutdown
-		go func() {
-			err := c.GetScheduleInfoTask()
-			if err != nil {
-				c.log.Errorf(err.Error())
-			}
-		}()
+	if !c.IsAutoLocation() {
+		return
 	}
+	// Discard the trigger if a refresh is already in flight, so concurrent
+	// transfer/error triggers don't fork many goroutines all fetching the
+	// same schedule info and racing to overwrite scheduleInfoMap.
+	if !atomic.CompareAndSwapInt32(&c.updating, 0, 1) {
+		return
+	}
+	go func() {
+		defer atomic.StoreInt32(&c.updating, 0)
+		if err := c.GetScheduleInfoTask(); err != nil {
+			c.log.Errorf(err.Error())
+		}
+	}()
 }
 
 func (c *ScheduleInfoCache) GetOrCreateMessageClient(topicAndPartition *topic.

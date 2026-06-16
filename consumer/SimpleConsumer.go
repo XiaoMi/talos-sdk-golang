@@ -246,6 +246,14 @@ func (c *SimpleConsumer) FetchMessage(startOffset, maxFetchedNumber int64) (
 		}
 	}
 
+	// update scheduleInfoCache when request has been transfered and talos auto location was set up
+	if getMessageResponse != nil && getMessageResponse.IsSetIsTransfer() &&
+		getMessageResponse.GetIsTransfer() && c.scheduleInfoCache != nil &&
+		c.scheduleInfoCache.IsAutoLocation() {
+		c.log.Infof("request has been transfered when talos auto location set up, refresh scheduleInfo")
+		c.scheduleInfoCache.UpdateScheduleInfoCache()
+	}
+
 	messageAndOffsetList := make([]*message.MessageAndOffset, 0)
 	messageAndOffsetList, err = compression.Decompress(
 		getMessageResponse.GetMessageBlocks(),
