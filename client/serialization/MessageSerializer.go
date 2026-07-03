@@ -34,6 +34,12 @@ type MessageSerializer interface {
 
 func DecodeMessageVersionNumber(header []byte) (MessageVersion, error) {
 	//tansfer []byte to int
+	// K0 is a kafka RecordBatch written by the kafka-on-talos proxy; it is
+	// handled at block level in compression.DoDecompress, so it should never
+	// reach single-message deserialization here. Kept to align with the Java SDK.
+	if header[0] == 'K' {
+		return K0, nil
+	}
 	if header[0] != 'V' {
 		return V1, nil
 	} else {

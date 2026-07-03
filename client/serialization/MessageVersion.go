@@ -12,6 +12,8 @@ const (
 	V1 MessageVersion = iota + 1 //1
 	V2
 	V3
+
+	K0 MessageVersion = 100 // kafka message written by kafka-on-talos proxy
 )
 
 func (v MessageVersion) String() string {
@@ -22,6 +24,8 @@ func (v MessageVersion) String() string {
 		return "V2"
 	case V3:
 		return "V3"
+	case K0:
+		return "K0"
 	default:
 		return "UNKNOWN"
 	}

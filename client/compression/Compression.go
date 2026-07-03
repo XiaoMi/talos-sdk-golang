@@ -117,6 +117,34 @@ func DoDecompress(messageBlock *message.MessageBlock,
 	messageNumber := messageBlock.GetMessageNumber()
 	messageAndOffsetList := make([]*message.MessageAndOffset, 0, messageNumber)
 
+	// for kafka message
+	rawBlock := messageBlock.GetMessageBlock()
+	if len(rawBlock) > 0 && rawBlock[0] == 'K' {
+		// kafka-on-talos writes K0 blocks uncompressed (CompressionType=NONE);
+		// the parser reads the raw block directly, so reject any other type
+		// explicitly rather than mis-parsing compressed bytes.
+		if messageBlock.CompressionType != message.MessageCompressionType_NONE {
+			return nil, fmt.Errorf("kafka(K0) message block must be NONE compression, got %v",
+				messageBlock.CompressionType)
+		}
+		list, err := serialization.DeserializeKafkaMessageBlock(
+			rawBlock, messageBlock.GetStartMessageOffset())
+		if err != nil {
+			return nil, err
+		}
+		if messageBlock.IsSetAppendTimestamp() {
+			appendTime := messageBlock.GetAppendTimestamp()
+			for _, mao := range list {
+				mao.Message.AppendTimestamp = &appendTime
+			}
+		}
+		for i, mao := range list {
+			num := unhandledNumber + int64(len(list)) - 1 - int64(i)
+			mao.UnHandledMessageNumber = &num
+		}
+		return list, nil
+	}
+
 	var messageBlockData *bytes.Buffer
 	switch messageBlock.CompressionType {
 	case message.MessageCompressionType_NONE:
