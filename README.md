@@ -99,3 +99,7 @@ $ ./TalosConsumerDemo [-config] [$path/talosConsumer.conf]
 # Talos Book
 
   [Talos Wiki](http://docs.api.xiaomi.com/talos/index.html)
+
+# License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
