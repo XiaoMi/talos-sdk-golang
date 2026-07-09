@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
@@ -53,14 +55,36 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 		version.Minor, version.Details)
 	agent := fmt.Sprintf("Go-SDK/%s Go/%s-%s-%s", versionStr,
 		runtime.GOOS, runtime.GOARCH, runtime.Version())
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.DialTimeout(network, addr,
-					time.Duration(ClientConfig.ClientConnTimeout())*time.Millisecond)
-			},
+	transport := &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr,
+				time.Duration(ClientConfig.ClientConnTimeout())*time.Millisecond)
 		},
-		Timeout: time.Duration(ClientConfig.ClientTimeout()) * time.Millisecond,
+	}
+	if proxyURL := ClientConfig.HttpProxyURL(); proxyURL != "" {
+		parsedProxyURL, err := url.Parse(proxyURL)
+		if err != nil {
+			transport.Proxy = func(*http.Request) (*url.URL, error) {
+				return nil, err
+			}
+		} else {
+			transport.Proxy = http.ProxyURL(parsedProxyURL)
+		}
+	} else if ClientConfig.HttpProxyHost() != "" && ClientConfig.HttpProxyPort() > 0 {
+		proxyURL := &url.URL{
+			Scheme: "http",
+			Host: net.JoinHostPort(ClientConfig.HttpProxyHost(),
+				strconv.FormatInt(ClientConfig.HttpProxyPort(), 10)),
+		}
+		if ClientConfig.HttpProxyUsername() != "" && ClientConfig.HttpProxyPassword() != "" {
+			proxyURL.User = url.UserPassword(ClientConfig.HttpProxyUsername(),
+				ClientConfig.HttpProxyPassword())
+		}
+		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+	httpClient := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(ClientConfig.ClientTimeout()) * time.Millisecond,
 	}
 	return &TalosClientFactory{
 		talosClientConfig: ClientConfig,

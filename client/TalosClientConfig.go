@@ -17,6 +17,11 @@ type TalosClientConfig struct {
 	clientTimeout                int64
 	clientConnTimeout            int64
 	adminOperationTimeout        int64
+	httpProxyURL                 string
+	httpProxyHost                string
+	httpProxyPort                int64
+	httpProxyUsername            string
+	httpProxyPassword            string
 	serviceEndpoint              string
 	maxTotalConnections          int64
 	maxTotalConnectionsPerRoute  int64
@@ -58,6 +63,17 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 	clientConnTimeout, _ := strconv.ParseInt(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_CONN_TIMECOUT_MILLI_SECS,
 		strconv.Itoa(GALAXY_TALOS_CLIENT_CONN_TIMECOUT_MILLI_SECS_DEFAULT)), 10, 64)
+	httpProxyURL := prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_URL, GALAXY_TALOS_HTTP_PROXY_URL_DEFAULT)
+	httpProxyHost := prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_HOST, GALAXY_TALOS_HTTP_PROXY_HOST_DEFAULT)
+	httpProxyPort, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_PORT,
+		strconv.Itoa(GALAXY_TALOS_HTTP_PROXY_PORT_DEFAULT)), 10, 64)
+	httpProxyUsername := prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_USERNAME, GALAXY_TALOS_HTTP_PROXY_USERNAME_DEFAULT)
+	httpProxyPassword := prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_PASSWORD, GALAXY_TALOS_HTTP_PROXY_PASSWORD_DEFAULT)
 	adminOperationTimeout, _ := strconv.ParseInt(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS,
 		strconv.Itoa(GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)), 10, 64)
@@ -103,11 +119,16 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH,
 		strconv.FormatBool(GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT)))
 
-	return &TalosClientConfig {
+	return &TalosClientConfig{
 		maxRetry:                     maxRetry,
 		clientTimeout:                clientTimeout,
 		clientConnTimeout:            clientConnTimeout,
 		adminOperationTimeout:        adminOperationTimeout,
+		httpProxyURL:                 httpProxyURL,
+		httpProxyHost:                httpProxyHost,
+		httpProxyPort:                httpProxyPort,
+		httpProxyUsername:            httpProxyUsername,
+		httpProxyPassword:            httpProxyPassword,
 		serviceEndpoint:              serviceEndpoint,
 		maxTotalConnections:          maxTotalConnections,
 		maxTotalConnectionsPerRoute:  maxTotalConnectionsPerRoute,
@@ -180,6 +201,26 @@ func (c *TalosClientConfig) ClientConnTimeout() int64 {
 	return c.clientConnTimeout
 }
 
+func (c *TalosClientConfig) HttpProxyURL() string {
+	return c.httpProxyURL
+}
+
+func (c *TalosClientConfig) HttpProxyHost() string {
+	return c.httpProxyHost
+}
+
+func (c *TalosClientConfig) HttpProxyPort() int64 {
+	return c.httpProxyPort
+}
+
+func (c *TalosClientConfig) HttpProxyUsername() string {
+	return c.httpProxyUsername
+}
+
+func (c *TalosClientConfig) HttpProxyPassword() string {
+	return c.httpProxyPassword
+}
+
 func (c *TalosClientConfig) AdminOperationTimeout() int64 {
 	return c.adminOperationTimeout
 }
@@ -222,6 +263,26 @@ func (c *TalosClientConfig) SetClientTimeout(clientTimeout int64) {
 
 func (c *TalosClientConfig) SetClientConnTimeout(clientConnTimeout int64) {
 	c.clientConnTimeout = clientConnTimeout
+}
+
+func (c *TalosClientConfig) SetHttpProxyURL(httpProxyURL string) {
+	c.httpProxyURL = httpProxyURL
+}
+
+func (c *TalosClientConfig) SetHttpProxyHost(httpProxyHost string) {
+	c.httpProxyHost = httpProxyHost
+}
+
+func (c *TalosClientConfig) SetHttpProxyPort(httpProxyPort int64) {
+	c.httpProxyPort = httpProxyPort
+}
+
+func (c *TalosClientConfig) SetHttpProxyUsername(httpProxyUsername string) {
+	c.httpProxyUsername = httpProxyUsername
+}
+
+func (c *TalosClientConfig) SetHttpProxyPassword(httpProxyPassword string) {
+	c.httpProxyPassword = httpProxyPassword
 }
 
 func (c *TalosClientConfig) SetAdminOperationTimeout(adminOperationTimeout int64) {

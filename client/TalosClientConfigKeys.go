@@ -49,6 +49,21 @@ const (
 	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE         = "galaxy.talos.http.max.total.connection.per.route"
 	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE_DEFAULT = 160
 
+	GALAXY_TALOS_HTTP_PROXY_URL         = "galaxy.talos.http.proxy.url"
+	GALAXY_TALOS_HTTP_PROXY_URL_DEFAULT = ""
+
+	GALAXY_TALOS_HTTP_PROXY_HOST         = "galaxy.talos.http.proxy.host"
+	GALAXY_TALOS_HTTP_PROXY_HOST_DEFAULT = ""
+
+	GALAXY_TALOS_HTTP_PROXY_PORT         = "galaxy.talos.http.proxy.port"
+	GALAXY_TALOS_HTTP_PROXY_PORT_DEFAULT = 0
+
+	GALAXY_TALOS_HTTP_PROXY_USERNAME         = "galaxy.talos.http.proxy.username"
+	GALAXY_TALOS_HTTP_PROXY_USERNAME_DEFAULT = ""
+
+	GALAXY_TALOS_HTTP_PROXY_PASSWORD         = "galaxy.talos.http.proxy.password"
+	GALAXY_TALOS_HTTP_PROXY_PASSWORD_DEFAULT = ""
+
 	/**
 	 * The client whether to retry
 	 */
@@ -77,23 +92,23 @@ const (
 	 * The TALOS client falcon monitor related
 	 */
 	GALAXY_TALOS_METRIC_FALCON_URL         = "galaxy.talos.metric.falcon.url"
-    GALAXY_TALOS_METRIC_FALCON_URL_DEFAULT = "http://127.0.0.1:1988/v1/push"
+	GALAXY_TALOS_METRIC_FALCON_URL_DEFAULT = "http://127.0.0.1:1988/v1/push"
 
-    GALAXY_TALOS_REPORT_METRIC_INTERVAL         = "galaxy.talos.client.report.metric.interval"
-    GALAXY_TALOS_REPORT_METRIC_INTERVAL_DEFAULT = 60
+	GALAXY_TALOS_REPORT_METRIC_INTERVAL         = "galaxy.talos.client.report.metric.interval"
+	GALAXY_TALOS_REPORT_METRIC_INTERVAL_DEFAULT = 60
 
-    GALAXY_TALOS_CLIENT_FALCON_STEP         = "galaxy.talos.sdk.falcon.step"
-    GALAXY_TALOS_CLIENT_FALCON_STEP_DEFAULT = 60
+	GALAXY_TALOS_CLIENT_FALCON_STEP         = "galaxy.talos.sdk.falcon.step"
+	GALAXY_TALOS_CLIENT_FALCON_STEP_DEFAULT = 60
 
-    GALAXY_TALOS_CLIENT_ALERT_TYPE         = "galaxy.talos.client.alert.type"
-    GALAXY_TALOS_CLIENT_ALERT_TYPE_DEFAULT = "srv"
+	GALAXY_TALOS_CLIENT_ALERT_TYPE         = "galaxy.talos.client.alert.type"
+	GALAXY_TALOS_CLIENT_ALERT_TYPE_DEFAULT = "srv"
 
-    GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.consumer.metric.falcon.endpoint"
-    GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.consumer."
+	GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.consumer.metric.falcon.endpoint"
+	GALAXY_TALOS_CONSUMER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.consumer."
 
-    GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.producer.metric.falcon.endpoint"
-    GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.producer."
+	GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT         = "galaxy.talos.producer.metric.falcon.endpoint"
+	GALAXY_TALOS_PRODUCER_METRIC_FALCON_ENDPOINT_DEFAULT = "talos.producer."
 
-    GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH         = "galaxy.talos.client.falcon.monitor.switch"
-    GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT = true
+	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH         = "galaxy.talos.client.falcon.monitor.switch"
+	GALAXY_TALOS_CLIENT_FALCON_MONITOR_SWITCH_DEFAULT = true
 )
