@@ -49,6 +49,9 @@ const (
 	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE         = "galaxy.talos.http.max.total.connection.per.route"
 	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE_DEFAULT = 160
 
+	GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH         = "galaxy.talos.http.dns.cache.switch"
+	GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH_DEFAULT = false
+
 	GALAXY_TALOS_HTTP_PROXY_URL         = "galaxy.talos.http.proxy.url"
 	GALAXY_TALOS_HTTP_PROXY_URL_DEFAULT = ""
 

@@ -25,6 +25,7 @@ type TalosClientConfig struct {
 	serviceEndpoint              string
 	maxTotalConnections          int64
 	maxTotalConnectionsPerRoute  int64
+	dnsCacheSwitch               bool
 	isRetry                      bool
 	isAutoLocation               bool
 	scheduleInfoMaxRetry         int64
@@ -85,6 +86,9 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 	maxTotalConnectionsPerRoute, _ := strconv.ParseInt(prop.GetProperty(
 		GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE,
 		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE_DEFAULT)), 10, 64)
+	dnsCacheSwitch, _ := strconv.ParseBool(prop.GetProperty(
+		GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH,
+		strconv.FormatBool(GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH_DEFAULT)))
 	isRetry, _ := strconv.ParseBool(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_IS_RETRY,
 		strconv.FormatBool(GALAXY_TALOS_CLIENT_IS_RETRY_DEFAULT)))
@@ -132,6 +136,7 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		serviceEndpoint:              serviceEndpoint,
 		maxTotalConnections:          maxTotalConnections,
 		maxTotalConnectionsPerRoute:  maxTotalConnectionsPerRoute,
+		dnsCacheSwitch:               dnsCacheSwitch,
 		isRetry:                      isRetry,
 		isAutoLocation:               isAutoLocation,
 		scheduleInfoMaxRetry:         scheduleInfoMaxRetry,
@@ -237,6 +242,10 @@ func (c *TalosClientConfig) MaxTotalConnectionsPerRoute() int64 {
 	return c.maxTotalConnectionsPerRoute
 }
 
+func (c *TalosClientConfig) DNSCacheSwitch() bool {
+	return c.dnsCacheSwitch
+}
+
 func (c *TalosClientConfig) IsRetry() bool {
 	return c.isRetry
 }
@@ -299,6 +308,10 @@ func (c *TalosClientConfig) SetMaxTotalConnections(maxTotalConnections int64) {
 
 func (c *TalosClientConfig) SetMaxTotalConnectionsPerRoute(maxTotalConnectionsPerRoute int64) {
 	c.maxTotalConnectionsPerRoute = maxTotalConnectionsPerRoute
+}
+
+func (c *TalosClientConfig) SetDNSCacheSwitch(dnsCacheSwitch bool) {
+	c.dnsCacheSwitch = dnsCacheSwitch
 }
 
 func (c *TalosClientConfig) SetIsRetry(isRetry bool) {
