@@ -708,7 +708,7 @@ func (c *TalosConsumer) CheckPartitionTask() {
 	}
 
 	topicPartitionNum := response.GetPartitionNumber()
-	if int32(c.partitionNumber) < topicPartitionNum {
+	if int32(c.partitionNumber) != topicPartitionNum {
 		c.log.Infof("partitionNumber changed from %d to %d, execute re-balance task.",
 			c.partitionNumber, topicPartitionNum)
 		// update partition number and call the re-balance task
