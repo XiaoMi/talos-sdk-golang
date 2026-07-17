@@ -10,6 +10,9 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/XiaoMi/talos-sdk-golang/thrift/auth"
+	"github.com/XiaoMi/talos-sdk-golang/utils"
 )
 
 // resetDNSCache clears the cache before each test.
@@ -664,5 +667,255 @@ func TestDialContext_AllIPsFail(t *testing.T) {
 	_, err := dialWithDNSCache(ctx, "tcp", "all-fail-host:80", net.Dialer{})
 	if err == nil {
 		t.Fatal("expected error when all IPs fail to connect")
+	}
+}
+
+func TestNewTalosHTTPTransportAppliesConnectionPoolConfig(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	config.SetMaxIdleConns(321)
+	config.SetMaxIdleConnsPerHost(123)
+	config.SetMaxConnsPerHost(45)
+	transport := newTalosHTTPTransport(config)
+
+	if transport.MaxIdleConns != int(config.MaxIdleConns()) {
+		t.Fatalf("MaxIdleConns = %d, want %d", transport.MaxIdleConns, config.MaxIdleConns())
+	}
+	if transport.MaxIdleConnsPerHost != int(config.MaxIdleConnsPerHost()) {
+		t.Fatalf("MaxIdleConnsPerHost = %d, want %d", transport.MaxIdleConnsPerHost, config.MaxIdleConnsPerHost())
+	}
+	if transport.MaxConnsPerHost != int(config.MaxConnsPerHost()) {
+		t.Fatalf("MaxConnsPerHost = %d, want %d", transport.MaxConnsPerHost, config.MaxConnsPerHost())
+	}
+	if transport.IdleConnTimeout != 90*time.Second {
+		t.Fatalf("IdleConnTimeout = %v, want %v", transport.IdleConnTimeout, 90*time.Second)
+	}
+	if transport.TLSHandshakeTimeout != 10*time.Second {
+		t.Fatalf("TLSHandshakeTimeout = %v, want %v", transport.TLSHandshakeTimeout, 10*time.Second)
+	}
+	if transport.ExpectContinueTimeout != time.Second {
+		t.Fatalf("ExpectContinueTimeout = %v, want %v", transport.ExpectContinueTimeout, time.Second)
+	}
+}
+
+func TestTalosClientConfigConnectionPoolProperties(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	if config.MaxIdleConns() != GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_DEFAULT {
+		t.Fatalf("MaxIdleConns = %d, want %d", config.MaxIdleConns(), GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_DEFAULT)
+	}
+	if config.MaxIdleConnsPerHost() != GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST_DEFAULT {
+		t.Fatalf("MaxIdleConnsPerHost = %d, want %d", config.MaxIdleConnsPerHost(), GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST_DEFAULT)
+	}
+	if config.MaxConnsPerHost() != GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST_DEFAULT {
+		t.Fatalf("MaxConnsPerHost = %d, want %d", config.MaxConnsPerHost(), GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST_DEFAULT)
+	}
+
+	properties := utils.NewProperties()
+	properties.SetProperty(GALAXY_TALOS_HTTP_MAX_IDLE_CONNS, "321")
+	properties.SetProperty(GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST, "123")
+	properties.SetProperty(GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST, "45")
+	config = NewTalosClientConfigByProperties(properties)
+	if config.MaxIdleConns() != 321 || config.MaxIdleConnsPerHost() != 123 || config.MaxConnsPerHost() != 45 {
+		t.Fatalf("new connection pool properties parsed as idle=%d idlePerHost=%d connsPerHost=%d",
+			config.MaxIdleConns(), config.MaxIdleConnsPerHost(), config.MaxConnsPerHost())
+	}
+
+}
+
+func TestTalosClientConfigProxyPerHostTransportSwitch(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	if config.HttpProxyPerHostTransport() {
+		t.Fatal("default proxy per-host transport switch = true, want false")
+	}
+
+	properties := utils.NewProperties()
+	properties.SetProperty(GALAXY_TALOS_HTTP_PROXY_PER_HOST_TRANSPORT_ENABLED, "true")
+	config = NewTalosClientConfigByProperties(properties)
+	if !config.HttpProxyPerHostTransport() {
+		t.Fatal("proxy per-host transport switch = false, want true")
+	}
+}
+
+func TestNewTalosClientFactoryUsesDefaultTransportWithoutProxy(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	config.SetHttpProxyPerHostTransport(true)
+	factory := NewTalosClientFactory(config, &auth.Credential{})
+
+	if _, ok := factory.GetHttpClient().Transport.(*http.Transport); !ok {
+		t.Fatalf("expected *http.Transport without proxy, got %T", factory.GetHttpClient().Transport)
+	}
+}
+
+func TestNewTalosClientFactoryUsesDefaultTransportWhenProxySwitchDisabled(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	config.SetHttpProxyURL("http://127.0.0.1:8888")
+	factory := NewTalosClientFactory(config, &auth.Credential{})
+
+	transport, ok := factory.GetHttpClient().Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("expected *http.Transport with switch disabled, got %T", factory.GetHttpClient().Transport)
+	}
+	if transport.Proxy == nil {
+		t.Fatal("transport.Proxy is nil, want configured proxy")
+	}
+}
+
+func TestNewTalosClientFactoryUsesPerHostTransportWhenProxySwitchEnabled(t *testing.T) {
+	config := NewTalosClientConfigByDefault()
+	config.SetHttpProxyURL("http://127.0.0.1:8888")
+	config.SetHttpProxyPerHostTransport(true)
+	config.SetMaxIdleConns(321)
+	config.SetMaxIdleConnsPerHost(123)
+	config.SetMaxConnsPerHost(45)
+	factory := NewTalosClientFactory(config, &auth.Credential{})
+
+	transport, ok := factory.GetHttpClient().Transport.(*perHostTransport)
+	if !ok {
+		t.Fatalf("expected *perHostTransport with proxy switch enabled, got %T", factory.GetHttpClient().Transport)
+	}
+
+	child := transport.newTransport()
+	if child.Proxy == nil {
+		t.Fatal("child transport.Proxy is nil, want configured proxy")
+	}
+
+	a1 := transport.transportForHost("a.example")
+	a2 := transport.transportForHost("a.example")
+	b := transport.transportForHost("b.example")
+	if a1 != a2 {
+		t.Fatal("same host returned different transports")
+	}
+	if a1 == b {
+		t.Fatal("different hosts returned the same transport")
+	}
+}
+
+func TestPerHostTransportConcurrentCreateReturnsStoredTransport(t *testing.T) {
+	arrived := make(chan struct{}, 2)
+	release := make(chan struct{})
+	transport := &perHostTransport{
+		newTransport: func() *http.Transport {
+			arrived <- struct{}{}
+			<-release
+			return &http.Transport{}
+		},
+	}
+
+	results := make(chan *http.Transport, 2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			results <- transport.transportForHost("same.example")
+		}()
+	}
+
+	for i := 0; i < 2; i++ {
+		select {
+		case <-arrived:
+		case <-time.After(time.Second):
+			t.Fatal("timed out waiting for concurrent transport creation")
+		}
+	}
+	close(release)
+
+	first := <-results
+	second := <-results
+	if first != second {
+		t.Fatal("concurrent creation returned different stored transports")
+	}
+}
+
+func TestPerHostTransportRoundTripUsesRequestHost(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	transport := &perHostTransport{
+		newTransport: func() *http.Transport { return http.DefaultTransport.(*http.Transport).Clone() },
+	}
+
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+	resp, err := transport.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("RoundTrip failed: %v", err)
+	}
+	resp.Body.Close()
+
+	if _, exists := transport.hosts.Load(req.URL.Host); !exists {
+		t.Fatalf("expected transport cache entry for URL host %q", req.URL.Host)
+	}
+}
+
+func TestPerHostTransportRoundTripFallsBackToRequestHostHeader(t *testing.T) {
+	transport := &perHostTransport{
+		newTransport: func() *http.Transport { return http.DefaultTransport.(*http.Transport).Clone() },
+	}
+
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1", nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+	requestHost := "fallback.example"
+	req.Host = requestHost
+	req.URL.Host = ""
+	if _, err := transport.RoundTrip(req); err == nil {
+		t.Fatal("expected RoundTrip to fail because net/http requires URL.Host")
+	}
+
+	if _, exists := transport.hosts.Load(requestHost); !exists {
+		t.Fatalf("expected transport cache entry for request Host %q", requestHost)
+	}
+}
+
+func TestPerHostTransportCloseIdleConnectionsClosesChildren(t *testing.T) {
+	idle := make(chan struct{}, 1)
+	closed := make(chan struct{}, 1)
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	server.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		switch state {
+		case http.StateIdle:
+			select {
+			case idle <- struct{}{}:
+			default:
+			}
+		case http.StateClosed:
+			select {
+			case closed <- struct{}{}:
+			default:
+			}
+		}
+	}
+	server.Start()
+	defer server.Close()
+
+	transport := &perHostTransport{
+		newTransport: func() *http.Transport { return http.DefaultTransport.(*http.Transport).Clone() },
+	}
+
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+	resp, err := transport.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("RoundTrip failed: %v", err)
+	}
+	resp.Body.Close()
+
+	select {
+	case <-idle:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for connection to become idle")
+	}
+
+	transport.CloseIdleConnections()
+	select {
+	case <-closed:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for idle connection to close")
 	}
 }

@@ -22,9 +22,11 @@ type TalosClientConfig struct {
 	httpProxyPort                int64
 	httpProxyUsername            string
 	httpProxyPassword            string
+	httpProxyPerHostTransport    bool
 	serviceEndpoint              string
-	maxTotalConnections          int64
-	maxTotalConnectionsPerRoute  int64
+	maxIdleConns                 int64
+	maxIdleConnsPerHost          int64
+	maxConnsPerHost              int64
 	dnsCacheSwitch               bool
 	isRetry                      bool
 	isAutoLocation               bool
@@ -80,15 +82,21 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		strconv.Itoa(GALAXY_TALOS_CLIENT_ADMIN_TIMEOUT_MILLI_SECS_DEFAULT)), 10, 64)
 	serviceEndpoint := prop.GetProperty(
 		GALAXY_TALOS_SERVICE_ENDPOINT, GALAXY_TALOS_DEFAULT_SERVICE_ENDPOINT)
-	maxTotalConnections, _ := strconv.ParseInt(prop.GetProperty(
-		GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION,
-		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_DEFAULT)), 10, 64)
-	maxTotalConnectionsPerRoute, _ := strconv.ParseInt(prop.GetProperty(
-		GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE,
-		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE_DEFAULT)), 10, 64)
+	maxIdleConns, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_HTTP_MAX_IDLE_CONNS,
+		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_DEFAULT)), 10, 64)
+	maxIdleConnsPerHost, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST,
+		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST_DEFAULT)), 10, 64)
+	maxConnsPerHost, _ := strconv.ParseInt(prop.GetProperty(
+		GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST,
+		strconv.Itoa(GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST_DEFAULT)), 10, 64)
 	dnsCacheSwitch, _ := strconv.ParseBool(prop.GetProperty(
 		GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH,
 		strconv.FormatBool(GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH_DEFAULT)))
+	httpProxyPerHostTransport, _ := strconv.ParseBool(prop.GetProperty(
+		GALAXY_TALOS_HTTP_PROXY_PER_HOST_TRANSPORT_ENABLED,
+		strconv.FormatBool(GALAXY_TALOS_HTTP_PROXY_PER_HOST_TRANSPORT_ENABLED_DEFAULT)))
 	isRetry, _ := strconv.ParseBool(prop.GetProperty(
 		GALAXY_TALOS_CLIENT_IS_RETRY,
 		strconv.FormatBool(GALAXY_TALOS_CLIENT_IS_RETRY_DEFAULT)))
@@ -133,9 +141,11 @@ func InitClientConfig(prop *utils.Properties) *TalosClientConfig {
 		httpProxyPort:                httpProxyPort,
 		httpProxyUsername:            httpProxyUsername,
 		httpProxyPassword:            httpProxyPassword,
+		httpProxyPerHostTransport:    httpProxyPerHostTransport,
 		serviceEndpoint:              serviceEndpoint,
-		maxTotalConnections:          maxTotalConnections,
-		maxTotalConnectionsPerRoute:  maxTotalConnectionsPerRoute,
+		maxIdleConns:                 maxIdleConns,
+		maxIdleConnsPerHost:          maxIdleConnsPerHost,
+		maxConnsPerHost:              maxConnsPerHost,
 		dnsCacheSwitch:               dnsCacheSwitch,
 		isRetry:                      isRetry,
 		isAutoLocation:               isAutoLocation,
@@ -226,6 +236,10 @@ func (c *TalosClientConfig) HttpProxyPassword() string {
 	return c.httpProxyPassword
 }
 
+func (c *TalosClientConfig) HttpProxyPerHostTransport() bool {
+	return c.httpProxyPerHostTransport
+}
+
 func (c *TalosClientConfig) AdminOperationTimeout() int64 {
 	return c.adminOperationTimeout
 }
@@ -234,12 +248,16 @@ func (c *TalosClientConfig) ServiceEndpoint() string {
 	return c.serviceEndpoint
 }
 
-func (c *TalosClientConfig) MaxTotalConnections() int64 {
-	return c.maxTotalConnections
+func (c *TalosClientConfig) MaxIdleConns() int64 {
+	return c.maxIdleConns
 }
 
-func (c *TalosClientConfig) MaxTotalConnectionsPerRoute() int64 {
-	return c.maxTotalConnectionsPerRoute
+func (c *TalosClientConfig) MaxIdleConnsPerHost() int64 {
+	return c.maxIdleConnsPerHost
+}
+
+func (c *TalosClientConfig) MaxConnsPerHost() int64 {
+	return c.maxConnsPerHost
 }
 
 func (c *TalosClientConfig) DNSCacheSwitch() bool {
@@ -294,6 +312,10 @@ func (c *TalosClientConfig) SetHttpProxyPassword(httpProxyPassword string) {
 	c.httpProxyPassword = httpProxyPassword
 }
 
+func (c *TalosClientConfig) SetHttpProxyPerHostTransport(httpProxyPerHostTransport bool) {
+	c.httpProxyPerHostTransport = httpProxyPerHostTransport
+}
+
 func (c *TalosClientConfig) SetAdminOperationTimeout(adminOperationTimeout int64) {
 	c.adminOperationTimeout = adminOperationTimeout
 }
@@ -302,12 +324,16 @@ func (c *TalosClientConfig) SetServiceEndpoint(serviceEndpoint string) {
 	c.serviceEndpoint = serviceEndpoint
 }
 
-func (c *TalosClientConfig) SetMaxTotalConnections(maxTotalConnections int64) {
-	c.maxTotalConnections = maxTotalConnections
+func (c *TalosClientConfig) SetMaxIdleConns(maxIdleConns int64) {
+	c.maxIdleConns = maxIdleConns
 }
 
-func (c *TalosClientConfig) SetMaxTotalConnectionsPerRoute(maxTotalConnectionsPerRoute int64) {
-	c.maxTotalConnectionsPerRoute = maxTotalConnectionsPerRoute
+func (c *TalosClientConfig) SetMaxIdleConnsPerHost(maxIdleConnsPerHost int64) {
+	c.maxIdleConnsPerHost = maxIdleConnsPerHost
+}
+
+func (c *TalosClientConfig) SetMaxConnsPerHost(maxConnsPerHost int64) {
+	c.maxConnsPerHost = maxConnsPerHost
 }
 
 func (c *TalosClientConfig) SetDNSCacheSwitch(dnsCacheSwitch bool) {

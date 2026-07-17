@@ -43,14 +43,20 @@ const (
 	/**
 	 * The http client connection params
 	 */
-	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION         = "galaxy.talos.http.max.total.connection"
-	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_DEFAULT = 160
+	GALAXY_TALOS_HTTP_MAX_IDLE_CONNS         = "galaxy.talos.http.max.idle.conns"
+	GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_DEFAULT = 100
 
-	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE         = "galaxy.talos.http.max.total.connection.per.route"
-	GALAXY_TALOS_HTTP_MAX_TOTAL_CONNECTION_PER_ROUTE_DEFAULT = 160
+	GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST         = "galaxy.talos.http.max.idle.conns.per.host"
+	GALAXY_TALOS_HTTP_MAX_IDLE_CONNS_PER_HOST_DEFAULT = 2
+
+	GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST         = "galaxy.talos.http.max.conns.per.host"
+	GALAXY_TALOS_HTTP_MAX_CONNS_PER_HOST_DEFAULT = 0
 
 	GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH         = "galaxy.talos.http.dns.cache.switch"
 	GALAXY_TALOS_HTTP_DNS_CACHE_SWITCH_DEFAULT = false
+
+	GALAXY_TALOS_HTTP_PROXY_PER_HOST_TRANSPORT_ENABLED         = "galaxy.talos.http.proxy.per.host.transport.enabled"
+	GALAXY_TALOS_HTTP_PROXY_PER_HOST_TRANSPORT_ENABLED_DEFAULT = false
 
 	GALAXY_TALOS_HTTP_PROXY_URL         = "galaxy.talos.http.proxy.url"
 	GALAXY_TALOS_HTTP_PROXY_URL_DEFAULT = ""

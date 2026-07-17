@@ -11,9 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"runtime"
-	"strconv"
 	"sync"
 	"time"
 
@@ -142,33 +140,8 @@ func NewTalosClientFactory(ClientConfig *TalosClientConfig,
 	version := GetClientVersion()
 	agent := fmt.Sprintf("Go-SDK/%s Go/%s-%s-%s", version,
 		runtime.GOOS, runtime.GOARCH, runtime.Version())
-	transport := &http.Transport{
-		DialContext: newDNSCacheDialContext(ClientConfig.ClientConnTimeout(),
-			ClientConfig.DNSCacheSwitch()),
-	}
-	if proxyURL := ClientConfig.HttpProxyURL(); proxyURL != "" {
-		parsedProxyURL, err := url.Parse(proxyURL)
-		if err != nil {
-			transport.Proxy = func(*http.Request) (*url.URL, error) {
-				return nil, err
-			}
-		} else {
-			transport.Proxy = http.ProxyURL(parsedProxyURL)
-		}
-	} else if ClientConfig.HttpProxyHost() != "" && ClientConfig.HttpProxyPort() > 0 {
-		proxyURL := &url.URL{
-			Scheme: "http",
-			Host: net.JoinHostPort(ClientConfig.HttpProxyHost(),
-				strconv.FormatInt(ClientConfig.HttpProxyPort(), 10)),
-		}
-		if ClientConfig.HttpProxyUsername() != "" && ClientConfig.HttpProxyPassword() != "" {
-			proxyURL.User = url.UserPassword(ClientConfig.HttpProxyUsername(),
-				ClientConfig.HttpProxyPassword())
-		}
-		transport.Proxy = http.ProxyURL(proxyURL)
-	}
 	httpClient := &http.Client{
-		Transport: transport,
+		Transport: newTalosHTTPRoundTripper(ClientConfig),
 		Timeout:   time.Duration(ClientConfig.ClientTimeout()) * time.Millisecond,
 	}
 	return &TalosClientFactory{
