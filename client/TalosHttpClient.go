@@ -43,6 +43,8 @@ import (
 
 const RequestIdLength = 8
 
+const maxResponseBodySlurpSize = 2 << 10
+
 type TalosHttpClient struct {
 	url           *url.URL
 	credential    *auth.Credential
@@ -162,6 +164,7 @@ func (p *TalosHttpClient) Close() error {
 	}
 	p.header = http.Header{}
 	if p.response != nil && p.response.Body != nil {
+		p.drainResponseBodyForReuse()
 		err := p.response.Body.Close()
 		p.response = nil
 		return err
@@ -251,6 +254,13 @@ func (p *TalosHttpClient) Flush() error {
 			string(body), serverTime)
 	}
 	return nil
+}
+
+func (p *TalosHttpClient) drainResponseBodyForReuse() {
+	_, _ = io.Copy(ioutil.Discard, &io.LimitedReader{
+		R: p.response.Body,
+		N: maxResponseBodySlurpSize,
+	})
 }
 
 func (p *TalosHttpClient) canonicalizeResource(uri string) string {
